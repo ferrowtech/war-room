@@ -117,22 +117,21 @@ const IntelligenceReport = ({ text, isLatest = false }) => {
           INTELLIGENCE REPORT
         </span>
         {typing && (
-          <div className="flex gap-1">
+          <div className="flex gap-1 mr-auto">
             <span className="loading-dot" />
             <span className="loading-dot" />
             <span className="loading-dot" />
           </div>
         )}
-        {!typing && (
-          <button
-            data-testid="copy-briefing-button"
-            onClick={handleCopy}
-            className="ml-auto btn-primary px-2 py-1 flex items-center gap-1.5 text-[10px]"
-          >
-            {copied ? <Check size={10} /> : <Copy size={10} />}
-            <span>{copied ? "COPIED" : "COPY BRIEFING"}</span>
-          </button>
-        )}
+        <button
+          data-testid="copy-briefing-button"
+          onClick={handleCopy}
+          disabled={typing}
+          className={`ml-auto btn-primary px-2 py-1 flex items-center gap-1.5 text-[10px] ${typing ? "opacity-30 cursor-not-allowed" : ""}`}
+        >
+          {copied ? <Check size={10} /> : <Copy size={10} />}
+          <span>{copied ? "COPIED" : "COPY BRIEFING"}</span>
+        </button>
       </div>
 
       <div className="font-report text-[#b3e5fc] text-sm leading-relaxed">
@@ -142,8 +141,8 @@ const IntelligenceReport = ({ text, isLatest = false }) => {
             <span className="typewriter-cursor" />
           </>
         ) : (
-          <div className="markdown-report">
           <ReactMarkdown
+            className="markdown-report"
             components={{
               h2: ({ children }) => <strong className="block text-[#4fc3f7] font-heading text-xs tracking-widest mt-3 mb-1">{children}</strong>,
               h3: ({ children }) => <strong className="block text-[#b3e5fc] font-heading text-xs tracking-widest mt-2 mb-1">{children}</strong>,
@@ -154,7 +153,6 @@ const IntelligenceReport = ({ text, isLatest = false }) => {
           >
             {shownText}
           </ReactMarkdown>
-          </div>
         )}
       </div>
     </div>
@@ -213,8 +211,8 @@ const HistoryItem = ({ item }) => {
 
       {expanded && (
         <div className="px-3 pb-3 pt-1 border-t border-[#37474f]/30">
-          <div className="markdown-report">
           <ReactMarkdown
+            className="markdown-report"
             components={{
               h2: ({ children }) => <strong className="block text-[#4fc3f7] font-heading text-xs tracking-widest mt-2 mb-1">{children}</strong>,
               strong: ({ children }) => <strong className="text-white">{children}</strong>,
@@ -224,7 +222,6 @@ const HistoryItem = ({ item }) => {
           >
             {item.response}
           </ReactMarkdown>
-          </div>
         </div>
       )}
     </div>

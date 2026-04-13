@@ -20,8 +20,11 @@ AI tactical advisor web app for Last War: Survival game. Military HUD aesthetic.
 - Top bar: WAR ROOM logo, server/troop badge, Edit Profile link
 - Left panel: Commander profile summary (server, troop, furnace, heroes, counter intel)
   - Always visible on desktop (md+), collapsible overlay on mobile
+  - **Season Week Tracker (Polar Storm)**: set Season 2 start date, shows current week 1–8 with progress bar and priority action. Editable.
 - Center: Question textarea + image upload (file/camera), GET BRIEFING button
-- Intelligence Report: typewriter effect, react-markdown rendering
+- Intelligence Report: typewriter effect, react-markdown v8 rendering with styled custom renderers
+  - **COPY BRIEFING button** — always visible (disabled during typewriter animation), copies full response
+- **Mission History**: collapsible MISSION HISTORY section below response, each item expandable with full markdown + COPY button; persisted in localStorage `warroom_history` (last 20)
 - Bottom bar: MISSIONS REMAINING X/3, turns orange when ≤1
 - Locked overlay when missions = 0 (DAILY MISSION LIMIT REACHED + placeholder Stripe button)
 
@@ -34,6 +37,9 @@ AI tactical advisor web app for Last War: Survival game. Military HUD aesthetic.
 ### Rate Limiting
 - 3 requests/day, stored in localStorage (`warroom_missions`)
 - Resets at midnight (by date comparison)
+
+### Tech Notes
+- react-markdown downgraded to v8.0.7 (v10 broke `className` prop and caused runtime errors)
 
 ## Design
 - Background: #0a0e1a with SVG noise texture overlay
