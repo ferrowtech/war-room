@@ -3,6 +3,20 @@
 // ── Knowledge base ──────────────────────────────────────────────────────────
 const KNOWLEDGE_BASE = '{"squad_building":{"troop_counters":{"Tank":"beats Missile, weak to Aircraft","Missile":"beats Aircraft, weak to Tank","Aircraft":"beats Tank, weak to Missile"},"lineup_bonuses":{"3_same_type":"+5%","4_same_type":"+15%","5_same_type":"+20%"},"key_advice":["Focus on ONE main lineup","4-star heroes give significant power bonus","Upgrade turret and chip for main attack hero first"]},"season_2":{"name":"Polar Storm","weekly_schedule":{"week_1":{"priority":"Build Titanium Alloy Factory, upgrade Furnace, capture first Dig Site","city_unlock":"Level 1 cities unlock Day 3 at 12:00"},"week_2":{"priority":"Expand territory, upgrade Furnace, build Military Bases"},"week_3":{"priority":"Choose faction (Rebels or Gendarmerie) - determines Rare Soil War opponents"},"week_4":{"priority":"Rare Soil War begins - upgrade Alliance Furnace, coordinate alliance"},"week_5":{"priority":"Active war phase - attack/defense rotations"},"week_6":{"priority":"Push Faction Award points, defend Alliance Furnace"},"week_7":{"priority":"Faction Duel - 4v4 Capitol Conquest, final ranking"},"week_8":{"priority":"Season ends - Transfer Surge available based on rank"}},"temperature":{"critical_threshold":-20,"effects_below_threshold":["Cannot start rallies","Cannot use teleport"],"how_to_increase":["Upgrade High-heat Furnace","Stay near Alliance Furnace","Ask allies for Recon Plan (heats to 40C)","Tower of Victory decoration"]},"dig_sites":{"max_owned":4,"max_captures_per_day":2,"beast_weaknesses":{"Gorilla":"weak to Missile","Bear":"weak to Tank","Mammoth":"weak to Aircraft"},"virus_resistance":{"level_1":4000,"level_2":6500,"level_3":8500,"level_4":9500},"rare_soil_war":{"period":"Week 4-7","factions":["Rebels","Gendarmerie"],"victory_condition":"Destroy enemy Alliance Furnace"},"fast_growth_tips":["Kill highest Doom Walker on day 1 for coal","Claim Dig Site hourly coal daily","Keep Alliance Furnace running always","Buy season battle pass immediately"]}},"hero_progression":{"star_thresholds":{"4_stars":"Unlocks Super Sensory: +20% HP/Attack/Defense and +10% skill speed","5_stars":"Required to unlock Exclusive Weapon"},"shards_needed":{"to_1_star":25,"to_2_stars":50,"to_3_stars":100,"to_4_stars":300,"to_5_stars":500},"critical_rule":"NEVER assume or invent a hero star count. Always use the exact star level shown in the player profile."}}';
 
+const BOSSES_KB = '{"wanted_monsters":{"description":"Each Wanted Monster grants +50% damage to the matching troop type on its scheduled days. Always prioritise attacking on your bonus days.","schedule":{"Frenzied Butcher":{"days":["Monday","Thursday"],"troop_bonus":"Tank","bonus":"+50% damage for Tank troops"},"Frankenstein":{"days":["Tuesday","Friday"],"troop_bonus":"Missile","bonus":"+50% damage for Missile troops"},"Mutant Bulldog":{"days":["Wednesday","Saturday"],"troop_bonus":"Aircraft","bonus":"+50% damage for Aircraft troops"}}},"doom_walker":{"season_2_reward":"First kill each day grants a coal bonus — always kill the highest-level Doom Walker reachable","tip":"Kill on Day 1 of the season for maximum early coal"},"polar_beasts":{"description":"Season 2 Polar Storm dig site bosses — each beast is weak to one troop type","Bear":{"weakness":"Tank","location":"Dig Sites"},"Gorilla":{"weakness":"Missile","location":"Dig Sites"},"Mammoth":{"weakness":"Aircraft","location":"Dig Sites"}}}';
+
+// ── Boss lookup maps (used to generate player-specific prompt lines) ──────────
+const WANTED_MONSTER = {
+  Tank:     { name: "Frenzied Butcher", days: "Monday & Thursday" },
+  Missile:  { name: "Frankenstein",     days: "Tuesday & Friday"  },
+  Aircraft: { name: "Mutant Bulldog",   days: "Wednesday & Saturday" },
+};
+
+const POLAR_BEAST = {
+  Tank:     "Bear",
+  Missile:  "Gorilla",
+  Aircraft: "Mammoth",
+};
 // ── Constants ───────────────────────────────────────────────────────────────
 const WEEK_PRIORITY = {
   1: "Build Titanium Alloy Factory, upgrade Furnace, capture first Dig Site",
@@ -83,8 +97,8 @@ function buildSystemPrompt({ server, troop_type, furnace_level, heroes = [], sea
       ? `Current Season Week: ${season_week}/8 \u2014 ${WEEK_PRIORITY[season_week]}`
       : "";
 
-  const beastTarget =
-    troop_type === "Tank" ? "Bear" : troop_type === "Missile" ? "Gorilla" : "Mammoth";
+  const beastTarget = POLAR_BEAST[troop_type] || "Bear";
+  const wantedMonster = WANTED_MONSTER[troop_type] || { name: "Unknown", days: "check schedule" };
 
   return `You are WAR ROOM, a tactical AI advisor for Last War: Survival game.
 
@@ -110,6 +124,15 @@ CRITICAL HERO RULE: The star counts above are exact facts from the player's prof
 
 GAME KNOWLEDGE BASE:
 ${KNOWLEDGE_BASE}
+
+BOSS KNOWLEDGE BASE:
+${BOSSES_KB}
+
+BOSS SCHEDULE FOR THIS PLAYER (${troop_type}) \u2014 ALWAYS REFERENCE THESE IN BOSS-RELATED ANSWERS:
+- Wanted Monster: ${wantedMonster.name} spawns on ${wantedMonster.days} \u2014 attack it for +50% bonus damage as a ${troop_type} player
+- Polar Beast target: ${beastTarget} (weak to ${troop_type}) \u2014 always attack ${beastTarget} Dig Sites
+- Doom Walker: kill the highest-level one available each day for a coal bonus (Season 2)
+Rule: Whenever boss strategy, farming, or event schedules are mentioned, Claude MUST state the player's Wanted Monster name (${wantedMonster.name}) and its days (${wantedMonster.days}).
 
 BEAST TARGETING (CRITICAL \u2014 never get these wrong):
 - Bear is weak to Tank   \u2192 Tank players ALWAYS attack BEAR dig sites
