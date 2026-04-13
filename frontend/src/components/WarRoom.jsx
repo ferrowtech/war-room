@@ -20,6 +20,40 @@ const BRIEF_URL = "/.netlify/functions/brief";
 const HISTORY_KEY = "warroom_history";
 const MAX_HISTORY = 20;
 
+// ── Image compression ────────────────────────────────────────────
+// Resizes to max 1280px wide and iterates quality down until base64 < 3 MB.
+const MAX_IMG_WIDTH = 1280;
+const MAX_B64_BYTES = 3 * 1024 * 1024;
+
+const compressImage = (file) =>
+  new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const img = new Image();
+      img.onload = () => {
+        let w = img.width;
+        let h = img.height;
+        if (w > MAX_IMG_WIDTH) {
+          h = Math.round((h * MAX_IMG_WIDTH) / w);
+          w = MAX_IMG_WIDTH;
+        }
+        const canvas = document.createElement("canvas");
+        canvas.width = w;
+        canvas.height = h;
+        canvas.getContext("2d").drawImage(img, 0, 0, w, h);
+        let quality = 0.85;
+        let dataUrl;
+        do {
+          dataUrl = canvas.toDataURL("image/jpeg", quality);
+          quality = Math.max(quality - 0.1, 0.1);
+        } while (dataUrl.length > MAX_B64_BYTES && quality > 0.1);
+        resolve({ base64: dataUrl.split(",")[1], dataUrl });
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+
 const WEEKLY_SCHEDULE = {
   1: "Build Titanium Alloy Factory, upgrade Furnace, capture first Dig Site. Level 1 cities unlock Day 3 at 12:00.",
   2: "Expand territory, upgrade Furnace, build Military Bases.",
@@ -543,17 +577,12 @@ const WarRoom = ({ profile, onEditProfile }) => {
     localStorage.setItem("warroom_profile", JSON.stringify(updated));
   };
 
-  const handleImageUpload = useCallback((e) => {
+  const handleImageUpload = useCallback(async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      const dataUrl = reader.result;
-      const base64 = dataUrl.split(",")[1];
-      setUploadedImage(base64);
-      setImagePreview(dataUrl);
-    };
-    reader.readAsDataURL(file);
+    const { base64, dataUrl } = await compressImage(file);
+    setUploadedImage(base64);
+    setImagePreview(dataUrl);
   }, []);
 
   const clearImage = () => {
