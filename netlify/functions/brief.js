@@ -1,14 +1,89 @@
 "use strict";
 
-// ── Knowledge base ──────────────────────────────────────────────────────────
-const KNOWLEDGE_BASE = '{"squad_building":{"troop_counters":{"Tank":"beats Missile, weak to Aircraft","Missile":"beats Aircraft, weak to Tank","Aircraft":"beats Tank, weak to Missile"},"lineup_bonuses":{"3_same_type":"+5%","4_same_type":"+15%","5_same_type":"+20%"},"key_advice":["Focus on ONE main lineup","4-star heroes give significant power bonus","Upgrade turret and chip for main attack hero first"]},"season_2":{"name":"Polar Storm","weekly_schedule":{"week_1":{"priority":"Build Titanium Alloy Factory, upgrade Furnace, capture first Dig Site","city_unlock":"Level 1 cities unlock Day 3 at 12:00"},"week_2":{"priority":"Expand territory, upgrade Furnace, build Military Bases"},"week_3":{"priority":"Choose faction (Rebels or Gendarmerie) - determines Rare Soil War opponents"},"week_4":{"priority":"Rare Soil War begins - upgrade Alliance Furnace, coordinate alliance"},"week_5":{"priority":"Active war phase - attack/defense rotations"},"week_6":{"priority":"Push Faction Award points, defend Alliance Furnace"},"week_7":{"priority":"Faction Duel - 4v4 Capitol Conquest, final ranking"},"week_8":{"priority":"Season ends - Transfer Surge available based on rank"}},"temperature":{"critical_threshold":-20,"effects_below_threshold":["Cannot start rallies","Cannot use teleport"],"how_to_increase":["Upgrade High-heat Furnace","Stay near Alliance Furnace","Ask allies for Recon Plan (heats to 40C)","Tower of Victory decoration"]},"dig_sites":{"max_owned":4,"max_captures_per_day":2,"beast_weaknesses":{"Gorilla":"weak to Missile","Bear":"weak to Tank","Mammoth":"weak to Aircraft"},"virus_resistance":{"level_1":4000,"level_2":6500,"level_3":8500,"level_4":9500},"rare_soil_war":{"period":"Week 4-7","factions":["Rebels","Gendarmerie"],"victory_condition":"Destroy enemy Alliance Furnace"},"fast_growth_tips":["Kill highest Doom Walker on day 1 for coal","Claim Dig Site hourly coal daily","Keep Alliance Furnace running always","Buy season battle pass immediately"]}},"hero_progression":{"star_thresholds":{"4_stars":"Unlocks Super Sensory: +20% HP/Attack/Defense and +10% skill speed","5_stars":"Required to unlock Exclusive Weapon"},"shards_needed":{"to_1_star":25,"to_2_stars":50,"to_3_stars":100,"to_4_stars":300,"to_5_stars":500},"critical_rule":"NEVER assume or invent a hero star count. Always use the exact star level shown in the player profile."}}';
+// ── Hardcoded fallback knowledge bases ───────────────────────────────────────
+// Used when GitHub fetch fails. Keep in sync with the repo JSON files.
+const FALLBACK_MAIN_KB = '{"squad_building":{"troop_counters":{"Tank":"beats Missile, weak to Aircraft","Missile":"beats Aircraft, weak to Tank","Aircraft":"beats Tank, weak to Missile"},"lineup_bonuses":{"3_same_type":"+5%","4_same_type":"+15%","5_same_type":"+20%"},"key_advice":["Focus on ONE main lineup","4-star heroes give significant power bonus","Upgrade turret and chip for main attack hero first"]},"season_2":{"name":"Polar Storm","weekly_schedule":{"week_1":{"priority":"Build Titanium Alloy Factory, upgrade Furnace, capture first Dig Site","city_unlock":"Level 1 cities unlock Day 3 at 12:00"},"week_2":{"priority":"Expand territory, upgrade Furnace, build Military Bases"},"week_3":{"priority":"Choose faction (Rebels or Gendarmerie) - determines Rare Soil War opponents"},"week_4":{"priority":"Rare Soil War begins - upgrade Alliance Furnace, coordinate alliance"},"week_5":{"priority":"Active war phase - attack/defense rotations"},"week_6":{"priority":"Push Faction Award points, defend Alliance Furnace"},"week_7":{"priority":"Faction Duel - 4v4 Capitol Conquest, final ranking"},"week_8":{"priority":"Season ends - Transfer Surge available based on rank"}},"temperature":{"critical_threshold":-20,"effects_below_threshold":["Cannot start rallies","Cannot use teleport"],"how_to_increase":["Upgrade High-heat Furnace","Stay near Alliance Furnace","Ask allies for Recon Plan (heats to 40C)","Tower of Victory decoration"]},"dig_sites":{"max_owned":4,"max_captures_per_day":2,"beast_weaknesses":{"Gorilla":"weak to Missile","Bear":"weak to Tank","Mammoth":"weak to Aircraft"},"virus_resistance":{"level_1":4000,"level_2":6500,"level_3":8500,"level_4":9500},"rare_soil_war":{"period":"Week 4-7","factions":["Rebels","Gendarmerie"],"victory_condition":"Destroy enemy Alliance Furnace"},"fast_growth_tips":["Kill highest Doom Walker on day 1 for coal","Claim Dig Site hourly coal daily","Keep Alliance Furnace running always","Buy season battle pass immediately"]}},"hero_progression":{"star_thresholds":{"4_stars":"Unlocks Super Sensory: +20% HP/Attack/Defense and +10% skill speed","5_stars":"Required to unlock Exclusive Weapon"},"shards_needed":{"to_1_star":25,"to_2_stars":50,"to_3_stars":100,"to_4_stars":300,"to_5_stars":500},"critical_rule":"NEVER assume or invent a hero star count. Always use the exact star level shown in the player profile."}}';
 
-const BOSSES_KB = '{"wanted_monsters":{"description":"Each Wanted Monster grants +50% damage to the matching troop type on its scheduled days. Always prioritise attacking on your bonus days.","schedule":{"Frenzied Butcher":{"days":["Monday","Thursday"],"troop_bonus":"Tank","bonus":"+50% damage for Tank troops"},"Frankenstein":{"days":["Tuesday","Friday"],"troop_bonus":"Missile","bonus":"+50% damage for Missile troops"},"Mutant Bulldog":{"days":["Wednesday","Saturday"],"troop_bonus":"Aircraft","bonus":"+50% damage for Aircraft troops"}}},"doom_walker":{"season_2_reward":"First kill each day grants a coal bonus — always kill the highest-level Doom Walker reachable","tip":"Kill on Day 1 of the season for maximum early coal"},"polar_beasts":{"description":"Season 2 Polar Storm dig site bosses — each beast is weak to one troop type","Bear":{"weakness":"Tank","location":"Dig Sites"},"Gorilla":{"weakness":"Missile","location":"Dig Sites"},"Mammoth":{"weakness":"Aircraft","location":"Dig Sites"}}}';
+const FALLBACK_BOSSES_KB = '{"wanted_monsters":{"description":"Each Wanted Monster grants +50% damage to the matching troop type on its scheduled days. Always prioritise attacking on your bonus days.","schedule":{"Frenzied Butcher":{"days":["Monday","Thursday"],"troop_bonus":"Tank","bonus":"+50% damage for Tank troops"},"Frankenstein":{"days":["Tuesday","Friday"],"troop_bonus":"Missile","bonus":"+50% damage for Missile troops"},"Mutant Bulldog":{"days":["Wednesday","Saturday"],"troop_bonus":"Aircraft","bonus":"+50% damage for Aircraft troops"}}},"doom_walker":{"season_2_reward":"First kill each day grants a coal bonus — always kill the highest-level Doom Walker reachable","tip":"Kill on Day 1 of the season for maximum early coal"},"polar_beasts":{"description":"Season 2 Polar Storm dig site bosses — each beast is weak to one troop type","Bear":{"weakness":"Tank","location":"Dig Sites"},"Gorilla":{"weakness":"Missile","location":"Dig Sites"},"Mammoth":{"weakness":"Aircraft","location":"Dig Sites"}}}';
 
-// ── Boss lookup maps (used to generate player-specific prompt lines) ──────────
+// Pre-built fallback string (used when all GitHub fetches fail)
+const FALLBACK_KB_STR = JSON.stringify({
+  ...JSON.parse(FALLBACK_MAIN_KB),
+  bosses: JSON.parse(FALLBACK_BOSSES_KB),
+});
+
+// ── GitHub knowledge base URLs ────────────────────────────────────────────────
+const GITHUB_URLS = [
+  "https://raw.githubusercontent.com/ferrowtech/war-room/main/knowledge/lastwar_knowledge_base.json",
+  "https://raw.githubusercontent.com/ferrowtech/war-room/main/knowledge/heroes.json",
+  "https://raw.githubusercontent.com/ferrowtech/war-room/main/knowledge/star_progression.json",
+  "https://raw.githubusercontent.com/ferrowtech/war-room/main/knowledge/exclusive_weapons_s2.json",
+  "https://raw.githubusercontent.com/ferrowtech/war-room/main/knowledge/bosses.json",
+];
+
+// Keys for each URL (index-matched)
+const GITHUB_KEYS = ["lastwar", "heroes", "star_progression", "exclusive_weapons_s2", "bosses"];
+
+// ── In-memory cache (persists across warm invocations in the same container) ──
+const KB_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+const kbCache = { data: null, timestamp: 0 };
+
+async function fetchKnowledgeBase() {
+  const now = Date.now();
+
+  // Return cached version if still fresh
+  if (kbCache.data && now - kbCache.timestamp < KB_CACHE_TTL_MS) {
+    console.log("[WAR ROOM] Knowledge base served from cache");
+    return kbCache.data;
+  }
+
+  console.log("[WAR ROOM] Fetching knowledge base from GitHub...");
+
+  const results = await Promise.allSettled(
+    GITHUB_URLS.map((url) =>
+      fetch(url, { signal: AbortSignal.timeout(5000) }).then((r) => {
+        if (!r.ok) throw new Error(`HTTP ${r.status} for ${url}`);
+        return r.json();
+      })
+    )
+  );
+
+  // Log any individual failures
+  results.forEach((r, i) => {
+    if (r.status === "rejected") {
+      console.warn(`[WAR ROOM] Failed to fetch ${GITHUB_KEYS[i]}: ${r.reason}`);
+    }
+  });
+
+  // If the main KB (index 0) failed, fall back entirely to hardcoded
+  if (results[0].status === "rejected") {
+    console.error("[WAR ROOM] Main KB fetch failed — using full hardcoded fallback");
+    return FALLBACK_KB_STR;
+  }
+
+  const [lastwarRes, heroesRes, starProgRes, excWeapRes, bossesRes] = results;
+
+  const combined = {
+    // Main KB fields spread at root
+    ...lastwarRes.value,
+    // Additional files under their own keys; fall back to empty object if failed
+    heroes:              heroesRes.status  === "fulfilled" ? heroesRes.value  : {},
+    star_progression:    starProgRes.status === "fulfilled" ? starProgRes.value : {},
+    exclusive_weapons_s2: excWeapRes.status === "fulfilled" ? excWeapRes.value : {},
+    bosses:              bossesRes.status  === "fulfilled" ? bossesRes.value  : JSON.parse(FALLBACK_BOSSES_KB),
+  };
+
+  const kbStr = JSON.stringify(combined);
+  kbCache.data = kbStr;
+  kbCache.timestamp = now;
+  console.log(`[WAR ROOM] Knowledge base cached (${kbStr.length} chars)`);
+  return kbStr;
+}
+
+// ── Boss lookup maps (player-specific prompt lines) ───────────────────────────
 const WANTED_MONSTER = {
-  Tank:     { name: "Frenzied Butcher", days: "Monday & Thursday" },
-  Missile:  { name: "Frankenstein",     days: "Tuesday & Friday"  },
+  Tank:     { name: "Frenzied Butcher", days: "Monday & Thursday"    },
+  Missile:  { name: "Frankenstein",     days: "Tuesday & Friday"     },
   Aircraft: { name: "Mutant Bulldog",   days: "Wednesday & Saturday" },
 };
 
@@ -17,7 +92,8 @@ const POLAR_BEAST = {
   Missile:  "Gorilla",
   Aircraft: "Mammoth",
 };
-// ── Constants ───────────────────────────────────────────────────────────────
+
+// ── Constants ─────────────────────────────────────────────────────────────────
 const WEEK_PRIORITY = {
   1: "Build Titanium Alloy Factory, upgrade Furnace, capture first Dig Site",
   2: "Expand territory, upgrade Furnace, build Military Bases",
@@ -31,9 +107,9 @@ const WEEK_PRIORITY = {
 
 const SHARDS_TO_NEXT = { 1: 25, 2: 50, 3: 100, 4: 300 };
 
-// ── Hero parsing ─────────────────────────────────────────────────────────────
+// ── Hero parsing ──────────────────────────────────────────────────────────────
 // Uses explicit Unicode codepoint U+2605 (\u2605) to avoid encoding ambiguity.
-// Also accepts * as fallback in case the star glyph is mangled in transit.
+// Also accepts * as a fallback in case the star glyph is mangled in transit.
 const STAR_PATTERN = /^(.+?)\s+\((\d)[\u2605*]\)$/;
 
 function parseHeroes(heroes) {
@@ -52,8 +128,8 @@ function parseHeroes(heroes) {
   return parsed;
 }
 
-// ── System prompt builder ────────────────────────────────────────────────────
-function buildSystemPrompt({ server, troop_type, furnace_level, heroes = [], season_week }) {
+// ── System prompt builder ─────────────────────────────────────────────────────
+function buildSystemPrompt({ server, troop_type, furnace_level, heroes = [], season_week, kbStr }) {
   const parsedHeroes = parseHeroes(heroes);
 
   // Heroes block — one line per hero with exact star status
@@ -65,8 +141,7 @@ function buildSystemPrompt({ server, troop_type, furnace_level, heroes = [], sea
     if (p.stars >= 4) statusParts.push("Super Sensory UNLOCKED");
     if (p.stars >= 5) statusParts.push("Exclusive Weapon UNLOCKED");
     if (p.stars < 4) {
-      const shards = SHARDS_TO_NEXT[p.stars] || 0;
-      statusParts.push(`needs ${shards} shards to reach 4\u2605 Super Sensory`);
+      statusParts.push(`needs ${SHARDS_TO_NEXT[p.stars] || 0} shards to reach 4\u2605 Super Sensory`);
     }
     return `  - ${p.name}: ${p.stars}\u2605 \u2014 ${statusParts.join("; ")}`;
   });
@@ -75,18 +150,13 @@ function buildSystemPrompt({ server, troop_type, furnace_level, heroes = [], sea
   // Explicit per-hero upgrade prohibitions for heroes already at 4★ or 5★
   const prohibitionLines = parsedHeroes
     .filter((p) => p.stars !== null && p.stars >= 4)
-    .map((p) => {
-      if (p.stars >= 5) {
-        return (
-          `  - ${p.name} is ALREADY at 5\u2605. Exclusive Weapon and Super Sensory are BOTH UNLOCKED. ` +
+    .map((p) =>
+      p.stars >= 5
+        ? `  - ${p.name} is ALREADY at 5\u2605. Exclusive Weapon and Super Sensory are BOTH UNLOCKED. ` +
           `DO NOT suggest upgrading ${p.name}'s stars \u2014 they are maxed.`
-        );
-      }
-      return (
-        `  - ${p.name} is ALREADY at 4\u2605. Super Sensory is UNLOCKED. ` +
-        `DO NOT suggest ${p.name} needs to reach 4\u2605 \u2014 they are already there.`
-      );
-    });
+        : `  - ${p.name} is ALREADY at 4\u2605. Super Sensory is UNLOCKED. ` +
+          `DO NOT suggest ${p.name} needs to reach 4\u2605 \u2014 they are already there.`
+    );
   const prohibitionsBlock =
     prohibitionLines.length > 0
       ? prohibitionLines.join("\n")
@@ -97,8 +167,8 @@ function buildSystemPrompt({ server, troop_type, furnace_level, heroes = [], sea
       ? `Current Season Week: ${season_week}/8 \u2014 ${WEEK_PRIORITY[season_week]}`
       : "";
 
-  const beastTarget = POLAR_BEAST[troop_type] || "Bear";
-  const wantedMonster = WANTED_MONSTER[troop_type] || { name: "Unknown", days: "check schedule" };
+  const beastTarget    = POLAR_BEAST[troop_type]    || "Bear";
+  const wantedMonster  = WANTED_MONSTER[troop_type] || { name: "Unknown", days: "check schedule" };
 
   return `You are WAR ROOM, a tactical AI advisor for Last War: Survival game.
 
@@ -122,13 +192,10 @@ CRITICAL HERO RULE: The star counts above are exact facts from the player's prof
 - ONLY suggest star upgrades for heroes whose current stars are below the next milestone (4\u2605 or 5\u2605).
 =================================================================
 
-GAME KNOWLEDGE BASE:
-${KNOWLEDGE_BASE}
+KNOWLEDGE BASE:
+${kbStr}
 
-BOSS KNOWLEDGE BASE:
-${BOSSES_KB}
-
-BOSS SCHEDULE FOR THIS PLAYER (${troop_type}) \u2014 ALWAYS REFERENCE THESE IN BOSS-RELATED ANSWERS:
+BOSS SCHEDULE FOR THIS PLAYER (${troop_type}) \u2014 ALWAYS REFERENCE IN BOSS-RELATED ANSWERS:
 - Wanted Monster: ${wantedMonster.name} spawns on ${wantedMonster.days} \u2014 attack it for +50% bonus damage as a ${troop_type} player
 - Polar Beast target: ${beastTarget} (weak to ${troop_type}) \u2014 always attack ${beastTarget} Dig Sites
 - Doom Walker: kill the highest-level one available each day for a coal bonus (Season 2)
@@ -153,7 +220,7 @@ SCREENSHOT / IMAGE ANALYSIS RULES:
 INSTRUCTIONS: Answer in the same language the user writes in (English or Russian). Be direct, specific, and tactical. Reference the player's troop type (${troop_type}), furnace level (${furnace_level}), and actual hero stars from the profile above. Recommend the correct beast type for their troop. Keep answers under 200 words. Format with clear sections when helpful.`;
 }
 
-// ── CORS headers ─────────────────────────────────────────────────────────────
+// ── CORS headers ──────────────────────────────────────────────────────────────
 const CORS = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "Content-Type",
@@ -161,59 +228,43 @@ const CORS = {
   "Content-Type": "application/json",
 };
 
-// ── Handler ──────────────────────────────────────────────────────────────────
+// ── Handler ───────────────────────────────────────────────────────────────────
 exports.handler = async (event) => {
   if (event.httpMethod === "OPTIONS") {
     return { statusCode: 200, headers: CORS, body: "" };
   }
 
   if (event.httpMethod !== "POST") {
-    return {
-      statusCode: 405,
-      headers: CORS,
-      body: JSON.stringify({ error: "Method not allowed" }),
-    };
+    return { statusCode: 405, headers: CORS, body: JSON.stringify({ error: "Method not allowed" }) };
   }
 
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
-    return {
-      statusCode: 500,
-      headers: CORS,
-      body: JSON.stringify({ error: "ANTHROPIC_API_KEY not configured" }),
-    };
+    return { statusCode: 500, headers: CORS, body: JSON.stringify({ error: "ANTHROPIC_API_KEY not configured" }) };
   }
 
   let body;
   try {
     body = JSON.parse(event.body || "{}");
   } catch {
-    return {
-      statusCode: 400,
-      headers: CORS,
-      body: JSON.stringify({ error: "Invalid JSON body" }),
-    };
+    return { statusCode: 400, headers: CORS, body: JSON.stringify({ error: "Invalid JSON body" }) };
   }
 
   const { question, server, troop_type, furnace_level, heroes, season_week, image_base64 } = body;
 
   if (!question) {
-    return {
-      statusCode: 400,
-      headers: CORS,
-      body: JSON.stringify({ error: "question is required" }),
-    };
+    return { statusCode: 400, headers: CORS, body: JSON.stringify({ error: "question is required" }) };
   }
 
-  const systemPrompt = buildSystemPrompt({ server, troop_type, furnace_level, heroes, season_week });
+  // Fetch (or serve from cache) the combined knowledge base
+  const kbStr = await fetchKnowledgeBase();
+
+  const systemPrompt = buildSystemPrompt({ server, troop_type, furnace_level, heroes, season_week, kbStr });
 
   // Build user message content (with optional image attachment)
   const userContent = image_base64
     ? [
-        {
-          type: "image",
-          source: { type: "base64", media_type: "image/jpeg", data: image_base64 },
-        },
+        { type: "image", source: { type: "base64", media_type: "image/jpeg", data: image_base64 } },
         { type: "text", text: question },
       ]
     : question;
@@ -246,11 +297,7 @@ exports.handler = async (event) => {
     }
 
     const response = data.content?.[0]?.text || "";
-    return {
-      statusCode: 200,
-      headers: CORS,
-      body: JSON.stringify({ response }),
-    };
+    return { statusCode: 200, headers: CORS, body: JSON.stringify({ response }) };
   } catch (err) {
     console.error("[WAR ROOM] Fetch error:", err);
     return {
