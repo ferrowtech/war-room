@@ -93,6 +93,28 @@ const POLAR_BEAST = {
   Aircraft: "Mammoth",
 };
 
+// Hero-to-type map — mirrors SetupScreen.jsx HEROES constant
+const HERO_TYPES = {
+  Murphy: "Tank", Kimberly: "Tank", Marshall: "Tank", Williams: "Tank",
+  Mason: "Tank", Violet: "Tank", Richard: "Tank", Monica: "Tank",
+  Scarlett: "Tank", Stetmann: "Tank",
+  DVA: "Aircraft", Carlie: "Aircraft", Schuyler: "Aircraft", Morrison: "Aircraft",
+  Lucius: "Aircraft", Sarah: "Aircraft", Maxwell: "Aircraft", Cage: "Aircraft",
+  Swift: "Missile", Tesla: "Missile", Fiona: "Missile", Adam: "Missile",
+  Venom: "Missile", McGregor: "Missile", Elsa: "Missile", Kane: "Missile",
+};
+
+// Wanted Monster active on each day of the week (null = Sunday, no boss)
+const WANTED_MONSTER_BY_DAY = {
+  Monday:    "Frenzied Butcher",
+  Tuesday:   "Frankenstein",
+  Wednesday: "Mutant Bulldog",
+  Thursday:  "Frenzied Butcher",
+  Friday:    "Frankenstein",
+  Saturday:  "Mutant Bulldog",
+  Sunday:    null,
+};
+
 // ── Constants ─────────────────────────────────────────────────────────────────
 const WEEK_PRIORITY = {
   1: "Build Titanium Alloy Factory, upgrade Furnace, capture first Dig Site",
@@ -132,7 +154,7 @@ function parseHeroes(heroes) {
 function buildSystemPrompt({ server, troop_type, furnace_level, heroes = [], season_week, kbStr }) {
   const parsedHeroes = parseHeroes(heroes);
 
-  // Heroes block — one line per hero with exact star status
+  // Heroes block — one line per hero with exact star status + troop type label
   const heroLines = parsedHeroes.map((p) => {
     if (p.stars === null) {
       return `  - ${p.name}: star level could not be read (check profile)`;
@@ -143,7 +165,13 @@ function buildSystemPrompt({ server, troop_type, furnace_level, heroes = [], sea
     if (p.stars < 4) {
       statusParts.push(`needs ${SHARDS_TO_NEXT[p.stars] || 0} shards to reach 4\u2605 Super Sensory`);
     }
-    return `  - ${p.name}: ${p.stars}\u2605 \u2014 ${statusParts.join("; ")}`;
+    const heroType = HERO_TYPES[p.name];
+    const typeNote = heroType
+      ? heroType !== troop_type
+        ? ` [${heroType} hero \u2014 NOT ${troop_type}, do NOT recommend for ${troop_type} lineup]`
+        : ` [${heroType} hero \u2014 matches player troop type]`
+      : "";
+    return `  - ${p.name}: ${p.stars}\u2605 \u2014 ${statusParts.join("; ")}${typeNote}`;
   });
   const heroesBlock = heroLines.length > 0 ? heroLines.join("\n") : "  (no heroes set)";
 
@@ -170,6 +198,14 @@ function buildSystemPrompt({ server, troop_type, furnace_level, heroes = [], sea
   const beastTarget    = POLAR_BEAST[troop_type]    || "Bear";
   const wantedMonster  = WANTED_MONSTER[troop_type] || { name: "Unknown", days: "check schedule" };
 
+  const today = new Date().toLocaleDateString("en-US", { weekday: "long" });
+  const activeBossToday = WANTED_MONSTER_BY_DAY[today] ?? null;
+  const bossStatusToday = activeBossToday
+    ? activeBossToday === wantedMonster.name
+      ? `TODAY (${today}) IS YOUR BONUS DAY: ${wantedMonster.name} is active \u2014 attack now for +50% ${troop_type} damage!`
+      : `Today (${today}): ${activeBossToday} is active (not your bonus boss). Your next bonus days: ${wantedMonster.days}.`
+    : `Today (${today}) is Sunday \u2014 no Wanted Monster is active today.`;
+
   return `You are WAR ROOM, a tactical AI advisor for Last War: Survival game.
 
 =================================================================
@@ -178,6 +214,7 @@ COMMANDER PROFILE \u2014 VERIFIED FACTS \u2014 DO NOT CONTRADICT THESE
 Server: ${server}
 Primary Troop Type: ${troop_type}
 Furnace Level: ${furnace_level}
+Today: ${today}
 ${weekLine}
 
 HERO ROSTER \u2014 EXACT CURRENT STAR LEVELS (THIS IS GROUND TRUTH):
@@ -196,10 +233,11 @@ KNOWLEDGE BASE:
 ${kbStr}
 
 BOSS SCHEDULE FOR THIS PLAYER (${troop_type}) \u2014 ALWAYS REFERENCE IN BOSS-RELATED ANSWERS:
-- Wanted Monster: ${wantedMonster.name} spawns on ${wantedMonster.days} \u2014 attack it for +50% bonus damage as a ${troop_type} player
+- ${bossStatusToday}
+- Your Wanted Monster (${troop_type} bonus): ${wantedMonster.name} on ${wantedMonster.days} \u2014 +50% damage
 - Polar Beast target: ${beastTarget} (weak to ${troop_type}) \u2014 always attack ${beastTarget} Dig Sites
 - Doom Walker: kill the highest-level one available each day for a coal bonus (Season 2)
-Rule: Whenever boss strategy, farming, or event schedules are mentioned, Claude MUST state the player's Wanted Monster name (${wantedMonster.name}) and its days (${wantedMonster.days}).
+Rule: Whenever boss strategy, farming, or event schedules are mentioned, Claude MUST state today's active boss status and the player's Wanted Monster days (${wantedMonster.days}).
 
 BEAST TARGETING (CRITICAL \u2014 never get these wrong):
 - Bear is weak to Tank   \u2192 Tank players ALWAYS attack BEAR dig sites
