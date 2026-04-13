@@ -6,11 +6,9 @@ import {
   X,
   Camera,
   Send,
-  Shield,
   Zap,
   User,
   ChevronRight,
-  Lock,
   Copy,
   Clock,
   ChevronDown,
@@ -19,7 +17,6 @@ import {
 } from "lucide-react";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
-const DAILY_LIMIT = 3;
 const HISTORY_KEY = "warroom_history";
 const MAX_HISTORY = 20;
 
@@ -32,23 +29,6 @@ const WEEKLY_SCHEDULE = {
   6: "Push Faction Award points, defend Alliance Furnace.",
   7: "Faction Duel — 4v4 Capitol Conquest, final ranking.",
   8: "Season ends — Transfer Surge available based on rank.",
-};
-
-// ── Rate limit helpers ──────────────────────────────────────────
-const getToday = () => new Date().toDateString();
-const getRemainingMissions = () => {
-  const stored = JSON.parse(localStorage.getItem("warroom_missions") || "null");
-  if (!stored || stored.date !== getToday()) return DAILY_LIMIT;
-  return Math.max(0, DAILY_LIMIT - stored.used);
-};
-const consumeMission = () => {
-  const today = getToday();
-  const stored = JSON.parse(localStorage.getItem("warroom_missions") || "null");
-  const current =
-    stored && stored.date === today ? stored : { date: today, used: 0 };
-  current.used += 1;
-  localStorage.setItem("warroom_missions", JSON.stringify(current));
-  return Math.max(0, DAILY_LIMIT - current.used);
 };
 
 // ── Season helpers ──────────────────────────────────────────────
@@ -530,71 +510,6 @@ const ProfilePanel = ({ profile, isOpen, onClose, onUpdateSeasonDate }) => (
   </>
 );
 
-// ── Mission Bar ─────────────────────────────────────────────────
-const MissionBar = ({ remaining }) => {
-  const isLow = remaining <= 1;
-  return (
-    <div
-      data-testid="missions-remaining-counter"
-      className={`flex items-center justify-between px-4 py-3 border-t flex-shrink-0 ${
-        isLow ? "border-[#ff6f00]/40 mission-low" : "border-[#4fc3f7]/15"
-      }`}
-      style={{
-        background: isLow ? "rgba(255,111,0,0.06)" : "rgba(8,12,22,0.98)",
-        minHeight: "44px",
-      }}
-    >
-      <div className="flex items-center gap-2">
-        <Shield size={13} color={isLow ? "#ff6f00" : "#4fc3f7"} strokeWidth={1.5} />
-        <span className={`font-heading text-xs tracking-[0.2em] ${isLow ? "text-[#ff6f00]" : "text-[#4fc3f7]"}`}>
-          MISSIONS REMAINING
-        </span>
-      </div>
-      <span
-        className={`font-heading text-base font-bold px-2 py-0.5 border ${
-          isLow
-            ? "text-[#ff6f00] border-[#ff6f00]/40 bg-[#ff6f00]/10"
-            : "text-[#4fc3f7] border-[#4fc3f7]/30 bg-[#4fc3f7]/05"
-        }`}
-        data-testid="missions-count"
-      >
-        {remaining}/{DAILY_LIMIT}
-      </span>
-    </div>
-  );
-};
-
-// ── Locked Overlay ──────────────────────────────────────────────
-const LockedOverlay = () => (
-  <div
-    className="absolute inset-0 flex flex-col items-center justify-center z-20"
-    style={{
-      background:
-        "linear-gradient(135deg, rgba(10,14,26,0.96) 0%, rgba(20,25,40,0.98) 100%)",
-      border: "1px solid rgba(255,111,0,0.5)",
-    }}
-    data-testid="locked-overlay"
-  >
-    <Lock size={32} color="#ff6f00" strokeWidth={1} className="mb-4 opacity-80" />
-    <h3 className="font-heading text-base text-[#ff6f00] tracking-[0.3em] mb-2 text-center">
-      DAILY MISSION LIMIT REACHED
-    </h3>
-    <p className="font-report text-sm text-[#b3e5fc]/60 mb-6 text-center max-w-xs">
-      Upgrade to Premium for unlimited tactical briefings
-    </p>
-    <a
-      href="#premium"
-      data-testid="upgrade-premium-button"
-      className="btn-warning px-8 py-3 text-sm no-underline inline-block text-center"
-    >
-      ⚡ UPGRADE TO PREMIUM
-    </a>
-    <p className="font-heading text-[10px] text-[#37474f] mt-4 tracking-widest">
-      RESETS AT MIDNIGHT
-    </p>
-  </div>
-);
-
 // ── Main WarRoom ────────────────────────────────────────────────
 const WarRoom = ({ profile, onEditProfile }) => {
   const [localProfile, setLocalProfile] = useState(profile);
@@ -603,7 +518,6 @@ const WarRoom = ({ profile, onEditProfile }) => {
   const [imagePreview, setImagePreview] = useState(null);
   const [response, setResponse] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [remaining, setRemaining] = useState(getRemainingMissions);
   const [panelOpen, setPanelOpen] = useState(false);
   const [error, setError] = useState("");
   const [history, setHistory] = useState(loadHistory);
@@ -637,7 +551,7 @@ const WarRoom = ({ profile, onEditProfile }) => {
   };
 
   const handleSubmit = async () => {
-    if (!question.trim() || isLoading || remaining <= 0) return;
+    if (!question.trim() || isLoading) return;
     setError("");
     setIsLoading(true);
 
@@ -652,8 +566,6 @@ const WarRoom = ({ profile, onEditProfile }) => {
       };
 
       const res = await axios.post(`${API}/brief`, payload);
-      const newRemaining = consumeMission();
-      setRemaining(newRemaining);
       setResponse(res.data.response);
       const newHistory = saveToHistory(question.trim(), res.data.response);
       setHistory(newHistory);
@@ -754,7 +666,6 @@ const WarRoom = ({ profile, onEditProfile }) => {
               onKeyDown={handleKeyDown}
               placeholder="Enter your tactical question... (Ctrl+Enter to send)"
               rows={3}
-              disabled={remaining <= 0}
               className="war-input w-full px-3 py-2.5 text-sm resize-none"
             />
 
@@ -778,9 +689,7 @@ const WarRoom = ({ profile, onEditProfile }) => {
               <label
                 htmlFor="image-upload"
                 data-testid="image-upload-btn"
-                className={`btn-primary px-3 py-2.5 flex items-center gap-1.5 cursor-pointer text-xs ${
-                  remaining <= 0 ? "opacity-40 pointer-events-none" : ""
-                }`}
+                className="btn-primary px-3 py-2.5 flex items-center gap-1.5 cursor-pointer text-xs"
               >
                 <Camera size={14} strokeWidth={1.5} />
                 <span className="hidden sm:inline">ATTACH</span>
@@ -790,7 +699,7 @@ const WarRoom = ({ profile, onEditProfile }) => {
               <button
                 data-testid="get-briefing-button"
                 onClick={handleSubmit}
-                disabled={!question.trim() || isLoading || remaining <= 0}
+                disabled={!question.trim() || isLoading}
                 className="btn-primary flex-1 py-2.5 flex items-center justify-center gap-2 text-xs"
               >
                 {isLoading ? (
@@ -812,9 +721,6 @@ const WarRoom = ({ profile, onEditProfile }) => {
                 )}
               </button>
             </div>
-
-            {/* Locked overlay */}
-            {remaining <= 0 && <LockedOverlay />}
           </div>
 
           {/* Intelligence Report */}
@@ -866,7 +772,7 @@ const WarRoom = ({ profile, onEditProfile }) => {
           )}
 
           {/* Empty state */}
-          {!response && remaining > 0 && (
+          {!response && (
             <div className="flex flex-col items-center justify-center flex-1 py-12 opacity-20">
               <Zap size={40} color="#4fc3f7" strokeWidth={0.8} className="mb-3" />
               <p className="font-heading text-xs text-[#4fc3f7] tracking-[0.3em] text-center">
@@ -876,9 +782,6 @@ const WarRoom = ({ profile, onEditProfile }) => {
           )}
         </div>
       </div>
-
-      {/* Bottom Mission Bar */}
-      <MissionBar remaining={remaining} />
     </div>
   );
 };

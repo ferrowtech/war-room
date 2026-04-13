@@ -3,11 +3,23 @@ import * as SliderPrimitive from "@radix-ui/react-slider";
 
 const TROOP_TYPES = ["Tank", "Aircraft", "Missile"];
 
-const SetupScreen = ({ onComplete }) => {
-  const [server, setServer] = useState("");
-  const [troopType, setTroopType] = useState("");
-  const [furnaceLevel, setFurnaceLevel] = useState([5]);
-  const [heroes, setHeroes] = useState(["", "", ""]);
+const HEROES = {
+  Tank: ["Murphy", "Kimberly", "Marshall", "Williams", "Mason", "Violet", "Richard", "Monica", "Scarlett", "Stetmann"],
+  Aircraft: ["DVA", "Carlie", "Schuyler", "Morrison", "Lucius", "Sarah", "Maxwell", "Cage"],
+  Missile: ["Swift", "Tesla", "Fiona", "Adam", "Venom", "McGregor", "Elsa", "Kane"],
+};
+const ALL_HEROES = [...HEROES.Tank, ...HEROES.Aircraft, ...HEROES.Missile];
+
+const SetupScreen = ({ onComplete, initialProfile = null }) => {
+  const [server, setServer] = useState(initialProfile?.server || "");
+  const [troopType, setTroopType] = useState(initialProfile?.troopType || "");
+  const [furnaceLevel, setFurnaceLevel] = useState(
+    initialProfile ? [initialProfile.furnaceLevel] : [5]
+  );
+  const [heroes, setHeroes] = useState(() => {
+    if (!initialProfile?.heroes) return ["None", "None", "None"];
+    return initialProfile.heroes.map((h) => (ALL_HEROES.includes(h) ? h : "None"));
+  });
   const [error, setError] = useState("");
 
   const handleHero = (index, value) => {
@@ -23,8 +35,10 @@ const SetupScreen = ({ onComplete }) => {
       return;
     }
     setError("");
-    onComplete({ server, troopType, furnaceLevel: furnaceLevel[0], heroes });
+    onComplete({ server, troopType, furnaceLevel: furnaceLevel[0], heroes, seasonStartDate: initialProfile?.seasonStartDate });
   };
+
+  const isEditing = Boolean(initialProfile);
 
   return (
     <div
@@ -59,7 +73,7 @@ const SetupScreen = ({ onComplete }) => {
           <div className="flex items-center gap-2 justify-center">
             <div className="h-px flex-1 bg-[#4fc3f7]/30" />
             <span className="font-heading text-sm text-[#4fc3f7] tracking-[0.3em]">
-              COMMANDER SETUP
+              {isEditing ? "EDIT PROFILE" : "COMMANDER SETUP"}
             </span>
             <div className="h-px flex-1 bg-[#4fc3f7]/30" />
           </div>
@@ -160,16 +174,26 @@ const SetupScreen = ({ onComplete }) => {
                 TOP HEROES 🏔️
               </label>
               <div className="space-y-2">
-                {["Murphy", "Carlie", "Swift"].map((placeholder, i) => (
-                  <input
+                {[0, 1, 2].map((i) => (
+                  <select
                     key={i}
                     data-testid={`setup-hero-${i + 1}-input`}
-                    type="text"
                     value={heroes[i]}
                     onChange={(e) => handleHero(i, e.target.value)}
-                    placeholder={placeholder}
-                    className="war-input w-full px-3 py-2 text-sm"
-                  />
+                    className="war-input w-full px-3 py-2 text-sm appearance-none cursor-pointer"
+                    style={{ background: "rgba(10,14,26,0.95)" }}
+                  >
+                    <option value="None" style={{ background: "#0d1220" }}>— None —</option>
+                    {Object.entries(HEROES).map(([type, list]) => (
+                      <optgroup key={type} label={`── ${type.toUpperCase()} ──`}>
+                        {list.map((hero) => (
+                          <option key={hero} value={hero} style={{ background: "#0d1220", color: "#fff" }}>
+                            {hero}
+                          </option>
+                        ))}
+                      </optgroup>
+                    ))}
+                  </select>
                 ))}
               </div>
             </div>
@@ -188,7 +212,7 @@ const SetupScreen = ({ onComplete }) => {
               className="btn-primary w-full py-4 text-base tracking-[0.3em] mt-2"
               style={{ fontSize: "1rem" }}
             >
-              ❄️ ENTER WAR ROOM
+              {isEditing ? "💾 SAVE PROFILE" : "❄️ ENTER WAR ROOM"}
             </button>
           </form>
         </div>

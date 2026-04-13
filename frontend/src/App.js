@@ -8,6 +8,7 @@ const PROFILE_KEY = "warroom_profile";
 function App() {
   const [profile, setProfile] = useState(null);
   const [loaded, setLoaded] = useState(false);
+  const [editing, setEditing] = useState(false);
 
   // Remove the platform badge from the DOM
   useEffect(() => {
@@ -34,19 +35,19 @@ function App() {
   const handleSetup = (profileData) => {
     localStorage.setItem(PROFILE_KEY, JSON.stringify(profileData));
     setProfile(profileData);
+    setEditing(false);
   };
 
   const handleEditProfile = () => {
-    setProfile(null);
-    localStorage.removeItem(PROFILE_KEY);
+    setEditing(true);
   };
 
   if (!loaded) return null;
 
   return (
     <div className="App">
-      {!profile ? (
-        <SetupScreen onComplete={handleSetup} />
+      {!profile || editing ? (
+        <SetupScreen onComplete={handleSetup} initialProfile={editing ? profile : null} />
       ) : (
         <WarRoom profile={profile} onEditProfile={handleEditProfile} />
       )}
