@@ -426,12 +426,24 @@ const ProfilePanelContent = ({ profile, onClose, isMobile, onUpdateSeasonDate })
         <div>
           <p className="font-heading text-[9px] text-[#37474f] tracking-[0.3em] mb-2">🏔️ HEROES</p>
           <div className="space-y-1.5">
-            {profile.heroes.filter((h) => h && h.trim() && h !== "None").map((hero, i) => (
-              <div key={i} className="flex items-center gap-2">
-                <ChevronRight size={10} color="#4fc3f7" />
-                <span className="font-heading text-xs text-[#b3e5fc]">{hero}</span>
-              </div>
-            ))}
+            {profile.heroes.filter((h) => h && h.trim() && h !== "None").map((hero, i) => {
+              const match = hero.match(/^(.+?) \((\d)★\)$/);
+              const name = match ? match[1] : hero;
+              const stars = match ? parseInt(match[2]) : 0;
+              return (
+                <div key={i} className="flex items-center gap-1.5">
+                  <ChevronRight size={10} color="#4fc3f7" />
+                  <span className="font-heading text-xs text-[#b3e5fc]">{name}</span>
+                  {stars > 0 && (
+                    <span className="text-xs leading-none tracking-tight">
+                      {[1,2,3,4,5].map((s) => (
+                        <span key={s} style={{ color: s <= stars ? "#f59e0b" : "#37474f" }}>★</span>
+                      ))}
+                    </span>
+                  )}
+                </div>
+              );
+            })}
             {profile.heroes.filter((h) => h && h.trim() && h !== "None").length === 0 && (
               <span className="font-heading text-[10px] text-[#37474f]">No heroes set</span>
             )}
