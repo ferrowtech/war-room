@@ -122,6 +122,11 @@ GENERAL HERO MILESTONES (apply only to heroes NOT yet at these levels):
 - 5\u2605 unlocks Exclusive Weapon
 - Shards needed per level: 1\u2605=25, 2\u2605=50, 3\u2605=100, 4\u2605=300, 5\u2605=500
 
+SCREENSHOT / IMAGE ANALYSIS RULES:
+- Formation screenshots show very small vehicle icons that are NOT reliably distinguishable by visual appearance alone. DO NOT guess or infer troop types from vehicle visuals in any screenshot.
+- This player's troop type is ${troop_type} (from their profile). When analysing a formation screenshot, assume ALL heroes and troops shown belong to the ${troop_type} type unless the user explicitly states otherwise in their message.
+- If troop type cannot be confirmed from the image and the user has not specified it, default to the profile value (${troop_type}).
+
 INSTRUCTIONS: Answer in the same language the user writes in (English or Russian). Be direct, specific, and tactical. Reference the player's troop type (${troop_type}), furnace level (${furnace_level}), and actual hero stars from the profile above. Recommend the correct beast type for their troop. Keep answers under 200 words. Format with clear sections when helpful.`;
 }
 
