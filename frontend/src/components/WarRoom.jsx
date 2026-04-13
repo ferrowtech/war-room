@@ -426,13 +426,13 @@ const ProfilePanelContent = ({ profile, onClose, isMobile, onUpdateSeasonDate })
         <div>
           <p className="font-heading text-[9px] text-[#37474f] tracking-[0.3em] mb-2">🏔️ HEROES</p>
           <div className="space-y-1.5">
-            {profile.heroes.filter((h) => h.trim()).map((hero, i) => (
+            {profile.heroes.filter((h) => h && h.trim() && h !== "None").map((hero, i) => (
               <div key={i} className="flex items-center gap-2">
                 <ChevronRight size={10} color="#4fc3f7" />
                 <span className="font-heading text-xs text-[#b3e5fc]">{hero}</span>
               </div>
             ))}
-            {profile.heroes.filter((h) => h.trim()).length === 0 && (
+            {profile.heroes.filter((h) => h && h.trim() && h !== "None").length === 0 && (
               <span className="font-heading text-[10px] text-[#37474f]">No heroes set</span>
             )}
           </div>

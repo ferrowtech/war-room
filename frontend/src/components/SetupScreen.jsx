@@ -10,6 +10,13 @@ const HEROES = {
 };
 const ALL_HEROES = [...HEROES.Tank, ...HEROES.Aircraft, ...HEROES.Missile];
 
+const parseHero = (h) => {
+  if (!h || h === "None" || !h.trim()) return { name: "None", stars: 1 };
+  const match = h.match(/^(.+?) \((\d)★\)$/);
+  if (match) return { name: ALL_HEROES.includes(match[1]) ? match[1] : "None", stars: parseInt(match[2]) };
+  return { name: ALL_HEROES.includes(h) ? h : "None", stars: 1 };
+};
+
 const SetupScreen = ({ onComplete, initialProfile = null }) => {
   const [server, setServer] = useState(initialProfile?.server || "");
   const [troopType, setTroopType] = useState(initialProfile?.troopType || "");
@@ -17,14 +24,24 @@ const SetupScreen = ({ onComplete, initialProfile = null }) => {
     initialProfile ? [initialProfile.furnaceLevel] : [5]
   );
   const [heroes, setHeroes] = useState(() => {
-    if (!initialProfile?.heroes) return ["None", "None", "None"];
-    return initialProfile.heroes.map((h) => (ALL_HEROES.includes(h) ? h : "None"));
+    if (!initialProfile?.heroes) return [
+      { name: "None", stars: 1 },
+      { name: "None", stars: 1 },
+      { name: "None", stars: 1 },
+    ];
+    return initialProfile.heroes.map(parseHero);
   });
   const [error, setError] = useState("");
 
-  const handleHero = (index, value) => {
+  const handleHero = (index, name) => {
     const updated = [...heroes];
-    updated[index] = value;
+    updated[index] = { name, stars: name === "None" ? 1 : updated[index].name === name ? updated[index].stars : 1 };
+    setHeroes(updated);
+  };
+
+  const handleHeroStars = (index, stars) => {
+    const updated = [...heroes];
+    updated[index] = { ...updated[index], stars };
     setHeroes(updated);
   };
 
@@ -35,7 +52,10 @@ const SetupScreen = ({ onComplete, initialProfile = null }) => {
       return;
     }
     setError("");
-    onComplete({ server, troopType, furnaceLevel: furnaceLevel[0], heroes, seasonStartDate: initialProfile?.seasonStartDate });
+    const formattedHeroes = heroes.map((h) =>
+      h.name !== "None" ? `${h.name} (${h.stars}★)` : "None"
+    );
+    onComplete({ server, troopType, furnaceLevel: furnaceLevel[0], heroes: formattedHeroes, seasonStartDate: initialProfile?.seasonStartDate });
   };
 
   const isEditing = Boolean(initialProfile);
@@ -175,25 +195,51 @@ const SetupScreen = ({ onComplete, initialProfile = null }) => {
               </label>
               <div className="space-y-2">
                 {[0, 1, 2].map((i) => (
-                  <select
-                    key={i}
-                    data-testid={`setup-hero-${i + 1}-input`}
-                    value={heroes[i]}
-                    onChange={(e) => handleHero(i, e.target.value)}
-                    className="war-input w-full px-3 py-2 text-sm appearance-none cursor-pointer"
-                    style={{ background: "rgba(10,14,26,0.95)" }}
-                  >
-                    <option value="None" style={{ background: "#0d1220" }}>— None —</option>
-                    {Object.entries(HEROES).map(([type, list]) => (
-                      <optgroup key={type} label={`── ${type.toUpperCase()} ──`}>
-                        {list.map((hero) => (
-                          <option key={hero} value={hero} style={{ background: "#0d1220", color: "#fff" }}>
-                            {hero}
-                          </option>
+                  <div key={i} className="flex items-center gap-2">
+                    {/* Dropdown */}
+                    <select
+                      data-testid={`setup-hero-${i + 1}-input`}
+                      value={heroes[i].name}
+                      onChange={(e) => handleHero(i, e.target.value)}
+                      className="war-input flex-1 min-w-0 px-3 py-2 text-sm appearance-none cursor-pointer"
+                      style={{ background: "rgba(10,14,26,0.95)" }}
+                    >
+                      <option value="None" style={{ background: "#0d1220" }}>— None —</option>
+                      {Object.entries(HEROES).map(([type, list]) => (
+                        <optgroup key={type} label={`── ${type.toUpperCase()} ──`}>
+                          {list.map((hero) => (
+                            <option key={hero} value={hero} style={{ background: "#0d1220", color: "#fff" }}>
+                              {hero}
+                            </option>
+                          ))}
+                        </optgroup>
+                      ))}
+                    </select>
+
+                    {/* Star rating */}
+                    {heroes[i].name !== "None" ? (
+                      <div
+                        className="flex gap-0.5 flex-shrink-0"
+                        data-testid={`hero-${i + 1}-stars`}
+                      >
+                        {[1, 2, 3, 4, 5].map((s) => (
+                          <button
+                            key={s}
+                            type="button"
+                            data-testid={`setup-hero-${i + 1}-star-${s}`}
+                            onClick={() => handleHeroStars(i, s)}
+                            className="w-6 h-6 flex items-center justify-center text-base leading-none transition-all hover:scale-125 focus:outline-none"
+                            style={{ color: heroes[i].stars >= s ? "#fbbf24" : "#37474f" }}
+                            title={`${s}★`}
+                          >
+                            ★
+                          </button>
                         ))}
-                      </optgroup>
-                    ))}
-                  </select>
+                      </div>
+                    ) : (
+                      <div className="w-[120px] flex-shrink-0" />
+                    )}
+                  </div>
                 ))}
               </div>
             </div>
