@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import axios from "axios";
+import ReactMarkdown from "react-markdown";
 import {
   Menu,
   X,
@@ -89,9 +90,26 @@ const IntelligenceReport = ({ text, imagePreview }) => {
         </div>
       )}
 
-      <p className="font-report text-[#b3e5fc] text-sm leading-relaxed whitespace-pre-wrap">
-        {displayed}
-        {typing && <span className="typewriter-cursor" />}
+      <p className="font-report text-[#b3e5fc] text-sm leading-relaxed">
+        {typing ? (
+          <>
+            {displayed}
+            <span className="typewriter-cursor" />
+          </>
+        ) : (
+          <ReactMarkdown
+            className="markdown-report"
+            components={{
+              h2: ({children}) => <strong className="block text-[#4fc3f7] font-heading text-xs tracking-widest mt-3 mb-1">{children}</strong>,
+              h3: ({children}) => <strong className="block text-[#b3e5fc] font-heading text-xs tracking-widest mt-2 mb-1">{children}</strong>,
+              strong: ({children}) => <strong className="text-white">{children}</strong>,
+              li: ({children}) => <li className="ml-4 list-disc text-[#b3e5fc]">{children}</li>,
+              p: ({children}) => <p className="mb-2">{children}</p>,
+            }}
+          >
+            {displayed}
+          </ReactMarkdown>
+        )}
       </p>
     </div>
   );
@@ -150,7 +168,7 @@ const TopBar = ({ profile, onEditProfile, onTogglePanel }) => (
 );
 
 // ── Profile Panel ───────────────────────────────────────────────
-const ProfilePanel = ({ profile, isOpen, onClose }) => {
+const ProfilePanelContent = ({ profile, onClose, isMobile }) => {
   const troopIcon =
     profile.troopType === "Tank"
       ? "⚔️"
@@ -159,156 +177,136 @@ const ProfilePanel = ({ profile, isOpen, onClose }) => {
       : "🚀";
 
   return (
-    <>
-      {/* Mobile overlay backdrop */}
-      {isOpen && (
-        <div
-          className="fixed inset-0 bg-black/60 z-40 md:hidden"
-          onClick={onClose}
-        />
-      )}
-
-      {/* Panel */}
-      <div
-        data-testid="profile-panel"
-        className={`panel-mobile md:relative md:translate-x-0 md:w-56 md:flex-shrink-0 hud-panel z-50 md:z-auto flex flex-col ${
-          isOpen ? "open" : ""
-        }`}
-        style={{ minHeight: 0 }}
-      >
-        {/* Panel header */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-[#4fc3f7]/20">
-          <div className="flex items-center gap-1.5">
-            <User size={12} color="#4fc3f7" strokeWidth={1.5} />
-            <span className="font-heading text-[10px] text-[#4fc3f7] tracking-[0.3em]">
-              COMMANDER
-            </span>
-          </div>
+    <div className="flex flex-col h-full">
+      {/* Panel header */}
+      <div className="flex items-center justify-between px-4 py-3 border-b border-[#4fc3f7]/20">
+        <div className="flex items-center gap-1.5">
+          <User size={12} color="#4fc3f7" strokeWidth={1.5} />
+          <span className="font-heading text-[10px] text-[#4fc3f7] tracking-[0.3em]">
+            COMMANDER
+          </span>
+        </div>
+        {isMobile && (
           <button
-            className="md:hidden text-[#37474f] hover:text-[#4fc3f7]"
+            className="text-[#37474f] hover:text-[#4fc3f7] transition-colors"
             onClick={onClose}
           >
             <X size={16} />
           </button>
+        )}
+      </div>
+
+      <div className="p-4 space-y-4 overflow-y-auto flex-1">
+        {/* Server */}
+        <div>
+          <p className="font-heading text-[9px] text-[#37474f] tracking-[0.3em] mb-1">SERVER</p>
+          <p className="font-heading text-lg text-white">#{profile.server}</p>
+        </div>
+        <div className="h-px bg-[#37474f]/40" />
+
+        {/* Troop type */}
+        <div>
+          <p className="font-heading text-[9px] text-[#37474f] tracking-[0.3em] mb-1">TROOP TYPE</p>
+          <div className="flex items-center gap-2">
+            <span className="text-base">{troopIcon}</span>
+            <span className="font-heading text-sm text-[#4fc3f7]">{profile.troopType.toUpperCase()}</span>
+          </div>
+        </div>
+        <div className="h-px bg-[#37474f]/40" />
+
+        {/* Furnace level */}
+        <div>
+          <p className="font-heading text-[9px] text-[#37474f] tracking-[0.3em] mb-1">FURNACE LEVEL</p>
+          <div className="flex items-center gap-2">
+            <div className="flex-1 h-1.5 bg-[#37474f]/40">
+              <div className="h-full bg-[#4fc3f7]" style={{ width: `${(profile.furnaceLevel / 20) * 100}%` }} />
+            </div>
+            <span className="font-heading text-sm text-white w-5 text-right">{profile.furnaceLevel}</span>
+          </div>
+        </div>
+        <div className="h-px bg-[#37474f]/40" />
+
+        {/* Heroes */}
+        <div>
+          <p className="font-heading text-[9px] text-[#37474f] tracking-[0.3em] mb-2">🏔️ HEROES</p>
+          <div className="space-y-1.5">
+            {profile.heroes.filter((h) => h.trim()).map((hero, i) => (
+              <div key={i} className="flex items-center gap-2">
+                <ChevronRight size={10} color="#4fc3f7" />
+                <span className="font-heading text-xs text-[#b3e5fc]">{hero}</span>
+              </div>
+            ))}
+            {profile.heroes.filter((h) => h.trim()).length === 0 && (
+              <span className="font-heading text-[10px] text-[#37474f]">No heroes set</span>
+            )}
+          </div>
         </div>
 
-        <div className="p-4 space-y-4 overflow-y-auto flex-1">
-          {/* Server */}
-          <div>
-            <p className="font-heading text-[9px] text-[#37474f] tracking-[0.3em] mb-1">
-              SERVER
-            </p>
-            <p className="font-heading text-lg text-white">
-              #{profile.server}
-            </p>
-          </div>
-
-          <div className="h-px bg-[#37474f]/40" />
-
-          {/* Troop type */}
-          <div>
-            <p className="font-heading text-[9px] text-[#37474f] tracking-[0.3em] mb-1">
-              TROOP TYPE
-            </p>
-            <div className="flex items-center gap-2">
-              <span className="text-base">{troopIcon}</span>
-              <span className="font-heading text-sm text-[#4fc3f7]">
-                {profile.troopType.toUpperCase()}
-              </span>
-            </div>
-          </div>
-
-          <div className="h-px bg-[#37474f]/40" />
-
-          {/* Furnace level */}
-          <div>
-            <p className="font-heading text-[9px] text-[#37474f] tracking-[0.3em] mb-1">
-              FURNACE LEVEL
-            </p>
-            <div className="flex items-center gap-2">
-              <div className="flex-1 h-1.5 bg-[#37474f]/40">
-                <div
-                  className="h-full bg-[#4fc3f7]"
-                  style={{ width: `${(profile.furnaceLevel / 20) * 100}%` }}
-                />
-              </div>
-              <span className="font-heading text-sm text-white w-5 text-right">
-                {profile.furnaceLevel}
-              </span>
-            </div>
-          </div>
-
-          <div className="h-px bg-[#37474f]/40" />
-
-          {/* Heroes */}
-          <div>
-            <p className="font-heading text-[9px] text-[#37474f] tracking-[0.3em] mb-2">
-              🏔️ HEROES
-            </p>
-            <div className="space-y-1.5">
-              {profile.heroes.filter((h) => h.trim()).map((hero, i) => (
-                <div key={i} className="flex items-center gap-2">
-                  <ChevronRight size={10} color="#4fc3f7" />
-                  <span className="font-heading text-xs text-[#b3e5fc]">
-                    {hero}
-                  </span>
-                </div>
-              ))}
-              {profile.heroes.filter((h) => h.trim()).length === 0 && (
-                <span className="font-heading text-[10px] text-[#37474f]">
-                  No heroes set
-                </span>
-              )}
-            </div>
-          </div>
-
-          {/* Troop counter info */}
-          <div className="h-px bg-[#37474f]/40" />
-          <div>
-            <p className="font-heading text-[9px] text-[#37474f] tracking-[0.3em] mb-2">
-              COUNTER INTEL
-            </p>
-            <div
-              className="p-2 border border-[#37474f]/40"
-              style={{ background: "rgba(55,71,79,0.1)" }}
-            >
-              {profile.troopType === "Tank" && (
-                <>
-                  <p className="font-heading text-[9px] text-green-400 mb-1">
-                    ✓ BEATS: Missile
-                  </p>
-                  <p className="font-heading text-[9px] text-[#ff6f00]">
-                    ✗ WEAK TO: Aircraft
-                  </p>
-                </>
-              )}
-              {profile.troopType === "Aircraft" && (
-                <>
-                  <p className="font-heading text-[9px] text-green-400 mb-1">
-                    ✓ BEATS: Tank
-                  </p>
-                  <p className="font-heading text-[9px] text-[#ff6f00]">
-                    ✗ WEAK TO: Missile
-                  </p>
-                </>
-              )}
-              {profile.troopType === "Missile" && (
-                <>
-                  <p className="font-heading text-[9px] text-green-400 mb-1">
-                    ✓ BEATS: Aircraft
-                  </p>
-                  <p className="font-heading text-[9px] text-[#ff6f00]">
-                    ✗ WEAK TO: Tank
-                  </p>
-                </>
-              )}
-            </div>
+        {/* Counter info */}
+        <div className="h-px bg-[#37474f]/40" />
+        <div>
+          <p className="font-heading text-[9px] text-[#37474f] tracking-[0.3em] mb-2">COUNTER INTEL</p>
+          <div className="p-2 border border-[#37474f]/40" style={{ background: "rgba(55,71,79,0.1)" }}>
+            {profile.troopType === "Tank" && (
+              <>
+                <p className="font-heading text-[9px] text-green-400 mb-1">✓ BEATS: Missile</p>
+                <p className="font-heading text-[9px] text-[#ff6f00]">✗ WEAK TO: Aircraft</p>
+              </>
+            )}
+            {profile.troopType === "Aircraft" && (
+              <>
+                <p className="font-heading text-[9px] text-green-400 mb-1">✓ BEATS: Tank</p>
+                <p className="font-heading text-[9px] text-[#ff6f00]">✗ WEAK TO: Missile</p>
+              </>
+            )}
+            {profile.troopType === "Missile" && (
+              <>
+                <p className="font-heading text-[9px] text-green-400 mb-1">✓ BEATS: Aircraft</p>
+                <p className="font-heading text-[9px] text-[#ff6f00]">✗ WEAK TO: Tank</p>
+              </>
+            )}
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
 };
+
+const ProfilePanel = ({ profile, isOpen, onClose }) => (
+  <>
+    {/* Mobile: overlay drawer */}
+    {isOpen && (
+      <div className="md:hidden fixed inset-0 z-50">
+        <div className="absolute inset-0 bg-black/60" onClick={onClose} />
+        <div
+          data-testid="profile-panel-mobile"
+          className="absolute left-0 top-0 bottom-0 w-72 flex flex-col"
+          style={{
+            background: "rgba(8,12,22,0.98)",
+            borderRight: "1px solid rgba(79,195,247,0.35)",
+            boxShadow: "4px 0 20px rgba(0,0,0,0.5)",
+            animation: "slideInLeft 0.25s ease",
+          }}
+        >
+          <ProfilePanelContent profile={profile} onClose={onClose} isMobile />
+        </div>
+      </div>
+    )}
+
+    {/* Desktop: always visible sidebar */}
+    <div
+      data-testid="profile-panel"
+      className="hidden md:flex flex-col w-52 flex-shrink-0"
+      style={{
+        background: "rgba(8,12,22,0.95)",
+        borderRight: "1px solid rgba(79,195,247,0.3)",
+        boxShadow: "2px 0 12px rgba(79,195,247,0.08)",
+      }}
+    >
+      <ProfilePanelContent profile={profile} onClose={onClose} isMobile={false} />
+    </div>
+  </>
+);
 
 // ── Mission Bar ─────────────────────────────────────────────────
 const MissionBar = ({ remaining }) => {
@@ -316,33 +314,27 @@ const MissionBar = ({ remaining }) => {
   return (
     <div
       data-testid="missions-remaining-counter"
-      className={`flex items-center justify-between px-4 py-2.5 border-t ${
-        isLow ? "border-[#ff6f00]/40 mission-low" : "border-[#4fc3f7]/10"
+      className={`flex items-center justify-between px-4 py-3 border-t flex-shrink-0 ${
+        isLow ? "border-[#ff6f00]/40 mission-low" : "border-[#4fc3f7]/15"
       }`}
       style={{
-        background: isLow
-          ? "rgba(255,111,0,0.05)"
-          : "rgba(10,14,26,0.95)",
+        background: isLow ? "rgba(255,111,0,0.06)" : "rgba(8,12,22,0.98)",
+        minHeight: "44px",
       }}
     >
       <div className="flex items-center gap-2">
-        <Shield
-          size={12}
-          color={isLow ? "#ff6f00" : "#4fc3f7"}
-          strokeWidth={1.5}
-        />
-        <span
-          className={`font-heading text-xs tracking-[0.25em] ${
-            isLow ? "text-[#ff6f00]" : "text-[#4fc3f7]"
-          }`}
-        >
-          MISSIONS REMAINING:
+        <Shield size={13} color={isLow ? "#ff6f00" : "#4fc3f7"} strokeWidth={1.5} />
+        <span className={`font-heading text-xs tracking-[0.2em] ${isLow ? "text-[#ff6f00]" : "text-[#4fc3f7]"}`}>
+          MISSIONS REMAINING
         </span>
       </div>
       <span
-        className={`font-heading text-sm font-bold ${
-          isLow ? "text-glow-orange" : "text-glow-cyan"
+        className={`font-heading text-base font-bold px-2 py-0.5 border ${
+          isLow
+            ? "text-[#ff6f00] border-[#ff6f00]/40 bg-[#ff6f00]/10"
+            : "text-[#4fc3f7] border-[#4fc3f7]/30 bg-[#4fc3f7]/05"
         }`}
+        data-testid="missions-count"
       >
         {remaining}/{DAILY_LIMIT}
       </span>
@@ -601,7 +593,7 @@ const WarRoom = ({ profile, onEditProfile }) => {
           {/* Empty state */}
           {!response && remaining > 0 && (
             <div className="flex flex-col items-center justify-center flex-1 py-12 opacity-20">
-              <span className="text-4xl mb-3">⚔️</span>
+              <Zap size={40} color="#4fc3f7" strokeWidth={0.8} className="mb-3" />
               <p className="font-heading text-xs text-[#4fc3f7] tracking-[0.3em] text-center">
                 AWAITING MISSION BRIEFING REQUEST
               </p>

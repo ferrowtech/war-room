@@ -301,6 +301,30 @@ body {
   animation: glow-pulse-orange 2s ease-in-out infinite;
 }
 
+/* ── Markdown Report Styles ── */
+.markdown-report ul {
+  margin: 6px 0;
+  padding-left: 1.2rem;
+}
+
+.markdown-report li {
+  margin-bottom: 3px;
+  color: #b3e5fc;
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+
+.markdown-report p {
+  margin-bottom: 8px;
+  color: #b3e5fc;
+  font-size: 0.875rem;
+  line-height: 1.7;
+}
+
+.markdown-report strong {
+  color: #ffffff;
+}
+
 /* ── Scrollbar ── */
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: #0a0e1a; }

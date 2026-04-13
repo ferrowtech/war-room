@@ -114,7 +114,7 @@ const SetupScreen = ({ onComplete }) => {
                     value={t}
                     style={{ background: "#0d1220", color: "#fff" }}
                   >
-                    {t === "Tank" ? "⚔️ Tank" : t === "Aircraft" ? "✈️ Aircraft" : "🚀 Missile"} — {t}
+                    {t}
                   </option>
                 ))}
               </select>
