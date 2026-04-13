@@ -5,9 +5,10 @@ AI tactical advisor web app for Last War: Survival game. Military HUD aesthetic.
 
 ## Architecture
 - **Frontend**: React (CRA + Craco), Tailwind CSS, Rajdhani/Chivo fonts, lucide-react
-- **Backend**: FastAPI, emergentintegrations (Anthropic Claude claude-sonnet-4-5-20250929)
+- **Backend**: Netlify Functions (Node.js 18) — `/netlify/functions/brief.js` + `/netlify/functions/health.js`
 - **Storage**: localStorage only (no DB for user data)
-- **AI**: Anthropic Claude via Emergent Universal Key
+- **AI**: Anthropic Claude `claude-sonnet-4-5-20250929` via direct `https://api.anthropic.com/v1/messages` call
+- **Deployment**: Netlify — `netlify.toml` at repo root (`base=frontend`, `functions=../netlify/functions`, `NODE_VERSION=18`)
 
 ## Implemented (April 2026)
 

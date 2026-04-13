@@ -16,7 +16,7 @@ import {
   Check,
 } from "lucide-react";
 
-const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+const BRIEF_URL = "/.netlify/functions/brief";
 const HISTORY_KEY = "warroom_history";
 const MAX_HISTORY = 20;
 
@@ -581,7 +581,7 @@ const WarRoom = ({ profile, onEditProfile }) => {
       // Debug: verify exact hero data sent to Claude
       console.log('[WAR ROOM] Heroes in payload:', JSON.stringify(payload.heroes));
 
-      const res = await axios.post(`${API}/brief`, payload);
+      const res = await axios.post(BRIEF_URL, payload);
       setResponse(res.data.response);
       const newHistory = saveToHistory(question.trim(), res.data.response);
       setHistory(newHistory);
