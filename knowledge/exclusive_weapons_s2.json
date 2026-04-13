@@ -1,0 +1,13 @@
+{
+  "description": "Exclusive Weapons are powerful hero-specific weapons unlocked at 5 stars in Season 2 Polar Storm.",
+  "unlock_requirement": "Hero must be at 5 stars (500 total shards from 0)",
+  "upgrade_levels": {
+    "note": "Exclusive Weapons can be leveled up using Exclusive Weapon Enhancement materials obtained from season events and the Alliance store."
+  },
+  "general_advice": [
+    "Do not chase Exclusive Weapon until your hero is already at 4 stars with Super Sensory active",
+    "Exclusive Weapon provides a large damage/survivability boost for the hero's primary skill",
+    "Prioritise Exclusive Weapon for your main attack hero first",
+    "Materials are scarce early in the season — save them for your primary hero"
+  ]
+}

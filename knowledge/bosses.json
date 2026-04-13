@@ -1,0 +1,34 @@
+{
+  "wanted_monsters": {
+    "description": "Each Wanted Monster grants +50% damage to the matching troop type on its scheduled days. Always prioritise attacking on your bonus days.",
+    "schedule": {
+      "Frenzied Butcher": {
+        "days": ["Monday", "Thursday"],
+        "troop_bonus": "Tank",
+        "bonus": "+50% damage for Tank troops"
+      },
+      "Frankenstein": {
+        "days": ["Tuesday", "Friday"],
+        "troop_bonus": "Missile",
+        "bonus": "+50% damage for Missile troops"
+      },
+      "Mutant Bulldog": {
+        "days": ["Wednesday", "Saturday"],
+        "troop_bonus": "Aircraft",
+        "bonus": "+50% damage for Aircraft troops"
+      }
+    },
+    "sunday": "No Wanted Monster active on Sunday"
+  },
+  "doom_walker": {
+    "season_2_reward": "First kill each day grants a coal bonus — always kill the highest-level Doom Walker reachable",
+    "tip": "Kill on Day 1 of the season for maximum early coal",
+    "respawn": "Doom Walkers respawn daily — consistent kills accelerate season progress"
+  },
+  "polar_beasts": {
+    "description": "Season 2 Polar Storm dig site bosses — each beast is weak to one troop type",
+    "Bear":    { "weakness": "Tank",     "location": "Dig Sites" },
+    "Gorilla": { "weakness": "Missile",  "location": "Dig Sites" },
+    "Mammoth": { "weakness": "Aircraft", "location": "Dig Sites" }
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "troop_types": {
+    "Tank": {
+      "heroes": ["Murphy", "Kimberly", "Marshall", "Williams", "Mason", "Violet", "Richard", "Monica", "Scarlett", "Stetmann"],
+      "description": "Tank heroes boost ground armored units. Use in Tank lineups only."
+    },
+    "Aircraft": {
+      "heroes": ["DVA", "Carlie", "Schuyler", "Morrison", "Lucius", "Sarah", "Maxwell", "Cage"],
+      "description": "Aircraft heroes boost aerial units. Use in Aircraft lineups only."
+    },
+    "Missile": {
+      "heroes": ["Swift", "Tesla", "Fiona", "Adam", "Venom", "McGregor", "Elsa", "Kane"],
+      "description": "Missile heroes boost missile/rocket units. Use in Missile lineups only."
+    }
+  },
+  "lineup_rule": "Always match heroes to your primary troop type. Using off-type heroes reduces lineup effectiveness. Never recommend a Tank hero for an Aircraft or Missile player."
+}

@@ -1,0 +1,35 @@
+{
+  "milestones": {
+    "4_stars": {
+      "unlocks": "Super Sensory",
+      "bonus": "+20% HP, +20% Attack, +20% Defense, +10% skill speed",
+      "priority": "#1 priority upgrade for every hero — highest power jump in the game"
+    },
+    "5_stars": {
+      "unlocks": "Exclusive Weapon",
+      "prerequisite": "Must reach 4 stars first",
+      "priority": "Secondary priority after reaching 4 stars"
+    }
+  },
+  "shards_cumulative_from_zero": {
+    "to_1_star": 25,
+    "to_2_stars": 50,
+    "to_3_stars": 100,
+    "to_4_stars": 300,
+    "to_5_stars": 500
+  },
+  "shards_incremental": {
+    "0_to_1": 25,
+    "1_to_2": 25,
+    "2_to_3": 50,
+    "3_to_4": 200,
+    "4_to_5": 200
+  },
+  "upgrade_strategy": [
+    "Push your main attack hero to 4 stars first for the Super Sensory bonus",
+    "Then push your secondary and support heroes to 4 stars",
+    "Only pursue 5 stars (Exclusive Weapon) once key heroes are at 4 stars",
+    "Spending shards on an off-type hero is always wasteful"
+  ],
+  "critical_rule": "NEVER tell a player to upgrade a hero that is already at the target star level. Always verify current star count from the player profile before giving advice."
+}
