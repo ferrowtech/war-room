@@ -36,6 +36,7 @@ class BriefRequest(BaseModel):
     troop_type: str
     furnace_level: int
     heroes: List[str]
+    season_week: Optional[int] = None
 
 
 @api_router.get("/")
@@ -52,13 +53,28 @@ async def get_brief(request: BriefRequest):
 
     heroes_str = ', '.join([h.strip() for h in request.heroes if h.strip() and h.strip() != 'None'])
 
+    week_line = ""
+    if request.season_week:
+        week_priority = {
+            1: "Build Titanium Alloy Factory, upgrade Furnace, capture first Dig Site",
+            2: "Expand territory, upgrade Furnace, build Military Bases",
+            3: "Choose faction (Rebels or Gendarmerie) — determines Rare Soil War opponents",
+            4: "Rare Soil War begins — upgrade Alliance Furnace, coordinate with alliance",
+            5: "Active war phase — attack/defense rotations",
+            6: "Push Faction Award points, defend Alliance Furnace",
+            7: "Faction Duel — 4v4 Capitol Conquest, final ranking",
+            8: "Season ends — Transfer Surge available based on rank",
+        }
+        priority = week_priority.get(request.season_week, "")
+        week_line = f"\n- Current Season Week: {request.season_week}/8. This week's priority: {priority}"
+
     system_prompt = f"""You are WAR ROOM, a tactical AI advisor for Last War: Survival game.
 
 PLAYER PROFILE:
 - Server: {request.server}
 - Primary Troop Type: {request.troop_type}
 - Furnace Level: {request.furnace_level}
-- Top Heroes: {heroes_str if heroes_str else 'Not specified'}
+- Top Heroes: {heroes_str if heroes_str else 'Not specified'}{week_line}
 
 KNOWLEDGE BASE:
 {KNOWLEDGE_BASE}

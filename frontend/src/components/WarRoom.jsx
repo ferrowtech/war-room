@@ -574,6 +574,7 @@ const WarRoom = ({ profile, onEditProfile }) => {
         troop_type: localProfile.troopType,
         furnace_level: Number(localProfile.furnaceLevel),
         heroes: localProfile.heroes,
+        season_week: getSeasonWeek(localProfile.seasonStartDate),
         ...(uploadedImage ? { image_base64: uploadedImage } : {}),
       };
 
