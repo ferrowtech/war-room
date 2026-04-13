@@ -258,6 +258,41 @@ SCREENSHOT / IMAGE ANALYSIS RULES:
 INSTRUCTIONS: Answer in the same language the user writes in (English or Russian). Be direct, specific, and tactical. Reference the player's troop type (${troop_type}), furnace level (${furnace_level}), and actual hero stars from the profile above. Recommend the correct beast type for their troop. Keep answers under 200 words. Format with clear sections when helpful.`;
 }
 
+// ── Notion logging (fire-and-forget) ─────────────────────────────────────────
+function logToNotion({ question, server, troop_type, season_week, furnace_level, heroes, image_base64 }) {
+  const token = process.env.NOTION_TOKEN;
+  const dbId  = process.env.NOTION_DATABASE_ID;
+  if (!token || !dbId) return; // silently skip if env vars not set
+
+  const heroesStr = Array.isArray(heroes)
+    ? heroes.filter((h) => h && h.toLowerCase() !== "none").join(", ")
+    : String(heroes || "");
+
+  const payload = {
+    parent: { database_id: dbId },
+    properties: {
+      Question:       { title:     [{ text: { content: String(question || "").slice(0, 2000) } }] },
+      Server:         { rich_text: [{ text: { content: String(server || "") } }] },
+      "Troop Type":   { select:    { name: troop_type || "Unknown" } },
+      "Season Week":  { number:    season_week  ? Number(season_week)  : null },
+      "Furnace Level":{ number:    furnace_level ? Number(furnace_level): null },
+      Heroes:         { rich_text: [{ text: { content: heroesStr.slice(0, 2000) } }] },
+      "Has Image":    { checkbox:  Boolean(image_base64) },
+      Timestamp:      { date:      { start: new Date().toISOString() } },
+    },
+  };
+
+  fetch("https://api.notion.com/v1/pages", {
+    method: "POST",
+    headers: {
+      Authorization:    `Bearer ${token}`,
+      "Content-Type":   "application/json",
+      "Notion-Version": "2022-06-28",
+    },
+    body: JSON.stringify(payload),
+  }).catch((err) => console.warn("[WAR ROOM] Notion log failed:", err.message));
+}
+
 // ── CORS headers ──────────────────────────────────────────────────────────────
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -335,6 +370,8 @@ exports.handler = async (event) => {
     }
 
     const response = data.content?.[0]?.text || "";
+    // Fire-and-forget — does not block the response
+    logToNotion({ question, server, troop_type, season_week, furnace_level, heroes, image_base64 });
     return { statusCode: 200, headers: CORS, body: JSON.stringify({ response }) };
   } catch (err) {
     console.error("[WAR ROOM] Fetch error:", err);
