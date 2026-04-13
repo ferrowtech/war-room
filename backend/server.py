@@ -51,7 +51,31 @@ async def get_brief(request: BriefRequest):
     if not api_key:
         raise HTTPException(status_code=500, detail="API key not configured")
 
-    heroes_str = ', '.join([h.strip() for h in request.heroes if h.strip() and h.strip() != 'None'])
+    # Build explicit per-hero lines for the system prompt
+    import re as _re
+    SHARDS_TO_4STAR = {0: 475, 1: 450, 2: 400, 3: 300}
+    hero_lines = []
+    for h in request.heroes:
+        h = h.strip()
+        if not h or h == 'None':
+            continue
+        m = _re.match(r'^(.+?) \((\d)★\)$', h)
+        if m:
+            name, stars = m.group(1), int(m.group(2))
+            flags = []
+            if stars >= 4:
+                flags.append("Super Sensory UNLOCKED (+20% HP/Atk/Def, +10% skill speed)")
+            if stars == 5:
+                flags.append("Exclusive Weapon UNLOCKED")
+            if stars < 4:
+                flags.append(f"needs {SHARDS_TO_4STAR.get(stars, 0)} shards to reach 4★ Super Sensory")
+            flag_str = f" [{'; '.join(flags)}]" if flags else ""
+            hero_lines.append(f"  - {name}: {stars} stars{flag_str}")
+        else:
+            hero_lines.append(f"  - {h}: star level unknown")
+    heroes_block = '\n'.join(hero_lines) if hero_lines else '  None set'
+
+    logger.info(f"[WAR ROOM] System prompt heroes block:\n{heroes_block}")
 
     week_line = ""
     if request.season_week:
@@ -74,7 +98,8 @@ PLAYER PROFILE:
 - Server: {request.server}
 - Primary Troop Type: {request.troop_type}
 - Furnace Level: {request.furnace_level}
-- Top Heroes: {heroes_str if heroes_str else 'Not specified'}{week_line}
+- Top Heroes (EXACT star counts — do NOT assume or change these):
+{heroes_block}{week_line}
 
 KNOWLEDGE BASE:
 {KNOWLEDGE_BASE}

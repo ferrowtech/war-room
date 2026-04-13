@@ -578,6 +578,9 @@ const WarRoom = ({ profile, onEditProfile }) => {
         ...(uploadedImage ? { image_base64: uploadedImage } : {}),
       };
 
+      // Debug: verify exact hero data sent to Claude
+      console.log('[WAR ROOM] Heroes in payload:', JSON.stringify(payload.heroes));
+
       const res = await axios.post(`${API}/brief`, payload);
       setResponse(res.data.response);
       const newHistory = saveToHistory(question.trim(), res.data.response);
