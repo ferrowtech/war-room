@@ -848,6 +848,18 @@ const WarRoom = ({ profile, onEditProfile }) => {
                   {history.map((item) => (
                     <HistoryItem key={item.id} item={item} />
                   ))}
+                  <button
+                    data-testid="clear-history-button"
+                    onClick={() => {
+                      localStorage.removeItem(HISTORY_KEY);
+                      setHistory([]);
+                      setShowHistory(false);
+                    }}
+                    className="w-full mt-2 py-2 px-3 font-heading text-[9px] tracking-[0.25em] text-[#37474f] border border-[#37474f]/20 hover:text-[#ff6f00] hover:border-[#ff6f00]/30 transition-colors"
+                    style={{ background: "rgba(10,14,26,0.3)" }}
+                  >
+                    CLEAR HISTORY
+                  </button>
                 </div>
               )}
             </div>

@@ -63,7 +63,14 @@ PLAYER PROFILE:
 KNOWLEDGE BASE:
 {KNOWLEDGE_BASE}
 
-INSTRUCTIONS: Answer in the same language the user writes in (English or Russian). Be direct, specific, and tactical. Always reference the player's specific troop type ({request.troop_type}) and furnace level ({request.furnace_level}) in your advice. Keep answers under 200 words. Format with clear sections when helpful."""
+BEAST TARGETING RULES (CRITICAL — never get these wrong):
+- {request.troop_type} player → target DIG SITE BEASTS weak to {request.troop_type}
+- Bear is weak to Tank   → Tank players attack BEAR dig sites
+- Gorilla is weak to Missile → Missile players attack GORILLA dig sites
+- Mammoth is weak to Aircraft → Aircraft players attack MAMMOTH dig sites
+This player uses {request.troop_type}, so they should always target: {"Bear" if request.troop_type == "Tank" else "Gorilla" if request.troop_type == "Missile" else "Mammoth"} dig sites.
+
+INSTRUCTIONS: Answer in the same language the user writes in (English or Russian). Be direct, specific, and tactical. Always reference the player's specific troop type ({request.troop_type}) and furnace level ({request.furnace_level}) in your advice. When mentioning dig sites or beasts, always recommend the correct beast type for this player's troop type. Keep answers under 200 words. Format with clear sections when helpful."""
 
     try:
         chat = LlmChat(
