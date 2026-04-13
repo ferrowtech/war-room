@@ -44,80 +44,146 @@ async def root():
     return {"message": "WAR ROOM API Online"}
 
 
+import re as _re
+
+WEEK_PRIORITY = {
+    1: "Build Titanium Alloy Factory, upgrade Furnace, capture first Dig Site",
+    2: "Expand territory, upgrade Furnace, build Military Bases",
+    3: "Choose faction (Rebels or Gendarmerie) — determines Rare Soil War opponents",
+    4: "Rare Soil War begins — upgrade Alliance Furnace, coordinate with alliance",
+    5: "Active war phase — attack/defense rotations",
+    6: "Push Faction Award points, defend Alliance Furnace",
+    7: "Faction Duel — 4v4 Capitol Conquest, final ranking",
+    8: "Season ends — Transfer Surge available based on rank",
+}
+
+SHARDS_TO_NEXT = {1: 25, 2: 50, 3: 100, 4: 300}  # shards needed to reach next star
+
+
+def _build_heroes_data(heroes: List[str]):
+    """Parse hero strings like 'Kimberly (5\u2605)' into structured dicts.
+    Uses explicit Unicode codepoint U+2605 to avoid encoding ambiguity."""
+    parsed = []
+    # Accepts both the Unicode star U+2605 (★) and a plain digit fallback
+    STAR_PATTERN = _re.compile(r'^(.+?)\s+\((\d)[\u2605\*]\)$')
+    for h in heroes:
+        h = h.strip()
+        if not h or h.lower() == 'none':
+            continue
+        m = STAR_PATTERN.match(h)
+        if m:
+            name = m.group(1).strip()
+            stars = int(m.group(2))
+            parsed.append({"name": name, "stars": stars, "raw": h})
+        else:
+            # Last-resort: try splitting on space before '('
+            logger.warning(f"[WAR ROOM] Hero string did not match star pattern: repr={repr(h)}")
+            parsed.append({"name": h, "stars": None, "raw": h})
+    return parsed
+
+
+def _build_system_prompt(request) -> tuple[str, str, str]:
+    """Returns (system_prompt, heroes_block, prohibitions_block)."""
+    parsed_heroes = _build_heroes_data(request.heroes)
+
+    # Build heroes_block with explicit status labels
+    hero_lines = []
+    for p in parsed_heroes:
+        name, stars = p["name"], p["stars"]
+        if stars is None:
+            hero_lines.append(f"  - {name}: star level could not be read (check profile)")
+            continue
+        status_parts = []
+        if stars >= 4:
+            status_parts.append("Super Sensory UNLOCKED")
+        if stars >= 5:
+            status_parts.append("Exclusive Weapon UNLOCKED")
+        if stars < 4:
+            shards = SHARDS_TO_NEXT.get(stars, 0)
+            status_parts.append(f"needs {shards} shards to reach 4\u2605 Super Sensory")
+        status = "; ".join(status_parts)
+        hero_lines.append(f"  - {name}: {stars}\u2605 — {status}")
+
+    heroes_block = "\n".join(hero_lines) if hero_lines else "  (no heroes set)"
+
+    # Build explicit per-hero prohibitions for heroes already at milestone stars
+    prohibition_lines = []
+    for p in parsed_heroes:
+        name, stars = p["name"], p["stars"]
+        if stars is None:
+            continue
+        if stars >= 5:
+            prohibition_lines.append(
+                f"  - {name} is ALREADY at 5\u2605. Exclusive Weapon and Super Sensory are BOTH UNLOCKED. "
+                f"DO NOT suggest upgrading {name}'s stars — they are maxed."
+            )
+        elif stars >= 4:
+            prohibition_lines.append(
+                f"  - {name} is ALREADY at 4\u2605. Super Sensory is UNLOCKED. "
+                f"DO NOT suggest {name} needs to reach 4\u2605 — they are already there."
+            )
+    prohibitions_block = "\n".join(prohibition_lines) if prohibition_lines else "  (all heroes below 4\u2605 — upgrades may be recommended)"
+
+    # Season week line
+    week_line = ""
+    if request.season_week:
+        priority = WEEK_PRIORITY.get(request.season_week, "")
+        week_line = f"Current Season Week: {request.season_week}/8 — {priority}"
+
+    beast_target = "Bear" if request.troop_type == "Tank" else "Gorilla" if request.troop_type == "Missile" else "Mammoth"
+
+    system_prompt = f"""You are WAR ROOM, a tactical AI advisor for Last War: Survival game.
+
+=================================================================
+COMMANDER PROFILE — VERIFIED FACTS — DO NOT CONTRADICT THESE
+=================================================================
+Server: {request.server}
+Primary Troop Type: {request.troop_type}
+Furnace Level: {request.furnace_level}
+{week_line}
+
+HERO ROSTER — EXACT CURRENT STAR LEVELS (THIS IS GROUND TRUTH):
+{heroes_block}
+
+EXPLICIT UPGRADE PROHIBITIONS (based on verified hero data above):
+{prohibitions_block}
+
+CRITICAL HERO RULE: The star counts above are exact facts from the player's profile.
+- NEVER tell a hero to "reach 4\u2605" if they are already at 4\u2605 or 5\u2605.
+- NEVER tell a hero to "get 5\u2605" if they are already at 5\u2605.
+- ONLY suggest star upgrades for heroes whose current stars are below the next milestone (4\u2605 or 5\u2605).
+=================================================================
+
+GAME KNOWLEDGE BASE:
+{KNOWLEDGE_BASE}
+
+BEAST TARGETING (CRITICAL — never get these wrong):
+- Bear is weak to Tank   → Tank players ALWAYS attack BEAR dig sites
+- Gorilla is weak to Missile → Missile players ALWAYS attack GORILLA dig sites
+- Mammoth is weak to Aircraft → Aircraft players ALWAYS attack MAMMOTH dig sites
+This player uses {request.troop_type} → they MUST target: {beast_target} dig sites ONLY.
+
+GENERAL HERO MILESTONES (apply only to heroes NOT yet at these levels):
+- 4\u2605 unlocks Super Sensory: +20% HP/Attack/Defense, +10% skill speed
+- 5\u2605 unlocks Exclusive Weapon
+- Shards needed per level: 1\u2605=25, 2\u2605=50, 3\u2605=100, 4\u2605=300, 5\u2605=500
+
+INSTRUCTIONS: Answer in the same language the user writes in (English or Russian). Be direct, specific, and tactical. Reference the player's troop type ({request.troop_type}), furnace level ({request.furnace_level}), and actual hero stars from the profile above. Recommend the correct beast type for their troop. Keep answers under 200 words. Format with clear sections when helpful."""
+
+    return system_prompt, heroes_block, prohibitions_block
+
+
 @api_router.post("/brief")
 async def get_brief(request: BriefRequest):
-    # ANTHROPIC_API_KEY goes here via environment variable
     api_key = os.environ.get('EMERGENT_LLM_KEY', '')
     if not api_key:
         raise HTTPException(status_code=500, detail="API key not configured")
 
-    # Build explicit per-hero lines for the system prompt
-    import re as _re
-    SHARDS_TO_4STAR = {0: 475, 1: 450, 2: 400, 3: 300}
-    hero_lines = []
-    for h in request.heroes:
-        h = h.strip()
-        if not h or h == 'None':
-            continue
-        m = _re.match(r'^(.+?) \((\d)★\)$', h)
-        if m:
-            name, stars = m.group(1), int(m.group(2))
-            flags = []
-            if stars >= 4:
-                flags.append("Super Sensory UNLOCKED (+20% HP/Atk/Def, +10% skill speed)")
-            if stars == 5:
-                flags.append("Exclusive Weapon UNLOCKED")
-            if stars < 4:
-                flags.append(f"needs {SHARDS_TO_4STAR.get(stars, 0)} shards to reach 4★ Super Sensory")
-            flag_str = f" [{'; '.join(flags)}]" if flags else ""
-            hero_lines.append(f"  - {name}: {stars} stars{flag_str}")
-        else:
-            hero_lines.append(f"  - {h}: star level unknown")
-    heroes_block = '\n'.join(hero_lines) if hero_lines else '  None set'
+    system_prompt, heroes_block, prohibitions_block = _build_system_prompt(request)
 
-    logger.info(f"[WAR ROOM] System prompt heroes block:\n{heroes_block}")
-
-    week_line = ""
-    if request.season_week:
-        week_priority = {
-            1: "Build Titanium Alloy Factory, upgrade Furnace, capture first Dig Site",
-            2: "Expand territory, upgrade Furnace, build Military Bases",
-            3: "Choose faction (Rebels or Gendarmerie) — determines Rare Soil War opponents",
-            4: "Rare Soil War begins — upgrade Alliance Furnace, coordinate with alliance",
-            5: "Active war phase — attack/defense rotations",
-            6: "Push Faction Award points, defend Alliance Furnace",
-            7: "Faction Duel — 4v4 Capitol Conquest, final ranking",
-            8: "Season ends — Transfer Surge available based on rank",
-        }
-        priority = week_priority.get(request.season_week, "")
-        week_line = f"\n- Current Season Week: {request.season_week}/8. This week's priority: {priority}"
-
-    system_prompt = f"""You are WAR ROOM, a tactical AI advisor for Last War: Survival game.
-
-PLAYER PROFILE:
-- Server: {request.server}
-- Primary Troop Type: {request.troop_type}
-- Furnace Level: {request.furnace_level}
-- Top Heroes (EXACT star counts — do NOT assume or change these):
-{heroes_block}{week_line}
-
-KNOWLEDGE BASE:
-{KNOWLEDGE_BASE}
-
-BEAST TARGETING RULES (CRITICAL — never get these wrong):
-- {request.troop_type} player → target DIG SITE BEASTS weak to {request.troop_type}
-- Bear is weak to Tank   → Tank players attack BEAR dig sites
-- Gorilla is weak to Missile → Missile players attack GORILLA dig sites
-- Mammoth is weak to Aircraft → Aircraft players attack MAMMOTH dig sites
-This player uses {request.troop_type}, so they should always target: {"Bear" if request.troop_type == "Tank" else "Gorilla" if request.troop_type == "Missile" else "Mammoth"} dig sites.
-
-HERO STAR RULES (CRITICAL):
-- 4★ is the #1 priority threshold: unlocks Super Sensory (+20% HP/Attack/Defense, +10% skill speed)
-- 5★ required for Exclusive Weapon
-- Shards needed: 25 / 50 / 100 / 300 / 500 for each star level
-- The player's heroes and their EXACT star counts are listed above. NEVER assume, guess, or change these values. Use them exactly to give specific upgrade advice (e.g. how many shards needed to reach 4★).
-
-INSTRUCTIONS: Answer in the same language the user writes in (English or Russian). Be direct, specific, and tactical. Always reference the player's specific troop type ({request.troop_type}) and furnace level ({request.furnace_level}) in your advice. When mentioning dig sites or beasts, always recommend the correct beast type for this player's troop type. Keep answers under 200 words. Format with clear sections when helpful."""
+    logger.info(f"[WAR ROOM] /brief — heroes block:\n{heroes_block}")
+    logger.info(f"[WAR ROOM] /brief — prohibitions:\n{prohibitions_block}")
+    logger.info(f"[WAR ROOM] /brief — FULL SYSTEM PROMPT:\n{'='*60}\n{system_prompt}\n{'='*60}")
 
     try:
         chat = LlmChat(
@@ -141,6 +207,22 @@ INSTRUCTIONS: Answer in the same language the user writes in (English or Russian
     except Exception as e:
         logger.error(f"Claude API error: {e}")
         raise HTTPException(status_code=500, detail=f"Tactical advisor offline: {str(e)}")
+
+
+@api_router.post("/debug-prompt")
+async def debug_prompt(request: BriefRequest):
+    """Returns the exact system prompt that would be sent to Claude for the given profile.
+    Use this to verify hero star parsing and prompt construction without consuming LLM credits."""
+    system_prompt, heroes_block, prohibitions_block = _build_system_prompt(request)
+    parsed_heroes = _build_heroes_data(request.heroes)
+    return {
+        "heroes_raw": request.heroes,
+        "heroes_parsed": parsed_heroes,
+        "heroes_block": heroes_block,
+        "prohibitions_block": prohibitions_block,
+        "system_prompt": system_prompt,
+        "system_prompt_length": len(system_prompt),
+    }
 
 
 app.include_router(api_router)

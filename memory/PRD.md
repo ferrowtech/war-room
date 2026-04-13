@@ -30,13 +30,12 @@ AI tactical advisor web app for Last War: Survival game. Military HUD aesthetic.
 
 ### AI Integration
 - POST /api/brief — sends question + optional base64 image + player profile
-- System prompt includes player profile + full knowledge base JSON
+- POST /api/debug-prompt — returns parsed hero data + full system prompt (no LLM call, for verification)
+- System prompt structure: COMMANDER PROFILE block (verified facts, visual separators) → EXPLICIT UPGRADE PROHIBITIONS per hero → KNOWLEDGE BASE → BEAST TARGETING
+- Hero parsing uses Unicode codepoint `\u2605` (★) regex to prevent encoding ambiguity
+- Explicit per-hero "DO NOT suggest upgrading" prohibitions for heroes already at 4★ or 5★
 - Model: claude-sonnet-4-5-20250929 via emergentintegrations
 - Responds in English or Russian based on user input
-
-### Rate Limiting
-- 3 requests/day, stored in localStorage (`warroom_missions`)
-- Resets at midnight (by date comparison)
 
 ### Tech Notes
 - react-markdown downgraded to v8.0.7 (v10 broke `className` prop and caused runtime errors)
