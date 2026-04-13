@@ -12,17 +12,9 @@ const FALLBACK_KB_STR = JSON.stringify({
   bosses: JSON.parse(FALLBACK_BOSSES_KB),
 });
 
-// ── GitHub knowledge base URLs ────────────────────────────────────────────────
-const GITHUB_URLS = [
-  "https://raw.githubusercontent.com/ferrowtech/war-room/main/knowledge/lastwar_knowledge_base.json",
-  "https://raw.githubusercontent.com/ferrowtech/war-room/main/knowledge/heroes.json",
-  "https://raw.githubusercontent.com/ferrowtech/war-room/main/knowledge/star_progression.json",
-  "https://raw.githubusercontent.com/ferrowtech/war-room/main/knowledge/exclusive_weapons_s2.json",
-  "https://raw.githubusercontent.com/ferrowtech/war-room/main/knowledge/bosses.json",
-];
-
-// Keys for each URL (index-matched)
-const GITHUB_KEYS = ["lastwar", "heroes", "star_progression", "exclusive_weapons_s2", "bosses"];
+// ── GitHub dynamic discovery ──────────────────────────────────────────────────
+const GITHUB_CONTENTS_API = "https://api.github.com/repos/ferrowtech/war-room/contents/knowledge";
+const MAIN_KB_FILENAME     = "lastwar_knowledge_base.json";
 
 // ── In-memory cache (persists across warm invocations in the same container) ──
 const KB_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
@@ -31,52 +23,61 @@ const kbCache = { data: null, timestamp: 0 };
 async function fetchKnowledgeBase() {
   const now = Date.now();
 
-  // Return cached version if still fresh
   if (kbCache.data && now - kbCache.timestamp < KB_CACHE_TTL_MS) {
     console.log("[WAR ROOM] Knowledge base served from cache");
     return kbCache.data;
   }
 
-  console.log("[WAR ROOM] Fetching knowledge base from GitHub...");
+  // ── Step 1: discover files via GitHub Contents API ──
+  let fileList;
+  try {
+    const listRes = await fetch(GITHUB_CONTENTS_API, {
+      headers: { "User-Agent": "war-room-bot" },
+      signal: AbortSignal.timeout(5000),
+    });
+    if (!listRes.ok) throw new Error(`HTTP ${listRes.status}`);
+    const items = await listRes.json();
+    fileList = items.filter((f) => f.type === "file" && f.name.endsWith(".json"));
+    console.log(`[WAR ROOM] Discovered ${fileList.length} knowledge files: ${fileList.map((f) => f.name).join(", ")}`);
+  } catch (err) {
+    console.error("[WAR ROOM] GitHub directory listing failed — using hardcoded fallback:", err.message);
+    return FALLBACK_KB_STR;
+  }
 
+  // ── Step 2: fetch all files in parallel via their download_url ──
   const results = await Promise.allSettled(
-    GITHUB_URLS.map((url) =>
-      fetch(url, { signal: AbortSignal.timeout(5000) }).then((r) => {
-        if (!r.ok) throw new Error(`HTTP ${r.status} for ${url}`);
+    fileList.map((file) =>
+      fetch(file.download_url, { signal: AbortSignal.timeout(5000) }).then((r) => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
         return r.json();
       })
     )
   );
 
-  // Log any individual failures
   results.forEach((r, i) => {
     if (r.status === "rejected") {
-      console.warn(`[WAR ROOM] Failed to fetch ${GITHUB_KEYS[i]}: ${r.reason}`);
+      console.warn(`[WAR ROOM] Failed to fetch ${fileList[i].name}: ${r.reason}`);
     }
   });
 
-  // If the main KB (index 0) failed, fall back entirely to hardcoded
-  if (results[0].status === "rejected") {
-    console.error("[WAR ROOM] Main KB fetch failed — using full hardcoded fallback");
+  // ── Step 3: merge — main KB spread at root, all others keyed by filename ──
+  const mainIdx = fileList.findIndex((f) => f.name === MAIN_KB_FILENAME);
+  if (mainIdx === -1 || results[mainIdx].status === "rejected") {
+    console.error("[WAR ROOM] Main KB unavailable — using hardcoded fallback");
     return FALLBACK_KB_STR;
   }
 
-  const [lastwarRes, heroesRes, starProgRes, excWeapRes, bossesRes] = results;
-
-  const combined = {
-    // Main KB fields spread at root
-    ...lastwarRes.value,
-    // Additional files under their own keys; fall back to empty object if failed
-    heroes:              heroesRes.status  === "fulfilled" ? heroesRes.value  : {},
-    star_progression:    starProgRes.status === "fulfilled" ? starProgRes.value : {},
-    exclusive_weapons_s2: excWeapRes.status === "fulfilled" ? excWeapRes.value : {},
-    bosses:              bossesRes.status  === "fulfilled" ? bossesRes.value  : JSON.parse(FALLBACK_BOSSES_KB),
-  };
+  const combined = { ...results[mainIdx].value };
+  results.forEach((r, i) => {
+    if (i === mainIdx || r.status !== "fulfilled") return;
+    const key = fileList[i].name.replace(/\.json$/, "");
+    combined[key] = r.value;
+  });
 
   const kbStr = JSON.stringify(combined);
   kbCache.data = kbStr;
   kbCache.timestamp = now;
-  console.log(`[WAR ROOM] Knowledge base cached (${kbStr.length} chars)`);
+  console.log(`[WAR ROOM] Knowledge base cached: ${fileList.length} files, ${kbStr.length} chars`);
   return kbStr;
 }
 
