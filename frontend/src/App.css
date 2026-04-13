@@ -325,6 +325,12 @@ body {
   color: #ffffff;
 }
 
+/* ── Hide platform badge ── */
+[class*="emergent"], [id*="emergent"],
+a[href*="emergent"], div[style*="Made with"] {
+  display: none !important;
+}
+
 /* ── Scrollbar ── */
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: #0a0e1a; }

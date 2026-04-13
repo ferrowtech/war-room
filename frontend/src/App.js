@@ -9,6 +9,18 @@ function App() {
   const [profile, setProfile] = useState(null);
   const [loaded, setLoaded] = useState(false);
 
+  // Remove the platform badge from the DOM
+  useEffect(() => {
+    const kill = () => {
+      const b = document.getElementById("emergent-badge");
+      if (b) b.parentNode && b.parentNode.removeChild(b);
+    };
+    kill();
+    const obs = new MutationObserver(kill);
+    obs.observe(document.body || document.documentElement, { childList: true, subtree: false });
+    return () => obs.disconnect();
+  }, []);
+
   useEffect(() => {
     const stored = localStorage.getItem(PROFILE_KEY);
     if (stored) {
