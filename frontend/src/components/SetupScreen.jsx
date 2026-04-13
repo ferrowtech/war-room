@@ -216,8 +216,8 @@ const SetupScreen = ({ onComplete, initialProfile = null }) => {
                       ))}
                     </select>
 
-                    {/* Star rating */}
-                    {heroes[i].name !== "None" ? (
+                    {/* Star rating — only when a hero is selected */}
+                    {heroes[i].name !== "None" && (
                       <div
                         className="flex gap-0.5 flex-shrink-0"
                         data-testid={`hero-${i + 1}-stars`}
@@ -236,8 +236,6 @@ const SetupScreen = ({ onComplete, initialProfile = null }) => {
                           </button>
                         ))}
                       </div>
-                    ) : (
-                      <div className="w-[120px] flex-shrink-0" />
                     )}
                   </div>
                 ))}
