@@ -11,10 +11,28 @@ import {
   User,
   ChevronRight,
   Lock,
+  Copy,
+  Clock,
+  ChevronDown,
+  Calendar,
+  Check,
 } from "lucide-react";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 const DAILY_LIMIT = 3;
+const HISTORY_KEY = "warroom_history";
+const MAX_HISTORY = 20;
+
+const WEEKLY_SCHEDULE = {
+  1: "Build Titanium Alloy Factory, upgrade Furnace, capture first Dig Site. Level 1 cities unlock Day 3 at 12:00.",
+  2: "Expand territory, upgrade Furnace, build Military Bases.",
+  3: "Choose faction (Rebels or Gendarmerie) — determines Rare Soil War opponents.",
+  4: "Rare Soil War begins — upgrade Alliance Furnace, coordinate with alliance.",
+  5: "Active war phase — attack/defense rotations.",
+  6: "Push Faction Award points, defend Alliance Furnace.",
+  7: "Faction Duel — 4v4 Capitol Conquest, final ranking.",
+  8: "Season ends — Transfer Surge available based on rank.",
+};
 
 // ── Rate limit helpers ──────────────────────────────────────────
 const getToday = () => new Date().toDateString();
@@ -31,6 +49,26 @@ const consumeMission = () => {
   current.used += 1;
   localStorage.setItem("warroom_missions", JSON.stringify(current));
   return Math.max(0, DAILY_LIMIT - current.used);
+};
+
+// ── Season helpers ──────────────────────────────────────────────
+const getSeasonWeek = (startDate) => {
+  if (!startDate) return null;
+  const start = new Date(startDate);
+  const now = new Date();
+  const days = Math.floor((now - start) / 86400000);
+  return Math.min(Math.max(Math.floor(days / 7) + 1, 1), 8);
+};
+
+// ── History helpers ─────────────────────────────────────────────
+const loadHistory = () =>
+  JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]");
+const saveToHistory = (question, response) => {
+  const prev = loadHistory();
+  const entry = { id: Date.now(), question, response, ts: new Date().toISOString() };
+  const updated = [entry, ...prev].slice(0, MAX_HISTORY);
+  localStorage.setItem(HISTORY_KEY, JSON.stringify(updated));
+  return updated;
 };
 
 // ── Typewriter hook ─────────────────────────────────────────────
@@ -58,10 +96,20 @@ const useTypewriter = (text, speed = 18) => {
 };
 
 // ── Intelligence Report ─────────────────────────────────────────
-const IntelligenceReport = ({ text, imagePreview }) => {
-  const { displayed, typing } = useTypewriter(text);
+const IntelligenceReport = ({ text, isLatest = false }) => {
+  const { displayed, typing } = useTypewriter(isLatest ? text : null);
+  const shownText = isLatest ? displayed : text;
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(text).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
+
   return (
-    <div className="intel-report p-5 mt-4 relative" data-testid="intelligence-report">
+    <div className="intel-report p-5 relative" data-testid="intelligence-report">
       {/* Header */}
       <div className="flex items-center gap-2 mb-4 pb-3 border-b border-[#4fc3f7]/20">
         <Zap size={14} color="#4fc3f7" strokeWidth={1.5} />
@@ -69,48 +117,223 @@ const IntelligenceReport = ({ text, imagePreview }) => {
           INTELLIGENCE REPORT
         </span>
         {typing && (
-          <div className="ml-auto flex gap-1">
+          <div className="flex gap-1">
             <span className="loading-dot" />
             <span className="loading-dot" />
             <span className="loading-dot" />
           </div>
         )}
+        {!typing && (
+          <button
+            data-testid="copy-briefing-button"
+            onClick={handleCopy}
+            className="ml-auto btn-primary px-2 py-1 flex items-center gap-1.5 text-[10px]"
+          >
+            {copied ? <Check size={10} /> : <Copy size={10} />}
+            <span>{copied ? "COPIED" : "COPY BRIEFING"}</span>
+          </button>
+        )}
       </div>
 
-      {imagePreview && (
-        <div className="mb-3 border border-[#37474f]">
-          <img
-            src={imagePreview}
-            alt="Mission attachment"
-            className="w-full max-h-32 object-cover opacity-70"
-          />
-          <p className="text-[10px] text-[#37474f] font-heading px-2 py-1 tracking-widest">
-            ATTACHED VISUAL
-          </p>
-        </div>
-      )}
-
-      <p className="font-report text-[#b3e5fc] text-sm leading-relaxed">
+      <div className="font-report text-[#b3e5fc] text-sm leading-relaxed">
         {typing ? (
           <>
-            {displayed}
+            {shownText}
             <span className="typewriter-cursor" />
           </>
         ) : (
+          <div className="markdown-report">
           <ReactMarkdown
-            className="markdown-report"
             components={{
-              h2: ({children}) => <strong className="block text-[#4fc3f7] font-heading text-xs tracking-widest mt-3 mb-1">{children}</strong>,
-              h3: ({children}) => <strong className="block text-[#b3e5fc] font-heading text-xs tracking-widest mt-2 mb-1">{children}</strong>,
-              strong: ({children}) => <strong className="text-white">{children}</strong>,
-              li: ({children}) => <li className="ml-4 list-disc text-[#b3e5fc]">{children}</li>,
-              p: ({children}) => <p className="mb-2">{children}</p>,
+              h2: ({ children }) => <strong className="block text-[#4fc3f7] font-heading text-xs tracking-widest mt-3 mb-1">{children}</strong>,
+              h3: ({ children }) => <strong className="block text-[#b3e5fc] font-heading text-xs tracking-widest mt-2 mb-1">{children}</strong>,
+              strong: ({ children }) => <strong className="text-white">{children}</strong>,
+              li: ({ children }) => <li className="ml-4 list-disc text-[#b3e5fc]">{children}</li>,
+              p: ({ children }) => <p className="mb-2">{children}</p>,
             }}
           >
-            {displayed}
+            {shownText}
           </ReactMarkdown>
+          </div>
         )}
-      </p>
+      </div>
+    </div>
+  );
+};
+
+// ── History Item ────────────────────────────────────────────────
+const HistoryItem = ({ item }) => {
+  const [expanded, setExpanded] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(item.response).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
+
+  const timeStr = new Date(item.ts).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  const dateStr = new Date(item.ts).toLocaleDateString([], { month: "short", day: "numeric" });
+
+  return (
+    <div
+      className="border border-[#37474f]/40 transition-all duration-200 hover:border-[#4fc3f7]/30"
+      style={{ background: "rgba(10,14,26,0.7)" }}
+      data-testid="history-item"
+    >
+      <div className="flex items-center gap-2 px-3 py-2">
+        <button
+          onClick={() => setExpanded((v) => !v)}
+          className="flex-1 text-left flex items-start gap-2 min-w-0"
+        >
+          <ChevronDown
+            size={12}
+            color="#37474f"
+            className={`mt-0.5 flex-shrink-0 transition-transform duration-200 ${expanded ? "rotate-180" : ""}`}
+          />
+          <div className="min-w-0">
+            <span className="font-heading text-[9px] text-[#37474f] tracking-widest block">
+              {dateStr} {timeStr}
+            </span>
+            <span className="font-report text-xs text-[#b3e5fc]/70 line-clamp-1 block mt-0.5">
+              {item.question}
+            </span>
+          </div>
+        </button>
+        <button
+          data-testid="history-copy-button"
+          onClick={handleCopy}
+          className="flex-shrink-0 btn-primary px-2 py-1 flex items-center gap-1 text-[9px]"
+        >
+          {copied ? <Check size={9} /> : <Copy size={9} />}
+          <span>{copied ? "✓" : "COPY"}</span>
+        </button>
+      </div>
+
+      {expanded && (
+        <div className="px-3 pb-3 pt-1 border-t border-[#37474f]/30">
+          <div className="markdown-report">
+          <ReactMarkdown
+            components={{
+              h2: ({ children }) => <strong className="block text-[#4fc3f7] font-heading text-xs tracking-widest mt-2 mb-1">{children}</strong>,
+              strong: ({ children }) => <strong className="text-white">{children}</strong>,
+              li: ({ children }) => <li className="ml-3 list-disc text-[#b3e5fc]/80 text-xs">{children}</li>,
+              p: ({ children }) => <p className="mb-1.5 text-xs text-[#b3e5fc]/80">{children}</p>,
+            }}
+          >
+            {item.response}
+          </ReactMarkdown>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// ── Season Week Tracker ─────────────────────────────────────────
+const SeasonTracker = ({ seasonStartDate, onUpdateDate }) => {
+  const [editing, setEditing] = useState(false);
+  const [tempDate, setTempDate] = useState(seasonStartDate || "");
+
+  const week = getSeasonWeek(seasonStartDate);
+  const priority = week ? WEEKLY_SCHEDULE[week] : null;
+
+  const handleSave = () => {
+    if (tempDate) {
+      onUpdateDate(tempDate);
+      setEditing(false);
+    }
+  };
+
+  return (
+    <div
+      className="mx-0 border-t border-[#4fc3f7]/15"
+      style={{ background: "rgba(79,195,247,0.03)" }}
+    >
+      <div className="px-4 pt-3 pb-1 flex items-center justify-between">
+        <div className="flex items-center gap-1.5">
+          <Calendar size={10} color="#4fc3f7" strokeWidth={1.5} />
+          <span className="font-heading text-[9px] text-[#4fc3f7] tracking-[0.3em]">
+            POLAR STORM ❄️
+          </span>
+        </div>
+        {seasonStartDate && !editing && (
+          <button
+            onClick={() => setEditing(true)}
+            className="font-heading text-[8px] text-[#37474f] tracking-widest hover:text-[#4fc3f7] transition-colors"
+          >
+            CHANGE
+          </button>
+        )}
+      </div>
+
+      {!seasonStartDate && !editing ? (
+        <div className="px-4 pb-3">
+          <p className="font-heading text-[9px] text-[#37474f] tracking-wide mb-2">
+            Set Season 2 start date to track week
+          </p>
+          <button
+            data-testid="set-season-date-btn"
+            onClick={() => setEditing(true)}
+            className="btn-primary w-full py-1.5 text-[9px]"
+          >
+            SET START DATE
+          </button>
+        </div>
+      ) : editing ? (
+        <div className="px-4 pb-3 space-y-2">
+          <input
+            data-testid="season-date-input"
+            type="date"
+            value={tempDate}
+            onChange={(e) => setTempDate(e.target.value)}
+            className="war-input w-full px-2 py-1.5 text-xs"
+            style={{ colorScheme: "dark" }}
+          />
+          <div className="flex gap-2">
+            <button
+              data-testid="season-date-save-btn"
+              onClick={handleSave}
+              className="btn-primary flex-1 py-1.5 text-[9px]"
+            >
+              CONFIRM
+            </button>
+            {seasonStartDate && (
+              <button
+                onClick={() => setEditing(false)}
+                className="btn-secondary px-3 py-1.5 text-[9px] border border-[#37474f]/50 font-heading text-[#37474f] hover:text-white transition-colors"
+              >
+                CANCEL
+              </button>
+            )}
+          </div>
+        </div>
+      ) : (
+        <div className="px-4 pb-3">
+          <div className="flex items-baseline justify-between mb-1.5">
+            <span className="font-heading text-[9px] text-[#37474f] tracking-widest">WEEK</span>
+            <span
+              className="font-heading text-2xl text-white"
+              style={{ textShadow: "0 0 12px rgba(79,195,247,0.5)" }}
+              data-testid="season-week-display"
+            >
+              {week}
+              <span className="text-xs text-[#37474f] ml-1">/8</span>
+            </span>
+          </div>
+          {/* Progress bar */}
+          <div className="h-1 bg-[#37474f]/30 mb-2">
+            <div
+              className="h-full bg-[#4fc3f7] transition-all"
+              style={{ width: `${(week / 8) * 100}%` }}
+            />
+          </div>
+          <p className="font-report text-[10px] text-[#b3e5fc]/80 leading-relaxed">
+            {priority}
+          </p>
+        </div>
+      )}
     </div>
   );
 };
@@ -168,13 +391,9 @@ const TopBar = ({ profile, onEditProfile, onTogglePanel }) => (
 );
 
 // ── Profile Panel ───────────────────────────────────────────────
-const ProfilePanelContent = ({ profile, onClose, isMobile }) => {
+const ProfilePanelContent = ({ profile, onClose, isMobile, onUpdateSeasonDate }) => {
   const troopIcon =
-    profile.troopType === "Tank"
-      ? "⚔️"
-      : profile.troopType === "Aircraft"
-      ? "✈️"
-      : "🚀";
+    profile.troopType === "Tank" ? "⚔️" : profile.troopType === "Aircraft" ? "✈️" : "🚀";
 
   return (
     <div className="flex flex-col h-full">
@@ -268,11 +487,17 @@ const ProfilePanelContent = ({ profile, onClose, isMobile }) => {
           </div>
         </div>
       </div>
+
+      {/* Season Week Tracker — pinned below scroll */}
+      <SeasonTracker
+        seasonStartDate={profile.seasonStartDate}
+        onUpdateDate={onUpdateSeasonDate}
+      />
     </div>
   );
 };
 
-const ProfilePanel = ({ profile, isOpen, onClose }) => (
+const ProfilePanel = ({ profile, isOpen, onClose, onUpdateSeasonDate }) => (
   <>
     {/* Mobile: overlay drawer */}
     {isOpen && (
@@ -288,7 +513,7 @@ const ProfilePanel = ({ profile, isOpen, onClose }) => (
             animation: "slideInLeft 0.25s ease",
           }}
         >
-          <ProfilePanelContent profile={profile} onClose={onClose} isMobile />
+          <ProfilePanelContent profile={profile} onClose={onClose} isMobile onUpdateSeasonDate={onUpdateSeasonDate} />
         </div>
       </div>
     )}
@@ -303,7 +528,7 @@ const ProfilePanel = ({ profile, isOpen, onClose }) => (
         boxShadow: "2px 0 12px rgba(79,195,247,0.08)",
       }}
     >
-      <ProfilePanelContent profile={profile} onClose={onClose} isMobile={false} />
+      <ProfilePanelContent profile={profile} onClose={onClose} isMobile={false} onUpdateSeasonDate={onUpdateSeasonDate} />
     </div>
   </>
 );
@@ -375,6 +600,7 @@ const LockedOverlay = () => (
 
 // ── Main WarRoom ────────────────────────────────────────────────
 const WarRoom = ({ profile, onEditProfile }) => {
+  const [localProfile, setLocalProfile] = useState(profile);
   const [question, setQuestion] = useState("");
   const [uploadedImage, setUploadedImage] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
@@ -383,8 +609,16 @@ const WarRoom = ({ profile, onEditProfile }) => {
   const [remaining, setRemaining] = useState(getRemainingMissions);
   const [panelOpen, setPanelOpen] = useState(false);
   const [error, setError] = useState("");
+  const [history, setHistory] = useState(loadHistory);
+  const [showHistory, setShowHistory] = useState(false);
   const reportRef = useRef(null);
   const fileInputRef = useRef(null);
+
+  const updateSeasonDate = (date) => {
+    const updated = { ...localProfile, seasonStartDate: date };
+    setLocalProfile(updated);
+    localStorage.setItem("warroom_profile", JSON.stringify(updated));
+  };
 
   const handleImageUpload = useCallback((e) => {
     const file = e.target.files[0];
@@ -413,10 +647,10 @@ const WarRoom = ({ profile, onEditProfile }) => {
     try {
       const payload = {
         question: question.trim(),
-        server: String(profile.server),
-        troop_type: profile.troopType,
-        furnace_level: Number(profile.furnaceLevel),
-        heroes: profile.heroes,
+        server: String(localProfile.server),
+        troop_type: localProfile.troopType,
+        furnace_level: Number(localProfile.furnaceLevel),
+        heroes: localProfile.heroes,
         ...(uploadedImage ? { image_base64: uploadedImage } : {}),
       };
 
@@ -424,6 +658,8 @@ const WarRoom = ({ profile, onEditProfile }) => {
       const newRemaining = consumeMission();
       setRemaining(newRemaining);
       setResponse(res.data.response);
+      const newHistory = saveToHistory(question.trim(), res.data.response);
+      setHistory(newHistory);
       setQuestion("");
       clearImage();
 
@@ -462,7 +698,7 @@ const WarRoom = ({ profile, onEditProfile }) => {
 
       {/* Top Bar */}
       <TopBar
-        profile={profile}
+        profile={localProfile}
         onEditProfile={onEditProfile}
         onTogglePanel={() => setPanelOpen((v) => !v)}
       />
@@ -471,9 +707,10 @@ const WarRoom = ({ profile, onEditProfile }) => {
       <div className="flex flex-1 overflow-hidden relative z-10">
         {/* Left Panel */}
         <ProfilePanel
-          profile={profile}
+          profile={localProfile}
           isOpen={panelOpen}
           onClose={() => setPanelOpen(false)}
+          onUpdateSeasonDate={updateSeasonDate}
         />
 
         {/* Center */}
@@ -586,7 +823,36 @@ const WarRoom = ({ profile, onEditProfile }) => {
           {/* Intelligence Report */}
           {response && (
             <div ref={reportRef}>
-              <IntelligenceReport text={response} imagePreview={null} />
+              <IntelligenceReport text={response} isLatest />
+            </div>
+          )}
+
+          {/* Mission History */}
+          {history.length > 0 && (
+            <div className="mt-2">
+              <button
+                data-testid="history-toggle-button"
+                onClick={() => setShowHistory((v) => !v)}
+                className="flex items-center gap-2 w-full py-2 px-3 border border-[#37474f]/30 hover:border-[#4fc3f7]/30 transition-colors"
+                style={{ background: "rgba(10,14,26,0.5)" }}
+              >
+                <Clock size={11} color="#37474f" strokeWidth={1.5} />
+                <span className="font-heading text-[10px] text-[#37474f] tracking-[0.25em] flex-1 text-left">
+                  MISSION HISTORY ({history.length})
+                </span>
+                <ChevronDown
+                  size={12}
+                  color="#37474f"
+                  className={`transition-transform duration-200 ${showHistory ? "rotate-180" : ""}`}
+                />
+              </button>
+              {showHistory && (
+                <div className="space-y-1 mt-1">
+                  {history.map((item) => (
+                    <HistoryItem key={item.id} item={item} />
+                  ))}
+                </div>
+              )}
             </div>
           )}
 
