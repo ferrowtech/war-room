@@ -472,30 +472,45 @@ const ProfilePanelContent = ({ profile, onClose, isMobile, onUpdateSeasonDate })
 
         {/* Heroes */}
         <div>
-          <p className="font-heading text-[9px] text-[#37474f] tracking-[0.3em] mb-2">🏔️ HEROES</p>
-          <div className="space-y-1.5">
-            {profile.heroes.filter((h) => h && h.trim() && h !== "None").map((hero, i) => {
-              const match = hero.match(/^(.+?) \((\d)★\)$/);
-              const name = match ? match[1] : hero;
-              const stars = match ? parseInt(match[2]) : 0;
-              return (
-                <div key={i} className="flex items-center gap-1.5">
-                  <ChevronRight size={10} color="#4fc3f7" />
-                  <span className="font-heading text-xs text-[#b3e5fc]">{name}</span>
-                  {stars > 0 && (
-                    <span className="text-xs leading-none tracking-tight">
-                      {[1,2,3,4,5].map((s) => (
-                        <span key={s} style={{ color: s <= stars ? "#f59e0b" : "#37474f" }}>★</span>
-                      ))}
-                    </span>
-                  )}
+          <p className="font-heading text-[9px] text-[#37474f] tracking-[0.3em] mb-2">SQUADS</p>
+          {[
+            { label: "SQ1 TANKS",    indices: [0,1,2,3,4]   },
+            { label: "SQ2 AIRCRAFT", indices: [5,6,7,8,9]   },
+            { label: "SQ3 MISSILE",  indices: [10,11,12,13,14] },
+          ].map(({ label, indices }) => {
+            const active = indices
+              .map((i) => profile.heroes?.[i])
+              .filter((h) => h && h !== "None");
+            if (active.length === 0) return null;
+            return (
+              <div key={label} className="mb-2">
+                <p className="font-heading text-[8px] text-[#4fc3f7]/60 tracking-[0.2em] mb-1">{label}</p>
+                <div className="space-y-1">
+                  {active.map((hero, i) => {
+                    const m = hero.match(/^(.+?) \((\d)★\)$/);
+                    const name = m ? m[1] : hero;
+                    const stars = m ? parseInt(m[2]) : 0;
+                    return (
+                      <div key={i} className="flex items-center gap-1.5">
+                        <ChevronRight size={10} color="#4fc3f7" />
+                        <span className="font-heading text-xs text-[#b3e5fc]">{name}</span>
+                        {stars > 0 && (
+                          <span className="text-xs leading-none">
+                            {[1,2,3,4,5].map((s) => (
+                              <span key={s} style={{ color: s <= stars ? "#f59e0b" : "#37474f" }}>★</span>
+                            ))}
+                          </span>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
-              );
-            })}
-            {profile.heroes.filter((h) => h && h.trim() && h !== "None").length === 0 && (
-              <span className="font-heading text-[10px] text-[#37474f]">No heroes set</span>
-            )}
-          </div>
+              </div>
+            );
+          })}
+          {(!profile.heroes || profile.heroes.filter((h) => h && h !== "None").length === 0) && (
+            <span className="font-heading text-[10px] text-[#37474f]">No heroes set</span>
+          )}
         </div>
 
         {/* Counter info */}

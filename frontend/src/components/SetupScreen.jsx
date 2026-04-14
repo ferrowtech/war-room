@@ -4,11 +4,20 @@ import * as SliderPrimitive from "@radix-ui/react-slider";
 const TROOP_TYPES = ["Tank", "Aircraft", "Missile"];
 
 const HEROES = {
-  Tank: ["Murphy", "Kimberly", "Marshall", "Williams", "Mason", "Violet", "Richard", "Monica", "Scarlett", "Stetmann"],
+  Tank:     ["Murphy", "Kimberly", "Marshall", "Williams", "Mason", "Violet", "Richard", "Monica", "Scarlett", "Stetmann"],
   Aircraft: ["DVA", "Carlie", "Schuyler", "Morrison", "Lucius", "Sarah", "Maxwell", "Cage"],
-  Missile: ["Swift", "Tesla", "Fiona", "Adam", "Venom", "McGregor", "Elsa", "Kane"],
+  Missile:  ["Swift", "Tesla", "Fiona", "Adam", "Venom", "McGregor", "Elsa", "Kane"],
 };
 const ALL_HEROES = [...HEROES.Tank, ...HEROES.Aircraft, ...HEROES.Missile];
+
+const SQUADS = [
+  { label: "SQUAD 1 — TANKS",    type: "Tank",     start: 0,  heroList: HEROES.Tank     },
+  { label: "SQUAD 2 — AIRCRAFT", type: "Aircraft", start: 5,  heroList: HEROES.Aircraft },
+  { label: "SQUAD 3 — MISSILE",  type: "Missile",  start: 10, heroList: HEROES.Missile  },
+];
+const TOTAL_HERO_SLOTS = 15; // 3 squads × 5 heroes
+
+const emptySlots = () => Array(TOTAL_HERO_SLOTS).fill(null).map(() => ({ name: "None", stars: 1 }));
 
 const parseHero = (h) => {
   if (!h || h === "None" || !h.trim()) return { name: "None", stars: 1 };
@@ -24,12 +33,20 @@ const SetupScreen = ({ onComplete, initialProfile = null }) => {
     initialProfile ? [initialProfile.furnaceLevel] : [5]
   );
   const [heroes, setHeroes] = useState(() => {
-    if (!initialProfile?.heroes) return [
-      { name: "None", stars: 1 },
-      { name: "None", stars: 1 },
-      { name: "None", stars: 1 },
-    ];
-    return initialProfile.heroes.map(parseHero);
+    const slots = emptySlots();
+    if (!initialProfile?.heroes) return slots;
+    // Migrate existing heroes into their correct squad slots by type
+    const buckets = { Tank: [], Aircraft: [], Missile: [] };
+    initialProfile.heroes.forEach((h) => {
+      const p = parseHero(h);
+      if (HEROES.Tank.includes(p.name))          buckets.Tank.push(p);
+      else if (HEROES.Aircraft.includes(p.name)) buckets.Aircraft.push(p);
+      else if (HEROES.Missile.includes(p.name))  buckets.Missile.push(p);
+    });
+    SQUADS.forEach(({ type, start }) => {
+      buckets[type].forEach((h, i) => { if (i < 5) slots[start + i] = h; });
+    });
+    return slots;
   });
   const [error, setError] = useState("");
 
@@ -188,58 +205,60 @@ const SetupScreen = ({ onComplete, initialProfile = null }) => {
               </div>
             </div>
 
-            {/* Heroes */}
-            <div>
-              <label className="block font-heading text-xs text-[#4fc3f7] tracking-[0.25em] mb-2">
-                TOP HEROES 🏔️
-              </label>
-              <div className="space-y-2">
-                {[0, 1, 2].map((i) => (
-                  <div key={i} className="flex items-center gap-2">
-                    {/* Dropdown */}
-                    <select
-                      data-testid={`setup-hero-${i + 1}-input`}
-                      value={heroes[i].name}
-                      onChange={(e) => handleHero(i, e.target.value)}
-                      className="war-input flex-1 min-w-0 px-3 py-2 text-sm appearance-none cursor-pointer"
-                      style={{ background: "rgba(10,14,26,0.95)" }}
-                    >
-                      <option value="None" style={{ background: "#0d1220" }}>— None —</option>
-                      {Object.entries(HEROES).map(([type, list]) => (
-                        <optgroup key={type} label={`── ${type.toUpperCase()} ──`}>
-                          {list.map((hero) => (
-                            <option key={hero} value={hero} style={{ background: "#0d1220", color: "#fff" }}>
-                              {hero}
-                            </option>
-                          ))}
-                        </optgroup>
-                      ))}
-                    </select>
-
-                    {/* Star rating — only when a hero is selected */}
-                    {heroes[i].name !== "None" && (
-                      <div
-                        className="flex gap-0.5 flex-shrink-0"
-                        data-testid={`hero-${i + 1}-stars`}
-                      >
-                        {[1, 2, 3, 4, 5].map((s) => (
-                          <button
-                            key={s}
-                            type="button"
-                            data-testid={`setup-hero-${i + 1}-star-${s}`}
-                            onClick={() => handleHeroStars(i, s)}
-                            className="w-6 h-6 flex items-center justify-center text-base leading-none transition-all hover:scale-125 focus:outline-none"
-                            style={{ color: heroes[i].stars >= s ? "#fbbf24" : "#37474f" }}
-                            title={`${s}★`}
-                          >
-                            ★
-                          </button>
-                        ))}
-                      </div>
-                    )}
+            {/* Hero Squads */}
+            <div className="space-y-5">
+              {SQUADS.map(({ label, type, start, heroList }) => (
+                <div key={type}>
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="h-px flex-1 bg-[#4fc3f7]/20" />
+                    <label className="font-heading text-[10px] text-[#4fc3f7] tracking-[0.25em] whitespace-nowrap">
+                      {label}
+                    </label>
+                    <div className="h-px flex-1 bg-[#4fc3f7]/20" />
                   </div>
-                ))}
-              </div>
+                  <div className="space-y-2">
+                    {[0, 1, 2, 3, 4].map((offset) => {
+                      const i = start + offset;
+                      return (
+                        <div key={i} className="flex items-center gap-2">
+                          <select
+                            data-testid={`setup-hero-${i + 1}-input`}
+                            value={heroes[i].name}
+                            onChange={(e) => handleHero(i, e.target.value)}
+                            className="war-input flex-1 min-w-0 px-3 py-2 text-sm appearance-none cursor-pointer"
+                            style={{ background: "rgba(10,14,26,0.95)" }}
+                          >
+                            <option value="None" style={{ background: "#0d1220" }}>— None —</option>
+                            {heroList.map((hero) => (
+                              <option key={hero} value={hero} style={{ background: "#0d1220", color: "#fff" }}>
+                                {hero}
+                              </option>
+                            ))}
+                          </select>
+
+                          {heroes[i].name !== "None" && (
+                            <div className="flex gap-0.5 flex-shrink-0" data-testid={`hero-${i + 1}-stars`}>
+                              {[1, 2, 3, 4, 5].map((s) => (
+                                <button
+                                  key={s}
+                                  type="button"
+                                  data-testid={`setup-hero-${i + 1}-star-${s}`}
+                                  onClick={() => handleHeroStars(i, s)}
+                                  className="w-6 h-6 flex items-center justify-center text-base leading-none transition-all hover:scale-125 focus:outline-none"
+                                  style={{ color: heroes[i].stars >= s ? "#fbbf24" : "#37474f" }}
+                                  title={`${s}★`}
+                                >
+                                  ★
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
             </div>
 
             {/* Error */}
