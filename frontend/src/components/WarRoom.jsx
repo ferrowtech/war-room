@@ -14,11 +14,25 @@ import {
   ChevronDown,
   Calendar,
   Check,
+  Target,
+  Map,
+  Thermometer,
+  Star,
+  Shield,
 } from "lucide-react";
 
 const BRIEF_URL = "/.netlify/functions/brief";
 const HISTORY_KEY = "warroom_history";
 const MAX_HISTORY = 20;
+
+const QUICK_ACTIONS = [
+  { label: "Today's Boss",        Icon: Target,      question: "Which boss should I attack today and with which heroes?" },
+  { label: "Dig Site Strategy",   Icon: Map,         question: "Which Dig Sites should I target and how to capture them?" },
+  { label: "Temperature Help",    Icon: Thermometer, question: "My base temperature is dropping, what should I do?" },
+  { label: "This Week's Priority",Icon: Calendar,    question: "What should I focus on this week?" },
+  { label: "Hero Advice",         Icon: Star,        question: "How should I develop my heroes and what to upgrade next?" },
+  { label: "War Phase",           Icon: Shield,      question: "How does the War Phase work and when should I attack?" },
+];
 
 // ── Image compression ────────────────────────────────────────────
 // Resizes to max 1280px wide and iterates quality down until base64 < 3 MB.
@@ -591,14 +605,15 @@ const WarRoom = ({ profile, onEditProfile }) => {
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
-  const handleSubmit = async () => {
-    if (!question.trim() || isLoading) return;
+  const handleSubmit = async (overrideQ) => {
+    const q = typeof overrideQ === "string" ? overrideQ.trim() : question.trim();
+    if (!q || isLoading) return;
     setError("");
     setIsLoading(true);
 
     try {
       const payload = {
-        question: question.trim(),
+        question: q,
         server: String(localProfile.server),
         troop_type: localProfile.troopType,
         furnace_level: Number(localProfile.furnaceLevel),
@@ -612,7 +627,7 @@ const WarRoom = ({ profile, onEditProfile }) => {
 
       const res = await axios.post(BRIEF_URL, payload);
       setResponse(res.data.response);
-      const newHistory = saveToHistory(question.trim(), res.data.response);
+      const newHistory = saveToHistory(q, res.data.response);
       setHistory(newHistory);
       setQuestion("");
       clearImage();
@@ -629,6 +644,11 @@ const WarRoom = ({ profile, onEditProfile }) => {
     }
   };
 
+  const handleQuickAction = (q) => {
+    setQuestion(q);
+    handleSubmit(q);
+  };
+
   const handleKeyDown = (e) => {
     if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) handleSubmit();
   };
@@ -638,7 +658,6 @@ const WarRoom = ({ profile, onEditProfile }) => {
       className="war-noise min-h-screen bg-[#0a0e1a] flex flex-col relative overflow-hidden"
       data-testid="warroom-screen"
     >
-      <div className="scan-line" />
 
       {/* Background grid */}
       <div
@@ -670,7 +689,10 @@ const WarRoom = ({ profile, onEditProfile }) => {
         {/* Center */}
         <div className="flex-1 flex flex-col overflow-y-auto p-4 gap-4">
           {/* Input section */}
-          <div className="hud-panel hud-corner p-4 relative">
+          <div className="hud-panel hud-corner p-4 relative overflow-hidden">
+            {/* Scan line restricted to this card */}
+            <div className="scan-line-card" />
+
             {/* Top-right corner accent */}
             <div
               className="absolute top-0 right-0 w-8 h-8 pointer-events-none"
@@ -718,6 +740,25 @@ const WarRoom = ({ profile, onEditProfile }) => {
               <p className="text-[#ff6f00] text-xs font-heading tracking-widest mt-2">
                 ⚠ {error}
               </p>
+            )}
+
+            {/* Quick action buttons — visible only before first response */}
+            {!response && !isLoading && (
+              <div className="grid grid-cols-2 gap-1.5 mt-3" data-testid="quick-actions-grid">
+                {QUICK_ACTIONS.map(({ label, Icon, question: q }) => (
+                  <button
+                    key={label}
+                    data-testid={`quick-action-${label.toLowerCase().replace(/\s+/g, "-")}`}
+                    onClick={() => handleQuickAction(q)}
+                    className="quick-action-btn flex items-center gap-2 px-3 py-2 text-left transition-all duration-150"
+                  >
+                    <Icon size={12} strokeWidth={1.5} className="flex-shrink-0 text-[#4fc3f7]" />
+                    <span className="font-heading text-[9px] tracking-[0.15em] text-[#b0bec5] leading-tight">
+                      {label.toUpperCase()}
+                    </span>
+                  </button>
+                ))}
+              </div>
             )}
 
             <div className="flex gap-2 mt-3">

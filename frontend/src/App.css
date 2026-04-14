@@ -56,6 +56,35 @@ body {
   z-index: 999;
 }
 
+@keyframes scan-card {
+  0%   { transform: translateY(-2px); }
+  100% { transform: translateY(400px); }
+}
+
+.scan-line-card {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 1px;
+  top: 0;
+  background: linear-gradient(90deg, transparent, rgba(79,195,247,0.5), transparent);
+  animation: scan-card 4s linear infinite;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.quick-action-btn {
+  border: 1px solid rgba(79, 195, 247, 0.25);
+  background: rgba(79, 195, 247, 0.04);
+}
+.quick-action-btn:hover {
+  border-color: rgba(79, 195, 247, 0.6);
+  background: rgba(79, 195, 247, 0.10);
+}
+.quick-action-btn:active {
+  background: rgba(79, 195, 247, 0.18);
+}
+
 /* ── HUD Panel ── */
 .hud-panel {
   position: relative;
