@@ -103,6 +103,12 @@ Build a web app called "WAR ROOM" — an AI tactical advisor for the "Last War: 
 - **FIELD STATUS** rename (COMMANDER → FIELD STATUS; RU: БОЕВОЙ СТАТУС)
 - `warroom_profile` schema: removed `timezoneOffset`, added `squadPowers: [f1, f2, f3]`
 
+### Phase 7 — Language on Setup, Hero Grouping, Compare Squads (Session 7, Feb 2026)
+- **Language selector moved to Setup screen** (top-right, fixed, `SetupLanguageSelector`); removed from WarRoom TopBar — language is set once, applied everywhere
+- **Hero dropdowns grouped** by troop type using `<optgroup>`: TANK (10 heroes), AIRCRAFT (8), MISSILE (8) — replaces flat `ALL_HEROES` list; proper visual grouping in browser select
+- **COMPARE SQUADS** added as 7th quick action (completes 2×3 grid under DAILY BRIEFING); EN/RU translated, auto-submit
+- `HEROES_BY_TYPE` array replaces `ALL_HEROES` in SetupScreen; `ALL_HEROES` derived via `.flatMap`
+
 ### P2 — Content (User to provide)
 - Populate `temperature_advanced.json`
 - Populate `tips_and_tricks_s2.json`
