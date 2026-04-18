@@ -262,8 +262,13 @@ INSTRUCTIONS: Answer in the same language the user writes in (English or Russian
 // ── Notion logging (fire-and-forget) ─────────────────────────────────────────
 function logToNotion({ question, server, troop_type, season_week, furnace_level, heroes, image_base64 }) {
   const token = process.env.NOTION_TOKEN;
-  const dbId  = process.env.NOTION_DATABASE_ID;
-  if (!token || !dbId) return; // silently skip if env vars not set
+  const dbId  = process.env.NOTION_DATABASE_ID || "a52c8cc8-cf7a-4f17-b90c-3b0d9f7e98a6";
+
+  if (!token) {
+    console.warn("[NOTION] Skipped — NOTION_TOKEN env var not set");
+    return;
+  }
+  console.log(`[NOTION] Logging query to database ${dbId} ...`);
 
   const heroesStr = Array.isArray(heroes)
     ? heroes.filter((h) => h && h.toLowerCase() !== "none").join(", ")
@@ -272,14 +277,14 @@ function logToNotion({ question, server, troop_type, season_week, furnace_level,
   const payload = {
     parent: { database_id: dbId },
     properties: {
-      Question:       { title:     [{ text: { content: String(question || "").slice(0, 2000) } }] },
-      Server:         { rich_text: [{ text: { content: String(server || "") } }] },
-      "Troop Type":   { select:    { name: troop_type || "Unknown" } },
-      "Season Week":  { number:    season_week  ? Number(season_week)  : null },
-      "Furnace Level":{ number:    furnace_level ? Number(furnace_level): null },
-      Heroes:         { rich_text: [{ text: { content: heroesStr.slice(0, 2000) } }] },
-      "Has Image":    { checkbox:  Boolean(image_base64) },
-      Timestamp:      { date:      { start: new Date().toISOString() } },
+      Question:        { title:     [{ text: { content: String(question || "").slice(0, 2000) } }] },
+      Server:          { rich_text: [{ text: { content: String(server || "") } }] },
+      "Troop Type":    { select:    { name: troop_type || "Unknown" } },
+      "Season Week":   { number:    season_week   ? Number(season_week)   : null },
+      "Furnace Level": { number:    furnace_level  ? Number(furnace_level)  : null },
+      Heroes:          { rich_text: [{ text: { content: heroesStr.slice(0, 2000) } }] },
+      "Has Image":     { checkbox:  Boolean(image_base64) },
+      Timestamp:       { date:      { start: new Date().toISOString() } },
     },
   };
 
@@ -291,7 +296,21 @@ function logToNotion({ question, server, troop_type, season_week, furnace_level,
       "Notion-Version": "2022-06-28",
     },
     body: JSON.stringify(payload),
-  }).catch((err) => console.warn("[WAR ROOM] Notion log failed:", err.message));
+  })
+    .then(async (res) => {
+      const body = await res.text();
+      if (res.ok) {
+        const parsed = JSON.parse(body);
+        console.log(`[NOTION] Entry created OK — page id: ${parsed.id}`);
+      } else {
+        console.error(`[NOTION] API error ${res.status} ${res.statusText}`);
+        console.error(`[NOTION] Response body: ${body}`);
+        console.error(`[NOTION] Payload sent: ${JSON.stringify(payload, null, 2)}`);
+      }
+    })
+    .catch((err) => {
+      console.error(`[NOTION] Network error: ${err.message}`);
+    });
 }
 
 // ── CORS headers ──────────────────────────────────────────────────────────────
