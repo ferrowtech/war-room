@@ -259,8 +259,8 @@ SCREENSHOT / IMAGE ANALYSIS RULES:
 INSTRUCTIONS: Answer in the same language the user writes in (English or Russian). Be direct, specific, and tactical. Reference the player's troop type (${troop_type}), furnace level (${furnace_level}), and actual hero stars from the profile above. Recommend the correct beast type for their troop. Keep answers under 200 words. Format with clear sections when helpful.`;
 }
 
-// ── Notion logging (fire-and-forget) ─────────────────────────────────────────
-function logToNotion({ question, server, troop_type, season_week, furnace_level, heroes, image_base64 }) {
+// ── Notion logging (awaited with 2s timeout) ──────────────────────────────────
+async function logToNotion({ question, server, troop_type, season_week, furnace_level, heroes, image_base64 }) {
   const token = process.env.NOTION_TOKEN;
   const dbId  = process.env.NOTION_DATABASE_ID || "a52c8cc8-cf7a-4f17-b90c-3b0d9f7e98a6";
 
@@ -288,7 +288,7 @@ function logToNotion({ question, server, troop_type, season_week, furnace_level,
     },
   };
 
-  fetch("https://api.notion.com/v1/pages", {
+  const res = await fetch("https://api.notion.com/v1/pages", {
     method: "POST",
     headers: {
       Authorization:    `Bearer ${token}`,
@@ -296,21 +296,16 @@ function logToNotion({ question, server, troop_type, season_week, furnace_level,
       "Notion-Version": "2022-06-28",
     },
     body: JSON.stringify(payload),
-  })
-    .then(async (res) => {
-      const body = await res.text();
-      if (res.ok) {
-        const parsed = JSON.parse(body);
-        console.log(`[NOTION] Entry created OK — page id: ${parsed.id}`);
-      } else {
-        console.error(`[NOTION] API error ${res.status} ${res.statusText}`);
-        console.error(`[NOTION] Response body: ${body}`);
-        console.error(`[NOTION] Payload sent: ${JSON.stringify(payload, null, 2)}`);
-      }
-    })
-    .catch((err) => {
-      console.error(`[NOTION] Network error: ${err.message}`);
-    });
+  });
+
+  const body = await res.text();
+  if (res.ok) {
+    console.log(`[NOTION] Entry created OK — page id: ${JSON.parse(body).id}`);
+  } else {
+    console.error(`[NOTION] API error ${res.status} ${res.statusText}`);
+    console.error(`[NOTION] Response body: ${body}`);
+    console.error(`[NOTION] Payload sent: ${JSON.stringify(payload, null, 2)}`);
+  }
 }
 
 // ── CORS headers ──────────────────────────────────────────────────────────────
@@ -390,8 +385,15 @@ exports.handler = async (event) => {
     }
 
     const response = data.content?.[0]?.text || "";
-    // Fire-and-forget — does not block the response
-    logToNotion({ question, server, troop_type, season_week, furnace_level, heroes, image_base64 });
+
+    // Await Notion log with 2s cap so the function doesn't exit before it completes.
+    // The timeout resolves (not rejects) so a slow/failed Notion call never blocks the response.
+    const notionTimeout = new Promise((resolve) => setTimeout(resolve, 2000));
+    await Promise.race([
+      logToNotion({ question, server, troop_type, season_week, furnace_level, heroes, image_base64 }),
+      notionTimeout,
+    ]).catch((err) => console.error(`[NOTION] Unexpected error: ${err.message}`));
+
     return { statusCode: 200, headers: CORS, body: JSON.stringify({ response }) };
   } catch (err) {
     console.error("[WAR ROOM] Fetch error:", err);
