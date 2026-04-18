@@ -78,11 +78,20 @@ body {
   background: rgba(79, 195, 247, 0.04);
 }
 .quick-action-btn:hover {
-  border-color: rgba(79, 195, 247, 0.6);
-  background: rgba(79, 195, 247, 0.10);
+  border-color: rgba(184, 212, 232, 0.65);
+  background: rgba(184, 212, 232, 0.08);
 }
 .quick-action-btn:active {
-  background: rgba(79, 195, 247, 0.18);
+  background: rgba(184, 212, 232, 0.15);
+}
+
+/* ── Polar Storm Ice Palette (Season 2) ── */
+/* ice-white: #e8f4f8 | snow-blue: #b8d4e8 */
+.widget-ice-hover {
+  transition: border-color 0.2s ease;
+}
+.widget-ice-hover:hover {
+  border-color: rgba(232, 244, 248, 0.4) !important;
 }
 
 /* ── HUD Panel ── */

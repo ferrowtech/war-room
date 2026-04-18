@@ -92,8 +92,8 @@ const getWarCountdown = (timezoneOffset = 0) => {
 // ── Translations ──────────────────────────────────────────────────
 const TRANSLATIONS = {
   EN: {
-    askAdvisor: "TODAY'S FOCUS",
-    questionPlaceholder: "What do you need help with today?",
+    askAdvisor: "INTELLIGENCE REQUEST",
+    questionPlaceholder: "Enter your tactical query...",
     attach: "ATTACH", getBriefing: "GET BRIEFING", transmitting: "TRANSMITTING",
     intelReport: "INTELLIGENCE REPORT", copyBriefing: "COPY BRIEFING", copied: "COPIED",
     editProfile: "EDIT PROFILE", commander: "COMMANDER", server: "SERVER",
@@ -108,10 +108,11 @@ const TRANSLATIONS = {
     noBossToday: "No Wanted Boss today", notYourBonus: "not your bonus", dayWord: "day",
     digSiteWidget: "DIG SITE TARGET", target: "TARGET", digSites: "DIG SITES", weakToShort: "weak to",
     warPhaseLabel: "WAR PHASE", nextWar: "NEXT WAR", st: "ST", inTime: "in", serverNow: "SERVER",
+    timezoneHint: "Set timezone to match your server time",
   },
   RU: {
-    askAdvisor: "ФОКУС СЕГОДНЯ",
-    questionPlaceholder: "Что вас интересует сегодня?",
+    askAdvisor: "ЗАПРОС РАЗВЕДКИ",
+    questionPlaceholder: "Введите тактический запрос...",
     attach: "ФАЙЛ", getBriefing: "ПОЛУЧИТЬ ПРИКАЗ", transmitting: "ПЕРЕДАЧА...",
     intelReport: "ОПЕРАТИВНАЯ СВОДКА", copyBriefing: "КОПИРОВАТЬ", copied: "СКОПИРОВАНО",
     editProfile: "ПРОФИЛЬ", commander: "КОМАНДИР", server: "СЕРВЕР",
@@ -126,26 +127,26 @@ const TRANSLATIONS = {
     noBossToday: "Сегодня нет Wanted Boss", notYourBonus: "не ваш бонус", dayWord: "день",
     digSiteWidget: "МЕСТО РАСКОПОК", target: "ЦЕЛЬ", digSites: "МЕСТА РАСКОПОК", weakToShort: "слаб к",
     warPhaseLabel: "ФАЗА ВОЙНЫ", nextWar: "СЛЕДУЮЩАЯ ВОЙНА", st: "CT", inTime: "через", serverNow: "СЕРВЕР",
+    timezoneHint: "Установите часовой пояс сервера",
   },
 };
 
-// ── Quick Actions ─────────────────────────────────────────────────
 const QUICK_ACTIONS = {
   EN: [
-    { label: "Boss Deep Dive",        Icon: Target,      question: "Give me a detailed breakdown of today's boss — attack strategy, which heroes to use, timing, and how to maximise my damage." },
-    { label: "Dig Site Strategy",     Icon: Map,         question: "Which Dig Sites should I target and how to capture them?" },
-    { label: "Temperature Help",      Icon: Thermometer, question: "My base temperature is dropping, what should I do?" },
-    { label: "This Week's Priority",  Icon: Calendar,    question: "What should I focus on this week?" },
-    { label: "Hero Advice",           Icon: Star,        question: "How should I develop my heroes and what to upgrade next?" },
-    { label: "War Phase",             Icon: Shield,      question: "How does the War Phase work and when should I attack?" },
+    { label: "Daily Briefing",  Icon: Calendar,    question: "Give me a full daily briefing for today - boss, dig sites, priorities and what to focus on" },
+    { label: "Attack Strategy", Icon: Target,      question: "What is the best attack strategy for my squad today?" },
+    { label: "Dig Sites",       Icon: Map,         question: "Which dig sites should I capture and how?" },
+    { label: "Temperature",     Icon: Thermometer, question: "How do I manage my base temperature and avoid freezing?" },
+    { label: "Hero Upgrade",    Icon: Star,        question: "Which hero should I upgrade next and how?" },
+    { label: "War Phase",       Icon: Shield,      question: "Explain the War Phase and when I should attack the enemy furnace" },
   ],
   RU: [
-    { label: "Детальный анализ босса", Icon: Target,      question: "Дай подробный анализ сегодняшнего босса — стратегия атаки, какие герои использовать, тайминг и как максимизировать урон." },
-    { label: "Раскопки",               Icon: Map,         question: "Какие раскопки атаковать и как их захватить?" },
-    { label: "Температура",            Icon: Thermometer, question: "Температура базы падает, что делать?" },
-    { label: "Приоритет недели",       Icon: Calendar,    question: "На что сосредоточиться на этой неделе?" },
-    { label: "Герои",                  Icon: Star,        question: "Как развивать героев и что прокачивать следующим?" },
-    { label: "Фаза войны",             Icon: Shield,      question: "Как работает фаза войны и когда атаковать?" },
+    { label: "Ежедневный брифинг", Icon: Calendar,    question: "Дай полный ежедневный брифинг на сегодня — босс, раскопки, приоритеты и на что сосредоточиться" },
+    { label: "Стратегия атаки",    Icon: Target,      question: "Какова лучшая стратегия атаки для моего отряда сегодня?" },
+    { label: "Места раскопок",     Icon: Map,         question: "Какие раскопки захватить и как?" },
+    { label: "Температура",        Icon: Thermometer, question: "Как управлять температурой базы и не замёрзнуть?" },
+    { label: "Прокачка героев",    Icon: Star,        question: "Какого героя прокачивать следующим и как?" },
+    { label: "Военная фаза",       Icon: Shield,      question: "Объясни военную фазу и когда атаковать печь врага" },
   ],
 };
 
@@ -350,16 +351,16 @@ const TodaysBossWidget = ({ troopType, tr }) => {
         <p className="font-heading text-[9px] text-[#37474f] tracking-wide">{tr.noBossToday}</p>
       ) : (
         <div
-          className={`p-2 border ${isBonus ? "border-[#4fc3f7]/50" : "border-[#37474f]/40"}`}
-          style={{ background: isBonus ? "rgba(79,195,247,0.08)" : "rgba(55,71,79,0.08)" }}
+          className={`p-2 border widget-ice-hover ${isBonus ? "border-[#4fc3f7]/50" : "border-[#b8d4e8]/25"}`}
+          style={{ background: isBonus ? "rgba(79,195,247,0.08)" : "rgba(184,212,232,0.04)" }}
         >
-          <p className={`font-heading text-[10px] tracking-widest mb-0.5 ${isBonus ? "text-[#4fc3f7]" : "text-[#546e7a]"}`}>
+          <p className={`font-heading text-[10px] tracking-widest mb-0.5 ${isBonus ? "text-[#4fc3f7]" : "text-[#b8d4e8]"}`}>
             ⚔️ {boss.name.toUpperCase()}
           </p>
           {isBonus ? (
             <p className="font-heading text-[9px] text-[#4fc3f7]">— {tr.bonusDay}! +50% {troopType}</p>
           ) : (
-            <p className="font-heading text-[9px] text-[#37474f]">— {boss.type} {tr.dayWord} ({tr.notYourBonus})</p>
+            <p className="font-heading text-[9px] text-[#b8d4e8]/70">— {boss.type} {tr.dayWord} ({tr.notYourBonus})</p>
           )}
         </div>
       )}
@@ -376,9 +377,9 @@ const DigSiteWidget = ({ troopType, tr }) => {
         <Map size={10} color="#4fc3f7" strokeWidth={1.5} />
         <span className="font-heading text-[9px] text-[#4fc3f7] tracking-[0.3em]">{tr.digSiteWidget}</span>
       </div>
-      <div className="p-2 border border-[#4fc3f7]/30" style={{ background: "rgba(79,195,247,0.05)" }}>
-        <p className="font-heading text-[10px] text-[#4fc3f7] tracking-widest mb-0.5">🏔️ {tr.target}: {site.beast}</p>
-        <p className="font-heading text-[9px] text-[#b3e5fc]/60">{tr.digSites} ({tr.weakToShort} {troopType})</p>
+      <div className="p-2 border border-[#b8d4e8]/30 widget-ice-hover" style={{ background: "rgba(184,212,232,0.06)" }}>
+        <p className="font-heading text-[10px] text-[#e8f4f8] tracking-widest mb-0.5">🏔️ {tr.target}: {site.beast}</p>
+        <p className="font-heading text-[9px] text-[#b8d4e8]/70">{tr.digSites} ({tr.weakToShort} {troopType})</p>
       </div>
     </div>
   );
@@ -482,6 +483,9 @@ const WarCountdownWidget = ({ tr, language, timezoneOffset, onTimezoneChange }) 
           </p>
         </div>
       </div>
+      <p className="font-heading text-[8px] text-[#37474f] tracking-wide mt-1.5">
+        {tr.timezoneHint}
+      </p>
     </div>
   );
 };
@@ -497,7 +501,13 @@ const TopBar = ({ profile, onEditProfile, onTogglePanel, language, onToggleLangu
         <Menu size={16} />
       </button>
       <div className="flex items-center gap-2">
-        <span className="text-[#4fc3f7] text-lg">❄️</span>
+        <img
+          src="https://www.lastwar.com/en/img/logo.png"
+          alt="Last War"
+          style={{ height: "28px" }}
+          className="object-contain"
+          onError={(e) => { e.target.style.display = "none"; }}
+        />
         <span className="font-heading text-xl text-white tracking-[0.2em]" style={{ textShadow: "0 0 15px rgba(79,195,247,0.5)" }}>
           WAR ROOM
         </span>
