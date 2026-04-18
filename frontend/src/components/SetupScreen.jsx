@@ -1,50 +1,95 @@
 import React, { useState } from "react";
 import * as SliderPrimitive from "@radix-ui/react-slider";
 
-const TROOP_TYPES = ["Tank", "Aircraft", "Missile"];
-
-const HEROES = {
-  Tank:     ["Murphy", "Kimberly", "Marshall", "Williams", "Mason", "Violet", "Richard", "Monica", "Scarlett", "Stetmann"],
-  Aircraft: ["DVA", "Carlie", "Schuyler", "Morrison", "Lucius", "Sarah", "Maxwell", "Cage"],
-  Missile:  ["Swift", "Tesla", "Fiona", "Adam", "Venom", "McGregor", "Elsa", "Kane"],
+// Hero-to-type map — used for Squad 1 troop type inference
+const HERO_TYPES = {
+  Murphy: "Tank", Kimberly: "Tank", Marshall: "Tank", Williams: "Tank",
+  Mason: "Tank", Violet: "Tank", Richard: "Tank", Monica: "Tank",
+  Scarlett: "Tank", Stetmann: "Tank",
+  DVA: "Aircraft", Carlie: "Aircraft", Schuyler: "Aircraft", Morrison: "Aircraft",
+  Lucius: "Aircraft", Sarah: "Aircraft", Maxwell: "Aircraft", Cage: "Aircraft",
+  Swift: "Missile", Tesla: "Missile", Fiona: "Missile", Adam: "Missile",
+  Venom: "Missile", McGregor: "Missile", Elsa: "Missile", Kane: "Missile",
 };
-const ALL_HEROES = [...HEROES.Tank, ...HEROES.Aircraft, ...HEROES.Missile];
 
-const SQUADS = [
-  { label: "SQUAD 1 — TANKS",    type: "Tank",     start: 0,  heroList: HEROES.Tank     },
-  { label: "SQUAD 2 — AIRCRAFT", type: "Aircraft", start: 5,  heroList: HEROES.Aircraft },
-  { label: "SQUAD 3 — MISSILE",  type: "Missile",  start: 10, heroList: HEROES.Missile  },
+const ALL_HEROES = Object.keys(HERO_TYPES);
+
+// Squad 1 defines the primary troop type — infer from its heroes
+const inferTroopType = (heroes) => {
+  const counts = { Tank: 0, Aircraft: 0, Missile: 0 };
+  heroes.slice(0, 5).forEach((h) => {
+    if (h.name !== "None") {
+      const t = HERO_TYPES[h.name];
+      if (t) counts[t]++;
+    }
+  });
+  const max = Math.max(...Object.values(counts));
+  if (max === 0) return "Tank";
+  return Object.keys(counts).find((k) => counts[k] === max) || "Tank";
+};
+
+const SQUAD_CONFIG = [
+  { en: "SQUAD 1 — PRIMARY",   ru: "ОТРЯД 1 — ОСНОВНОЙ",  start: 0  },
+  { en: "SQUAD 2 — SECONDARY", ru: "ОТРЯД 2 — ВТОРИЧНЫЙ", start: 5  },
+  { en: "SQUAD 3 — SUPPORT",   ru: "ОТРЯД 3 — ПОДДЕРЖКА", start: 10 },
 ];
-const TOTAL_HERO_SLOTS = 15; // 3 squads × 5 heroes
+const TOTAL_HERO_SLOTS = 15;
 
-const emptySlots = () => Array(TOTAL_HERO_SLOTS).fill(null).map(() => ({ name: "None", stars: 1 }));
+const emptySlots = () =>
+  Array(TOTAL_HERO_SLOTS).fill(null).map(() => ({ name: "None", stars: 1 }));
 
 const parseHero = (h) => {
   if (!h || h === "None" || !h.trim()) return { name: "None", stars: 1 };
   const match = h.match(/^(.+?) \((\d)★\)$/);
-  if (match) return { name: ALL_HEROES.includes(match[1]) ? match[1] : "None", stars: parseInt(match[2]) };
+  if (match) {
+    const name = ALL_HEROES.includes(match[1]) ? match[1] : "None";
+    return { name, stars: parseInt(match[2]) };
+  }
   return { name: ALL_HEROES.includes(h) ? h : "None", stars: 1 };
 };
 
+const SETUP_T = {
+  EN: {
+    commanderSetup: "COMMANDER SETUP",
+    editProfile: "EDIT PROFILE",
+    serverNumber: "SERVER NUMBER",
+    serverPlaceholder: "e.g. 1042",
+    furnaceLevel: "FURNACE LEVEL",
+    none: "— None —",
+    enterWarRoom: "ENTER WAR ROOM",
+    saveProfile: "SAVE PROFILE",
+    footer: "LAST WAR: SURVIVAL // TACTICAL AI ADVISOR",
+    errorServer: "SERVER NUMBER is required.",
+  },
+  RU: {
+    commanderSetup: "НАСТРОЙКА КОМАНДИРА",
+    editProfile: "РЕДАКТИРОВАТЬ ПРОФИЛЬ",
+    serverNumber: "НОМЕР СЕРВЕРА",
+    serverPlaceholder: "напр. 1042",
+    furnaceLevel: "УРОВЕНЬ ПЕЧИ",
+    none: "— Пусто —",
+    enterWarRoom: "ВОЙТИ В КОМАНДНЫЙ ЦЕНТР",
+    saveProfile: "СОХРАНИТЬ ПРОФИЛЬ",
+    footer: "LAST WAR: SURVIVAL // ТАКТИЧЕСКИЙ ИИ-СОВЕТНИК",
+    errorServer: "НОМЕР СЕРВЕРА обязателен.",
+  },
+};
+
 const SetupScreen = ({ onComplete, initialProfile = null }) => {
+  const lang = localStorage.getItem("warroom_lang") || "EN";
+  const T = SETUP_T[lang] || SETUP_T.EN;
+  const isEditing = Boolean(initialProfile);
+
   const [server, setServer] = useState(initialProfile?.server || "");
-  const [troopType, setTroopType] = useState(initialProfile?.troopType || "");
   const [furnaceLevel, setFurnaceLevel] = useState(
     initialProfile ? [initialProfile.furnaceLevel] : [5]
   );
   const [heroes, setHeroes] = useState(() => {
     const slots = emptySlots();
     if (!initialProfile?.heroes) return slots;
-    // Migrate existing heroes into their correct squad slots by type
-    const buckets = { Tank: [], Aircraft: [], Missile: [] };
-    initialProfile.heroes.forEach((h) => {
-      const p = parseHero(h);
-      if (HEROES.Tank.includes(p.name))          buckets.Tank.push(p);
-      else if (HEROES.Aircraft.includes(p.name)) buckets.Aircraft.push(p);
-      else if (HEROES.Missile.includes(p.name))  buckets.Missile.push(p);
-    });
-    SQUADS.forEach(({ type, start }) => {
-      buckets[type].forEach((h, i) => { if (i < 5) slots[start + i] = h; });
+    // Position-based: map stored heroes directly to their slot indices
+    initialProfile.heroes.forEach((h, i) => {
+      if (i < TOTAL_HERO_SLOTS) slots[i] = parseHero(h);
     });
     return slots;
   });
@@ -52,7 +97,11 @@ const SetupScreen = ({ onComplete, initialProfile = null }) => {
 
   const handleHero = (index, name) => {
     const updated = [...heroes];
-    updated[index] = { name, stars: name === "None" ? 1 : updated[index].name === name ? updated[index].stars : 1 };
+    updated[index] = {
+      name,
+      stars:
+        name === "None" ? 1 : updated[index].name === name ? updated[index].stars : 1,
+    };
     setHeroes(updated);
   };
 
@@ -64,18 +113,23 @@ const SetupScreen = ({ onComplete, initialProfile = null }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!server || !troopType) {
-      setError("SERVER NUMBER and TROOP TYPE are required.");
+    if (!server) {
+      setError(T.errorServer);
       return;
     }
     setError("");
+    const troopType = inferTroopType(heroes);
     const formattedHeroes = heroes.map((h) =>
       h.name !== "None" ? `${h.name} (${h.stars}★)` : "None"
     );
-    onComplete({ server, troopType, furnaceLevel: furnaceLevel[0], heroes: formattedHeroes, seasonStartDate: initialProfile?.seasonStartDate });
+    onComplete({
+      server,
+      troopType,
+      furnaceLevel: furnaceLevel[0],
+      heroes: formattedHeroes,
+      seasonWeek: initialProfile?.seasonWeek,
+    });
   };
-
-  const isEditing = Boolean(initialProfile);
 
   return (
     <div
@@ -83,8 +137,6 @@ const SetupScreen = ({ onComplete, initialProfile = null }) => {
       data-testid="setup-screen"
     >
       <div className="scan-line" />
-
-      {/* Background grid lines */}
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
@@ -110,7 +162,7 @@ const SetupScreen = ({ onComplete, initialProfile = null }) => {
           <div className="flex items-center gap-2 justify-center">
             <div className="h-px flex-1 bg-[#4fc3f7]/30" />
             <span className="font-heading text-sm text-[#4fc3f7] tracking-[0.3em]">
-              {isEditing ? "EDIT PROFILE" : "COMMANDER SETUP"}
+              {isEditing ? T.editProfile : T.commanderSetup}
             </span>
             <div className="h-px flex-1 bg-[#4fc3f7]/30" />
           </div>
@@ -118,64 +170,33 @@ const SetupScreen = ({ onComplete, initialProfile = null }) => {
 
         {/* Form Panel */}
         <div className="hud-panel hud-corner p-6 relative">
-          {/* Top-right corner */}
           <div
             className="absolute top-0 right-0 w-10 h-10 pointer-events-none"
-            style={{
-              borderTop: "2px solid #4fc3f7",
-              borderRight: "2px solid #4fc3f7",
-            }}
+            style={{ borderTop: "2px solid #4fc3f7", borderRight: "2px solid #4fc3f7" }}
           />
 
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Server Number */}
             <div>
               <label className="block font-heading text-xs text-[#4fc3f7] tracking-[0.25em] mb-2">
-                SERVER NUMBER
+                {T.serverNumber}
               </label>
               <input
                 data-testid="setup-server-input"
                 type="number"
                 value={server}
                 onChange={(e) => setServer(e.target.value)}
-                placeholder="e.g. 1042"
+                placeholder={T.serverPlaceholder}
                 className="war-input w-full px-3 py-2.5 text-sm"
                 min="1"
               />
-            </div>
-
-            {/* Troop Type */}
-            <div>
-              <label className="block font-heading text-xs text-[#4fc3f7] tracking-[0.25em] mb-2">
-                PRIMARY TROOP TYPE
-              </label>
-              <select
-                data-testid="setup-troop-select"
-                value={troopType}
-                onChange={(e) => setTroopType(e.target.value)}
-                className="war-input w-full px-3 py-2.5 text-sm appearance-none cursor-pointer"
-                style={{ background: "rgba(10,14,26,0.95)" }}
-              >
-                <option value="" disabled>
-                  Select troop type...
-                </option>
-                {TROOP_TYPES.map((t) => (
-                  <option
-                    key={t}
-                    value={t}
-                    style={{ background: "#0d1220", color: "#fff" }}
-                  >
-                    {t}
-                  </option>
-                ))}
-              </select>
             </div>
 
             {/* Furnace Level */}
             <div>
               <div className="flex justify-between items-center mb-3">
                 <label className="font-heading text-xs text-[#4fc3f7] tracking-[0.25em]">
-                  FURNACE LEVEL
+                  {T.furnaceLevel}
                 </label>
                 <span
                   className="font-heading text-xl text-white"
@@ -205,14 +226,14 @@ const SetupScreen = ({ onComplete, initialProfile = null }) => {
               </div>
             </div>
 
-            {/* Hero Squads */}
+            {/* Hero Squads — free-form, Squad 1 defines the primary troop type */}
             <div className="space-y-5">
-              {SQUADS.map(({ label, type, start, heroList }) => (
-                <div key={type}>
+              {SQUAD_CONFIG.map(({ en, ru, start }) => (
+                <div key={start}>
                   <div className="flex items-center gap-2 mb-2">
                     <div className="h-px flex-1 bg-[#4fc3f7]/20" />
                     <label className="font-heading text-[10px] text-[#4fc3f7] tracking-[0.25em] whitespace-nowrap">
-                      {label}
+                      {lang === "RU" ? ru : en}
                     </label>
                     <div className="h-px flex-1 bg-[#4fc3f7]/20" />
                   </div>
@@ -228,16 +249,25 @@ const SetupScreen = ({ onComplete, initialProfile = null }) => {
                             className="war-input flex-1 min-w-0 px-3 py-2 text-sm appearance-none cursor-pointer"
                             style={{ background: "rgba(10,14,26,0.95)" }}
                           >
-                            <option value="None" style={{ background: "#0d1220" }}>— None —</option>
-                            {heroList.map((hero) => (
-                              <option key={hero} value={hero} style={{ background: "#0d1220", color: "#fff" }}>
+                            <option value="None" style={{ background: "#0d1220" }}>
+                              {T.none}
+                            </option>
+                            {ALL_HEROES.map((hero) => (
+                              <option
+                                key={hero}
+                                value={hero}
+                                style={{ background: "#0d1220", color: "#fff" }}
+                              >
                                 {hero}
                               </option>
                             ))}
                           </select>
 
                           {heroes[i].name !== "None" && (
-                            <div className="flex gap-0.5 flex-shrink-0" data-testid={`hero-${i + 1}-stars`}>
+                            <div
+                              className="flex gap-0.5 flex-shrink-0"
+                              data-testid={`hero-${i + 1}-stars`}
+                            >
                               {[1, 2, 3, 4, 5].map((s) => (
                                 <button
                                   key={s}
@@ -245,7 +275,9 @@ const SetupScreen = ({ onComplete, initialProfile = null }) => {
                                   data-testid={`setup-hero-${i + 1}-star-${s}`}
                                   onClick={() => handleHeroStars(i, s)}
                                   className="w-6 h-6 flex items-center justify-center text-base leading-none transition-all hover:scale-125 focus:outline-none"
-                                  style={{ color: heroes[i].stars >= s ? "#fbbf24" : "#37474f" }}
+                                  style={{
+                                    color: heroes[i].stars >= s ? "#fbbf24" : "#37474f",
+                                  }}
                                   title={`${s}★`}
                                 >
                                   ★
@@ -261,28 +293,25 @@ const SetupScreen = ({ onComplete, initialProfile = null }) => {
               ))}
             </div>
 
-            {/* Error */}
             {error && (
               <p className="text-[#ff6f00] text-xs font-heading tracking-widest">
                 ⚠ {error}
               </p>
             )}
 
-            {/* Submit */}
             <button
               data-testid="setup-submit-button"
               type="submit"
               className="btn-primary w-full py-4 text-base tracking-[0.3em] mt-2"
               style={{ fontSize: "1rem" }}
             >
-              {isEditing ? "💾 SAVE PROFILE" : "❄️ ENTER WAR ROOM"}
+              {isEditing ? `💾 ${T.saveProfile}` : `❄️ ${T.enterWarRoom}`}
             </button>
           </form>
         </div>
 
-        {/* Footer */}
         <p className="text-center text-[10px] text-[#37474f] font-heading tracking-widest mt-4">
-          LAST WAR: SURVIVAL // TACTICAL AI ADVISOR
+          {T.footer}
         </p>
       </div>
     </div>

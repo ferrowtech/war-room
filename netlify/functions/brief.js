@@ -151,8 +151,22 @@ function parseHeroes(heroes) {
   return parsed;
 }
 
+// ── Troop type inference (fallback when client does not send it) ──────────────
+function inferTroopTypeFromHeroes(heroes = []) {
+  const counts = { Tank: 0, Aircraft: 0, Missile: 0 };
+  heroes.slice(0, 5).forEach((h) => {
+    if (!h || h.toLowerCase() === "none") return;
+    const name = h.replace(/\s*\(\d[★*]\)$/, "").trim();
+    const t = HERO_TYPES[name];
+    if (t) counts[t]++;
+  });
+  const max = Math.max(...Object.values(counts));
+  if (max === 0) return "Tank";
+  return Object.keys(counts).find((k) => counts[k] === max) || "Tank";
+}
+
 // ── System prompt builder ─────────────────────────────────────────────────────
-function buildSystemPrompt({ server, troop_type, furnace_level, heroes = [], season_week, kbStr }) {
+function buildSystemPrompt({ server, troop_type, furnace_level, heroes = [], season_week, kbStr, language }) {
   const parsedHeroes = parseHeroes(heroes);
 
   // Heroes block — one line per hero with exact star status + troop type label
@@ -256,11 +270,15 @@ SCREENSHOT / IMAGE ANALYSIS RULES:
 - This player's troop type is ${troop_type} (from their profile). When analysing a formation screenshot, assume ALL heroes and troops shown belong to the ${troop_type} type unless the user explicitly states otherwise in their message.
 - If troop type cannot be confirmed from the image and the user has not specified it, default to the profile value (${troop_type}).
 
-INSTRUCTIONS: Answer in the same language the user writes in (English or Russian). Be direct, specific, and tactical. Reference the player's troop type (${troop_type}), furnace level (${furnace_level}), and actual hero stars from the profile above. Recommend the correct beast type for their troop. Keep answers under 200 words. Format with clear sections when helpful.`;
+${language === "RU"
+  ? "LANGUAGE DIRECTIVE: You MUST respond entirely in Russian (Русский язык). Do not write any English in your response — every word must be in Russian."
+  : "LANGUAGE DIRECTIVE: Respond in English."}
+
+INSTRUCTIONS: Be direct, specific, and tactical. Reference the player's troop type (${troop_type}), furnace level (${furnace_level}), and actual hero stars from the profile above. Recommend the correct beast type for their troop. Keep answers under 200 words. Format with clear sections when helpful.`;
 }
 
 // ── Notion logging (awaited with 2s timeout) ──────────────────────────────────
-async function logToNotion({ question, answer, server, troop_type, season_week, furnace_level, heroes, image_base64 }) {
+async function logToNotion({ question, answer, server, troop_type, season_week, furnace_level, heroes, image_base64, language }) {
   const token = process.env.NOTION_TOKEN;
   const dbId  = process.env.NOTION_DATABASE_ID || "a52c8cc8-cf7a-4f17-b90c-3b0d9f7e98a6";
 
@@ -286,7 +304,7 @@ async function logToNotion({ question, answer, server, troop_type, season_week, 
       "Has Image":     { checkbox:  Boolean(image_base64) },
       Timestamp:       { date:      { start: new Date().toISOString() } },
       Answer:          { rich_text: [{ text: { content: String(answer || "").slice(0, 2000) } }] },
-      Language:        { select:    { name: /[\u0400-\u04FF]/.test(question) ? "Russian" : "English" } },
+      Language:        { select:    { name: language === "RU" ? "Russian" : "English" } },
     },
   };
 
@@ -340,7 +358,9 @@ exports.handler = async (event) => {
     return { statusCode: 400, headers: CORS, body: JSON.stringify({ error: "Invalid JSON body" }) };
   }
 
-  const { question, server, troop_type, furnace_level, heroes, season_week, image_base64 } = body;
+  const { question, server, furnace_level, heroes, season_week, image_base64, language = "EN" } = body;
+  // Infer primary troop type from Squad 1 heroes when client does not send it
+  const troop_type = body.troop_type || inferTroopTypeFromHeroes(heroes);
 
   if (!question) {
     return { statusCode: 400, headers: CORS, body: JSON.stringify({ error: "question is required" }) };
@@ -349,7 +369,7 @@ exports.handler = async (event) => {
   // Fetch (or serve from cache) the combined knowledge base
   const kbStr = await fetchKnowledgeBase();
 
-  const systemPrompt = buildSystemPrompt({ server, troop_type, furnace_level, heroes, season_week, kbStr });
+  const systemPrompt = buildSystemPrompt({ server, troop_type, furnace_level, heroes, season_week, kbStr, language });
 
   // Build user message content (with optional image attachment)
   const userContent = image_base64
@@ -392,7 +412,7 @@ exports.handler = async (event) => {
     // The timeout resolves (not rejects) so a slow/failed Notion call never blocks the response.
     const notionTimeout = new Promise((resolve) => setTimeout(resolve, 2000));
     await Promise.race([
-      logToNotion({ question, answer: response, server, troop_type, season_week, furnace_level, heroes, image_base64 }),
+      logToNotion({ question, answer: response, server, troop_type, season_week, furnace_level, heroes, image_base64, language }),
       notionTimeout,
     ]).catch((err) => console.error(`[NOTION] Unexpected error: ${err.message}`));
 

@@ -19,23 +19,106 @@ import {
   Thermometer,
   Star,
   Shield,
+  RefreshCw,
 } from "lucide-react";
 
 const BRIEF_URL = "/.netlify/functions/brief";
+const SERVER_WEEK_URL = "/.netlify/functions/server-week";
 const HISTORY_KEY = "warroom_history";
+const LANG_KEY = "warroom_lang";
 const MAX_HISTORY = 20;
 
-const QUICK_ACTIONS = [
-  { label: "Today's Boss",        Icon: Target,      question: "Which boss should I attack today and with which heroes?" },
-  { label: "Dig Site Strategy",   Icon: Map,         question: "Which Dig Sites should I target and how to capture them?" },
-  { label: "Temperature Help",    Icon: Thermometer, question: "My base temperature is dropping, what should I do?" },
-  { label: "This Week's Priority",Icon: Calendar,    question: "What should I focus on this week?" },
-  { label: "Hero Advice",         Icon: Star,        question: "How should I develop my heroes and what to upgrade next?" },
-  { label: "War Phase",           Icon: Shield,      question: "How does the War Phase work and when should I attack?" },
-];
+// ── Translations ──────────────────────────────────────────────────
+const TRANSLATIONS = {
+  EN: {
+    askAdvisor: "ASK YOUR TACTICAL ADVISOR",
+    questionPlaceholder: "Enter your tactical question... (Ctrl+Enter to send)",
+    attach: "ATTACH",
+    getBriefing: "GET BRIEFING",
+    transmitting: "TRANSMITTING",
+    intelReport: "INTELLIGENCE REPORT",
+    copyBriefing: "COPY BRIEFING",
+    copied: "COPIED",
+    editProfile: "EDIT PROFILE",
+    commander: "COMMANDER",
+    server: "SERVER",
+    troopType: "TROOP TYPE",
+    furnaceLevel: "FURNACE LEVEL",
+    squads: "SQUADS",
+    sq1: "SQ1 PRIMARY",
+    sq2: "SQ2 SECONDARY",
+    sq3: "SQ3 SUPPORT",
+    counterIntel: "COUNTER INTEL",
+    beats: "BEATS:",
+    weakTo: "WEAK TO:",
+    polarStorm: "POLAR STORM",
+    week: "WEEK",
+    autoLabel: "AUTO",
+    refresh: "REFRESH",
+    detecting: "DETECTING...",
+    weekNotFound: "Week not detected",
+    missionHistory: "MISSION HISTORY",
+    clearHistory: "CLEAR HISTORY",
+    awaiting: "AWAITING MISSION BRIEFING REQUEST",
+    noHeroes: "No heroes set",
+    transmissionFailed: "TRANSMISSION FAILED. RETRY MISSION.",
+  },
+  RU: {
+    askAdvisor: "ЗАДАЙТЕ ВОПРОС СОВЕТНИКУ",
+    questionPlaceholder: "Введите тактический вопрос... (Ctrl+Enter для отправки)",
+    attach: "ФАЙЛ",
+    getBriefing: "ПОЛУЧИТЬ ПРИКАЗ",
+    transmitting: "ПЕРЕДАЧА...",
+    intelReport: "ОПЕРАТИВНАЯ СВОДКА",
+    copyBriefing: "КОПИРОВАТЬ",
+    copied: "СКОПИРОВАНО",
+    editProfile: "ПРОФИЛЬ",
+    commander: "КОМАНДИР",
+    server: "СЕРВЕР",
+    troopType: "ТИП ВОЙСК",
+    furnaceLevel: "УРОВЕНЬ ПЕЧИ",
+    squads: "ОТРЯДЫ",
+    sq1: "ОТР.1 ОСНОВНОЙ",
+    sq2: "ОТР.2 ВТОРИЧНЫЙ",
+    sq3: "ОТР.3 ПОДДЕРЖКА",
+    counterIntel: "РАЗВЕДДАННЫЕ",
+    beats: "ПОБЕЖДАЕТ:",
+    weakTo: "УЯЗВИМ К:",
+    polarStorm: "ПОЛЯРНЫЙ ШТОРМ",
+    week: "НЕДЕЛЯ",
+    autoLabel: "АВТО",
+    refresh: "ОБНОВИТЬ",
+    detecting: "ОПРЕДЕЛЯЮ...",
+    weekNotFound: "Неделя не определена",
+    missionHistory: "ИСТОРИЯ ОПЕРАЦИЙ",
+    clearHistory: "ОЧИСТИТЬ ИСТОРИЮ",
+    awaiting: "ОЖИДАНИЕ ЗАПРОСА БРИФИНГА",
+    noHeroes: "Нет героев",
+    transmissionFailed: "ОШИБКА ПЕРЕДАЧИ. ПОВТОРИТЕ МИССИЮ.",
+  },
+};
 
-// ── Image compression ────────────────────────────────────────────
-// Resizes to max 1280px wide and iterates quality down until base64 < 3 MB.
+// ── Quick Actions (by language) ───────────────────────────────────
+const QUICK_ACTIONS = {
+  EN: [
+    { label: "Today's Boss",         Icon: Target,      question: "Which boss should I attack today and with which heroes?" },
+    { label: "Dig Site Strategy",    Icon: Map,         question: "Which Dig Sites should I target and how to capture them?" },
+    { label: "Temperature Help",     Icon: Thermometer, question: "My base temperature is dropping, what should I do?" },
+    { label: "This Week's Priority", Icon: Calendar,    question: "What should I focus on this week?" },
+    { label: "Hero Advice",          Icon: Star,        question: "How should I develop my heroes and what to upgrade next?" },
+    { label: "War Phase",            Icon: Shield,      question: "How does the War Phase work and when should I attack?" },
+  ],
+  RU: [
+    { label: "Босс сегодня",         Icon: Target,      question: "Какого босса атаковать сегодня и какими героями?" },
+    { label: "Раскопки",             Icon: Map,         question: "Какие раскопки атаковать и как их захватить?" },
+    { label: "Температура",          Icon: Thermometer, question: "Температура базы падает, что делать?" },
+    { label: "Приоритет недели",     Icon: Calendar,    question: "На что сосредоточиться на этой неделе?" },
+    { label: "Герои",                Icon: Star,        question: "Как развивать героев и что прокачивать следующим?" },
+    { label: "Фаза войны",           Icon: Shield,      question: "Как работает фаза войны и когда атаковать?" },
+  ],
+};
+
+// ── Image compression ─────────────────────────────────────────────
 const MAX_IMG_WIDTH = 1280;
 const MAX_B64_BYTES = 3 * 1024 * 1024;
 
@@ -68,19 +151,32 @@ const compressImage = (file) =>
     reader.readAsDataURL(file);
   });
 
+// ── Weekly schedule ───────────────────────────────────────────────
 const WEEKLY_SCHEDULE = {
-  1: "Build Titanium Alloy Factory, upgrade Furnace, capture first Dig Site. Level 1 cities unlock Day 3 at 12:00.",
-  2: "Expand territory, upgrade Furnace, build Military Bases.",
-  3: "Choose faction (Rebels or Gendarmerie) — determines Rare Soil War opponents.",
-  4: "Rare Soil War begins — upgrade Alliance Furnace, coordinate with alliance.",
-  5: "Active war phase — attack/defense rotations.",
-  6: "Push Faction Award points, defend Alliance Furnace.",
-  7: "Faction Duel — 4v4 Capitol Conquest, final ranking.",
-  8: "Season ends — Transfer Surge available based on rank.",
+  EN: {
+    1: "Build Titanium Alloy Factory, upgrade Furnace, capture first Dig Site. Level 1 cities unlock Day 3 at 12:00.",
+    2: "Expand territory, upgrade Furnace, build Military Bases.",
+    3: "Choose faction (Rebels or Gendarmerie) — determines Rare Soil War opponents.",
+    4: "Rare Soil War begins — upgrade Alliance Furnace, coordinate with alliance.",
+    5: "Active war phase — attack/defense rotations.",
+    6: "Push Faction Award points, defend Alliance Furnace.",
+    7: "Faction Duel — 4v4 Capitol Conquest, final ranking.",
+    8: "Season ends — Transfer Surge available based on rank.",
+  },
+  RU: {
+    1: "Постройте завод Титанового сплава, улучшайте Печь, захватите первые Раскопки. Города 1 ур. открываются на 3-й день в 12:00.",
+    2: "Расширяйте территорию, улучшайте Печь, стройте Военные базы.",
+    3: "Выберите фракцию (Повстанцы или Жандармерия) — определяет противников в Войне за редкую почву.",
+    4: "Война за редкую почву — улучшайте Альянсовую печь, координируйте союз.",
+    5: "Активная фаза войны — ротации атаки и обороны.",
+    6: "Копите очки наград фракции, защищайте Альянсовую печь.",
+    7: "Дуэль фракций — 4 на 4, финальный рейтинг.",
+    8: "Сезон заканчивается — доступен Surge перевода по рейтингу.",
+  },
 };
 
-// ── Season helpers ──────────────────────────────────────────────
-const getSeasonWeek = (startDate) => {
+// ── Fallback: calculate week from start date (backward compat) ────
+const getSeasonWeekFromDate = (startDate) => {
   if (!startDate) return null;
   const start = new Date(startDate);
   const now = new Date();
@@ -88,9 +184,8 @@ const getSeasonWeek = (startDate) => {
   return Math.min(Math.max(Math.floor(days / 7) + 1, 1), 8);
 };
 
-// ── History helpers ─────────────────────────────────────────────
-const loadHistory = () =>
-  JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]");
+// ── History helpers ───────────────────────────────────────────────
+const loadHistory = () => JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]");
 const saveToHistory = (question, response) => {
   const prev = loadHistory();
   const entry = { id: Date.now(), question, response, ts: new Date().toISOString() };
@@ -99,7 +194,7 @@ const saveToHistory = (question, response) => {
   return updated;
 };
 
-// ── Typewriter hook ─────────────────────────────────────────────
+// ── Typewriter hook ───────────────────────────────────────────────
 const useTypewriter = (text, speed = 18) => {
   const [displayed, setDisplayed] = useState("");
   const [typing, setTyping] = useState(false);
@@ -112,10 +207,7 @@ const useTypewriter = (text, speed = 18) => {
     const interval = setInterval(() => {
       i++;
       setDisplayed(text.substring(0, i));
-      if (i >= text.length) {
-        setTyping(false);
-        clearInterval(interval);
-      }
+      if (i >= text.length) { setTyping(false); clearInterval(interval); }
     }, speed);
     return () => clearInterval(interval);
   }, [text, speed]);
@@ -123,8 +215,8 @@ const useTypewriter = (text, speed = 18) => {
   return { displayed, typing };
 };
 
-// ── Intelligence Report ─────────────────────────────────────────
-const IntelligenceReport = ({ text, isLatest = false }) => {
+// ── Intelligence Report ───────────────────────────────────────────
+const IntelligenceReport = ({ text, isLatest = false, tr }) => {
   const { displayed, typing } = useTypewriter(isLatest ? text : null);
   const shownText = isLatest ? displayed : text;
   const [copied, setCopied] = useState(false);
@@ -138,11 +230,10 @@ const IntelligenceReport = ({ text, isLatest = false }) => {
 
   return (
     <div className="intel-report p-5 relative" data-testid="intelligence-report">
-      {/* Header */}
       <div className="flex items-center gap-2 mb-4 pb-3 border-b border-[#4fc3f7]/20">
         <Zap size={14} color="#4fc3f7" strokeWidth={1.5} />
         <span className="font-heading text-xs text-[#4fc3f7] tracking-[0.3em]">
-          INTELLIGENCE REPORT
+          {tr.intelReport}
         </span>
         {typing && (
           <div className="flex gap-1 mr-auto">
@@ -158,10 +249,9 @@ const IntelligenceReport = ({ text, isLatest = false }) => {
           className={`ml-auto btn-primary px-2 py-1 flex items-center gap-1.5 text-[10px] ${typing ? "opacity-30 cursor-not-allowed" : ""}`}
         >
           {copied ? <Check size={10} /> : <Copy size={10} />}
-          <span>{copied ? "COPIED" : "COPY BRIEFING"}</span>
+          <span>{copied ? tr.copied : tr.copyBriefing}</span>
         </button>
       </div>
-
       <div className="font-report text-[#b3e5fc] text-sm leading-relaxed">
         {typing ? (
           <>
@@ -187,7 +277,7 @@ const IntelligenceReport = ({ text, isLatest = false }) => {
   );
 };
 
-// ── History Item ────────────────────────────────────────────────
+// ── History Item ──────────────────────────────────────────────────
 const HistoryItem = ({ item }) => {
   const [expanded, setExpanded] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -236,7 +326,6 @@ const HistoryItem = ({ item }) => {
           <span>{copied ? "✓" : "COPY"}</span>
         </button>
       </div>
-
       {expanded && (
         <div className="px-3 pb-3 pt-1 border-t border-[#37474f]/30">
           <ReactMarkdown
@@ -256,120 +345,79 @@ const HistoryItem = ({ item }) => {
   );
 };
 
-// ── Season Week Tracker ─────────────────────────────────────────
-const SeasonTracker = ({ seasonStartDate, onUpdateDate }) => {
-  const [editing, setEditing] = useState(false);
-  const [tempDate, setTempDate] = useState(seasonStartDate || "");
-
-  const week = getSeasonWeek(seasonStartDate);
-  const priority = week ? WEEKLY_SCHEDULE[week] : null;
-
-  const handleSave = () => {
-    if (tempDate) {
-      onUpdateDate(tempDate);
-      setEditing(false);
-    }
-  };
+// ── Season Tracker ────────────────────────────────────────────────
+const SeasonTracker = ({ seasonWeek, isDetecting, onRefresh, tr, language }) => {
+  const schedule = WEEKLY_SCHEDULE[language] || WEEKLY_SCHEDULE.EN;
+  const priority = seasonWeek ? schedule[seasonWeek] : null;
 
   return (
-    <div
-      className="mx-0 border-t border-[#4fc3f7]/15"
-      style={{ background: "rgba(79,195,247,0.03)" }}
-    >
+    <div className="mx-0 border-t border-[#4fc3f7]/15" style={{ background: "rgba(79,195,247,0.03)" }}>
       <div className="px-4 pt-3 pb-1 flex items-center justify-between">
         <div className="flex items-center gap-1.5">
           <Calendar size={10} color="#4fc3f7" strokeWidth={1.5} />
           <span className="font-heading text-[9px] text-[#4fc3f7] tracking-[0.3em]">
-            POLAR STORM ❄️
+            {tr.polarStorm} ❄️
           </span>
         </div>
-        {seasonStartDate && !editing && (
-          <button
-            onClick={() => setEditing(true)}
-            className="font-heading text-[8px] text-[#37474f] tracking-widest hover:text-[#4fc3f7] transition-colors"
-          >
-            CHANGE
-          </button>
-        )}
+        <button
+          data-testid="season-week-refresh-btn"
+          onClick={onRefresh}
+          disabled={isDetecting}
+          className="flex items-center gap-1 font-heading text-[8px] text-[#37474f] tracking-widest hover:text-[#4fc3f7] transition-colors disabled:opacity-40"
+        >
+          <RefreshCw size={8} className={isDetecting ? "animate-spin" : ""} />
+          {tr.refresh}
+        </button>
       </div>
 
-      {!seasonStartDate && !editing ? (
-        <div className="px-4 pb-3">
-          <p className="font-heading text-[9px] text-[#37474f] tracking-wide mb-2">
-            Set Season 2 start date to track week
-          </p>
-          <button
-            data-testid="set-season-date-btn"
-            onClick={() => setEditing(true)}
-            className="btn-primary w-full py-1.5 text-[9px]"
-          >
-            SET START DATE
-          </button>
-        </div>
-      ) : editing ? (
-        <div className="px-4 pb-3 space-y-2">
-          <input
-            data-testid="season-date-input"
-            type="date"
-            value={tempDate}
-            onChange={(e) => setTempDate(e.target.value)}
-            className="war-input w-full px-2 py-1.5 text-xs"
-            style={{ colorScheme: "dark" }}
-          />
-          <div className="flex gap-2">
-            <button
-              data-testid="season-date-save-btn"
-              onClick={handleSave}
-              className="btn-primary flex-1 py-1.5 text-[9px]"
-            >
-              CONFIRM
-            </button>
-            {seasonStartDate && (
-              <button
-                onClick={() => setEditing(false)}
-                className="btn-secondary px-3 py-1.5 text-[9px] border border-[#37474f]/50 font-heading text-[#37474f] hover:text-white transition-colors"
-              >
-                CANCEL
-              </button>
+      <div className="px-4 pb-3">
+        {isDetecting ? (
+          <div className="flex items-center gap-2 py-1">
+            <span className="loading-dot" />
+            <span className="loading-dot" />
+            <span className="loading-dot" />
+            <span className="font-heading text-[9px] text-[#37474f] tracking-widest">{tr.detecting}</span>
+          </div>
+        ) : seasonWeek ? (
+          <>
+            <div className="flex items-baseline justify-between mb-1.5">
+              <span className="font-heading text-[9px] text-[#37474f] tracking-widest">{tr.week}</span>
+              <div className="flex items-baseline gap-1.5">
+                <span className="font-heading text-[8px] text-[#4fc3f7]/50 tracking-widest">{tr.autoLabel}</span>
+                <span
+                  className="font-heading text-2xl text-white"
+                  style={{ textShadow: "0 0 12px rgba(79,195,247,0.5)" }}
+                  data-testid="season-week-display"
+                >
+                  {seasonWeek}
+                  <span className="text-xs text-[#37474f] ml-1">/8</span>
+                </span>
+              </div>
+            </div>
+            <div className="h-1 bg-[#37474f]/30 mb-2">
+              <div
+                className="h-full bg-[#4fc3f7] transition-all"
+                style={{ width: `${(seasonWeek / 8) * 100}%` }}
+              />
+            </div>
+            {priority && (
+              <p className="font-report text-[10px] text-[#b3e5fc]/80 leading-relaxed">{priority}</p>
             )}
-          </div>
-        </div>
-      ) : (
-        <div className="px-4 pb-3">
-          <div className="flex items-baseline justify-between mb-1.5">
-            <span className="font-heading text-[9px] text-[#37474f] tracking-widest">WEEK</span>
-            <span
-              className="font-heading text-2xl text-white"
-              style={{ textShadow: "0 0 12px rgba(79,195,247,0.5)" }}
-              data-testid="season-week-display"
-            >
-              {week}
-              <span className="text-xs text-[#37474f] ml-1">/8</span>
-            </span>
-          </div>
-          {/* Progress bar */}
-          <div className="h-1 bg-[#37474f]/30 mb-2">
-            <div
-              className="h-full bg-[#4fc3f7] transition-all"
-              style={{ width: `${(week / 8) * 100}%` }}
-            />
-          </div>
-          <p className="font-report text-[10px] text-[#b3e5fc]/80 leading-relaxed">
-            {priority}
-          </p>
-        </div>
-      )}
+          </>
+        ) : (
+          <p className="font-heading text-[9px] text-[#37474f] tracking-wide">{tr.weekNotFound}</p>
+        )}
+      </div>
     </div>
   );
 };
 
-// ── Top Bar ─────────────────────────────────────────────────────
-const TopBar = ({ profile, onEditProfile, onTogglePanel }) => (
+// ── Top Bar ───────────────────────────────────────────────────────
+const TopBar = ({ profile, onEditProfile, onTogglePanel, language, onToggleLanguage, tr }) => (
   <div
     className="flex items-center justify-between px-4 py-3 border-b border-[#4fc3f7]/20"
     style={{ background: "rgba(10,14,26,0.95)" }}
   >
-    {/* Left: menu toggle + logo */}
     <div className="flex items-center gap-3">
       <button
         data-testid="panel-toggle-button"
@@ -390,8 +438,8 @@ const TopBar = ({ profile, onEditProfile, onTogglePanel }) => (
       </div>
     </div>
 
-    {/* Right: badges + edit */}
     <div className="flex items-center gap-2">
+      {/* Server/Troop badge */}
       <div
         className="hidden sm:flex items-center gap-1.5 px-2 py-1 border border-[#4fc3f7]/30"
         style={{ background: "rgba(79,195,247,0.06)" }}
@@ -401,24 +449,69 @@ const TopBar = ({ profile, onEditProfile, onTogglePanel }) => (
         </span>
         <span className="text-[#37474f]">|</span>
         <span className="font-heading text-[10px] text-[#4fc3f7] tracking-widest">
-          {profile.troopType.toUpperCase()}
+          {profile.troopType?.toUpperCase()}
         </span>
       </div>
+
+      {/* EN / RU Language Toggle */}
+      <div
+        data-testid="language-toggle"
+        className="flex items-center overflow-hidden border border-[#4fc3f7]/30"
+        style={{ background: "rgba(79,195,247,0.04)" }}
+      >
+        <button
+          data-testid="lang-en-btn"
+          onClick={() => language !== "EN" && onToggleLanguage()}
+          className={`px-2 py-1 font-heading text-[9px] tracking-widest transition-all ${
+            language === "EN"
+              ? "bg-[#4fc3f7] text-[#0a0e1a]"
+              : "text-[#37474f] hover:text-[#b3e5fc]"
+          }`}
+        >
+          EN
+        </button>
+        <button
+          data-testid="lang-ru-btn"
+          onClick={() => language !== "RU" && onToggleLanguage()}
+          className={`px-2 py-1 font-heading text-[9px] tracking-widest transition-all ${
+            language === "RU"
+              ? "bg-[#4fc3f7] text-[#0a0e1a]"
+              : "text-[#37474f] hover:text-[#b3e5fc]"
+          }`}
+        >
+          RU
+        </button>
+      </div>
+
       <button
         data-testid="edit-profile-link"
         onClick={onEditProfile}
         className="font-heading text-[10px] text-[#37474f] tracking-widest hover:text-[#4fc3f7] transition-colors"
       >
-        EDIT PROFILE
+        {tr.editProfile}
       </button>
     </div>
   </div>
 );
 
-// ── Profile Panel ───────────────────────────────────────────────
-const ProfilePanelContent = ({ profile, onClose, isMobile, onUpdateSeasonDate }) => {
+// ── Profile Panel Content ─────────────────────────────────────────
+const ProfilePanelContent = ({
+  profile,
+  onClose,
+  isMobile,
+  isDetecting,
+  onRefreshWeek,
+  tr,
+  language,
+}) => {
   const troopIcon =
     profile.troopType === "Tank" ? "⚔️" : profile.troopType === "Aircraft" ? "✈️" : "🚀";
+
+  const squadDefs = [
+    { label: tr.sq1, indices: [0, 1, 2, 3, 4] },
+    { label: tr.sq2, indices: [5, 6, 7, 8, 9] },
+    { label: tr.sq3, indices: [10, 11, 12, 13, 14] },
+  ];
 
   return (
     <div className="flex flex-col h-full">
@@ -427,14 +520,11 @@ const ProfilePanelContent = ({ profile, onClose, isMobile, onUpdateSeasonDate })
         <div className="flex items-center gap-1.5">
           <User size={12} color="#4fc3f7" strokeWidth={1.5} />
           <span className="font-heading text-[10px] text-[#4fc3f7] tracking-[0.3em]">
-            COMMANDER
+            {tr.commander}
           </span>
         </div>
         {isMobile && (
-          <button
-            className="text-[#37474f] hover:text-[#4fc3f7] transition-colors"
-            onClick={onClose}
-          >
+          <button className="text-[#37474f] hover:text-[#4fc3f7] transition-colors" onClick={onClose}>
             <X size={16} />
           </button>
         )}
@@ -443,24 +533,24 @@ const ProfilePanelContent = ({ profile, onClose, isMobile, onUpdateSeasonDate })
       <div className="p-4 space-y-4 overflow-y-auto flex-1">
         {/* Server */}
         <div>
-          <p className="font-heading text-[9px] text-[#37474f] tracking-[0.3em] mb-1">SERVER</p>
+          <p className="font-heading text-[9px] text-[#37474f] tracking-[0.3em] mb-1">{tr.server}</p>
           <p className="font-heading text-lg text-white">#{profile.server}</p>
         </div>
         <div className="h-px bg-[#37474f]/40" />
 
         {/* Troop type */}
         <div>
-          <p className="font-heading text-[9px] text-[#37474f] tracking-[0.3em] mb-1">TROOP TYPE</p>
+          <p className="font-heading text-[9px] text-[#37474f] tracking-[0.3em] mb-1">{tr.troopType}</p>
           <div className="flex items-center gap-2">
             <span className="text-base">{troopIcon}</span>
-            <span className="font-heading text-sm text-[#4fc3f7]">{profile.troopType.toUpperCase()}</span>
+            <span className="font-heading text-sm text-[#4fc3f7]">{profile.troopType?.toUpperCase()}</span>
           </div>
         </div>
         <div className="h-px bg-[#37474f]/40" />
 
         {/* Furnace level */}
         <div>
-          <p className="font-heading text-[9px] text-[#37474f] tracking-[0.3em] mb-1">FURNACE LEVEL</p>
+          <p className="font-heading text-[9px] text-[#37474f] tracking-[0.3em] mb-1">{tr.furnaceLevel}</p>
           <div className="flex items-center gap-2">
             <div className="flex-1 h-1.5 bg-[#37474f]/40">
               <div className="h-full bg-[#4fc3f7]" style={{ width: `${(profile.furnaceLevel / 20) * 100}%` }} />
@@ -470,14 +560,10 @@ const ProfilePanelContent = ({ profile, onClose, isMobile, onUpdateSeasonDate })
         </div>
         <div className="h-px bg-[#37474f]/40" />
 
-        {/* Heroes */}
+        {/* Hero squads */}
         <div>
-          <p className="font-heading text-[9px] text-[#37474f] tracking-[0.3em] mb-2">SQUADS</p>
-          {[
-            { label: "SQ1 TANKS",    indices: [0,1,2,3,4]   },
-            { label: "SQ2 AIRCRAFT", indices: [5,6,7,8,9]   },
-            { label: "SQ3 MISSILE",  indices: [10,11,12,13,14] },
-          ].map(({ label, indices }) => {
+          <p className="font-heading text-[9px] text-[#37474f] tracking-[0.3em] mb-2">{tr.squads}</p>
+          {squadDefs.map(({ label, indices }) => {
             const active = indices
               .map((i) => profile.heroes?.[i])
               .filter((h) => h && h !== "None");
@@ -496,7 +582,7 @@ const ProfilePanelContent = ({ profile, onClose, isMobile, onUpdateSeasonDate })
                         <span className="font-heading text-xs text-[#b3e5fc]">{name}</span>
                         {stars > 0 && (
                           <span className="text-xs leading-none">
-                            {[1,2,3,4,5].map((s) => (
+                            {[1, 2, 3, 4, 5].map((s) => (
                               <span key={s} style={{ color: s <= stars ? "#f59e0b" : "#37474f" }}>★</span>
                             ))}
                           </span>
@@ -509,47 +595,51 @@ const ProfilePanelContent = ({ profile, onClose, isMobile, onUpdateSeasonDate })
             );
           })}
           {(!profile.heroes || profile.heroes.filter((h) => h && h !== "None").length === 0) && (
-            <span className="font-heading text-[10px] text-[#37474f]">No heroes set</span>
+            <span className="font-heading text-[10px] text-[#37474f]">{tr.noHeroes}</span>
           )}
         </div>
 
-        {/* Counter info */}
+        {/* Counter Intel */}
         <div className="h-px bg-[#37474f]/40" />
         <div>
-          <p className="font-heading text-[9px] text-[#37474f] tracking-[0.3em] mb-2">COUNTER INTEL</p>
+          <p className="font-heading text-[9px] text-[#37474f] tracking-[0.3em] mb-2">{tr.counterIntel}</p>
           <div className="p-2 border border-[#37474f]/40" style={{ background: "rgba(55,71,79,0.1)" }}>
             {profile.troopType === "Tank" && (
               <>
-                <p className="font-heading text-[9px] text-green-400 mb-1">✓ BEATS: Missile</p>
-                <p className="font-heading text-[9px] text-[#ff6f00]">✗ WEAK TO: Aircraft</p>
+                <p className="font-heading text-[9px] text-green-400 mb-1">✓ {tr.beats} Missile</p>
+                <p className="font-heading text-[9px] text-[#ff6f00]">✗ {tr.weakTo} Aircraft</p>
               </>
             )}
             {profile.troopType === "Aircraft" && (
               <>
-                <p className="font-heading text-[9px] text-green-400 mb-1">✓ BEATS: Tank</p>
-                <p className="font-heading text-[9px] text-[#ff6f00]">✗ WEAK TO: Missile</p>
+                <p className="font-heading text-[9px] text-green-400 mb-1">✓ {tr.beats} Tank</p>
+                <p className="font-heading text-[9px] text-[#ff6f00]">✗ {tr.weakTo} Missile</p>
               </>
             )}
             {profile.troopType === "Missile" && (
               <>
-                <p className="font-heading text-[9px] text-green-400 mb-1">✓ BEATS: Aircraft</p>
-                <p className="font-heading text-[9px] text-[#ff6f00]">✗ WEAK TO: Tank</p>
+                <p className="font-heading text-[9px] text-green-400 mb-1">✓ {tr.beats} Aircraft</p>
+                <p className="font-heading text-[9px] text-[#ff6f00]">✗ {tr.weakTo} Tank</p>
               </>
             )}
           </div>
         </div>
       </div>
 
-      {/* Season Week Tracker — pinned below scroll */}
+      {/* Season Week Tracker — pinned at bottom */}
       <SeasonTracker
-        seasonStartDate={profile.seasonStartDate}
-        onUpdateDate={onUpdateSeasonDate}
+        seasonWeek={profile.seasonWeek}
+        isDetecting={isDetecting}
+        onRefresh={onRefreshWeek}
+        tr={tr}
+        language={language}
       />
     </div>
   );
 };
 
-const ProfilePanel = ({ profile, isOpen, onClose, onUpdateSeasonDate }) => (
+// ── Profile Panel ─────────────────────────────────────────────────
+const ProfilePanel = ({ profile, isOpen, onClose, isDetecting, onRefreshWeek, tr, language }) => (
   <>
     {/* Mobile: overlay drawer */}
     {isOpen && (
@@ -565,7 +655,15 @@ const ProfilePanel = ({ profile, isOpen, onClose, onUpdateSeasonDate }) => (
             animation: "slideInLeft 0.25s ease",
           }}
         >
-          <ProfilePanelContent profile={profile} onClose={onClose} isMobile onUpdateSeasonDate={onUpdateSeasonDate} />
+          <ProfilePanelContent
+            profile={profile}
+            onClose={onClose}
+            isMobile
+            isDetecting={isDetecting}
+            onRefreshWeek={onRefreshWeek}
+            tr={tr}
+            language={language}
+          />
         </div>
       </div>
     )}
@@ -580,13 +678,25 @@ const ProfilePanel = ({ profile, isOpen, onClose, onUpdateSeasonDate }) => (
         boxShadow: "2px 0 12px rgba(79,195,247,0.08)",
       }}
     >
-      <ProfilePanelContent profile={profile} onClose={onClose} isMobile={false} onUpdateSeasonDate={onUpdateSeasonDate} />
+      <ProfilePanelContent
+        profile={profile}
+        onClose={onClose}
+        isMobile={false}
+        isDetecting={isDetecting}
+        onRefreshWeek={onRefreshWeek}
+        tr={tr}
+        language={language}
+      />
     </div>
   </>
 );
 
-// ── Main WarRoom ────────────────────────────────────────────────
+// ── Main WarRoom ──────────────────────────────────────────────────
 const WarRoom = ({ profile, onEditProfile }) => {
+  const [language, setLanguage] = useState(() => localStorage.getItem(LANG_KEY) || "EN");
+  const tr = TRANSLATIONS[language] || TRANSLATIONS.EN;
+  const quickActions = QUICK_ACTIONS[language] || QUICK_ACTIONS.EN;
+
   const [localProfile, setLocalProfile] = useState(profile);
   const [question, setQuestion] = useState("");
   const [uploadedImage, setUploadedImage] = useState(null);
@@ -597,14 +707,46 @@ const WarRoom = ({ profile, onEditProfile }) => {
   const [error, setError] = useState("");
   const [history, setHistory] = useState(loadHistory);
   const [showHistory, setShowHistory] = useState(false);
+  const [detectingWeek, setDetectingWeek] = useState(false);
   const reportRef = useRef(null);
   const fileInputRef = useRef(null);
 
-  const updateSeasonDate = (date) => {
-    const updated = { ...localProfile, seasonStartDate: date };
-    setLocalProfile(updated);
-    localStorage.setItem("warroom_profile", JSON.stringify(updated));
+  const toggleLanguage = () => {
+    const next = language === "EN" ? "RU" : "EN";
+    setLanguage(next);
+    localStorage.setItem(LANG_KEY, next);
   };
+
+  const detectSeasonWeek = useCallback(async () => {
+    if (!localProfile?.server) return;
+    setDetectingWeek(true);
+    try {
+      const res = await fetch(`${SERVER_WEEK_URL}?server=${localProfile.server}`);
+      const data = await res.json();
+      if (data.week) {
+        setLocalProfile((prev) => {
+          const updated = { ...prev, seasonWeek: data.week };
+          localStorage.setItem("warroom_profile", JSON.stringify(updated));
+          return updated;
+        });
+      }
+    } catch (e) {
+      console.warn("[WAR ROOM] Season week detection failed:", e.message);
+    } finally {
+      setDetectingWeek(false);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [localProfile?.server]);
+
+  // Auto-detect season week on mount if not already set
+  useEffect(() => {
+    const effectiveWeek =
+      localProfile?.seasonWeek || getSeasonWeekFromDate(localProfile?.seasonStartDate);
+    if (!effectiveWeek) {
+      detectSeasonWeek();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleImageUpload = useCallback(async (e) => {
     const file = e.target.files[0];
@@ -627,18 +769,21 @@ const WarRoom = ({ profile, onEditProfile }) => {
     setIsLoading(true);
 
     try {
+      const effectiveWeek =
+        localProfile.seasonWeek || getSeasonWeekFromDate(localProfile?.seasonStartDate);
+
       const payload = {
         question: q,
         server: String(localProfile.server),
         troop_type: localProfile.troopType,
         furnace_level: Number(localProfile.furnaceLevel),
         heroes: localProfile.heroes,
-        season_week: getSeasonWeek(localProfile.seasonStartDate),
+        season_week: effectiveWeek,
+        language,
         ...(uploadedImage ? { image_base64: uploadedImage } : {}),
       };
 
-      // Debug: verify exact hero data sent to Claude
-      console.log('[WAR ROOM] Heroes in payload:', JSON.stringify(payload.heroes));
+      console.log("[WAR ROOM] Heroes in payload:", JSON.stringify(payload.heroes));
 
       const res = await axios.post(BRIEF_URL, payload);
       setResponse(res.data.response);
@@ -651,8 +796,7 @@ const WarRoom = ({ profile, onEditProfile }) => {
         reportRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
       }, 100);
     } catch (err) {
-      const msg =
-        err.response?.data?.detail || "TRANSMISSION FAILED. RETRY MISSION.";
+      const msg = err.response?.data?.detail || tr.transmissionFailed;
       setError(msg);
     } finally {
       setIsLoading(false);
@@ -673,7 +817,6 @@ const WarRoom = ({ profile, onEditProfile }) => {
       className="war-noise min-h-screen bg-[#0a0e1a] flex flex-col relative overflow-hidden"
       data-testid="warroom-screen"
     >
-
       {/* Background grid */}
       <div
         className="absolute inset-0 pointer-events-none"
@@ -684,54 +827,46 @@ const WarRoom = ({ profile, onEditProfile }) => {
         }}
       />
 
-      {/* Top Bar */}
       <TopBar
         profile={localProfile}
         onEditProfile={onEditProfile}
         onTogglePanel={() => setPanelOpen((v) => !v)}
+        language={language}
+        onToggleLanguage={toggleLanguage}
+        tr={tr}
       />
 
-      {/* Main content */}
       <div className="flex flex-1 overflow-hidden relative z-10">
-        {/* Left Panel */}
         <ProfilePanel
           profile={localProfile}
           isOpen={panelOpen}
           onClose={() => setPanelOpen(false)}
-          onUpdateSeasonDate={updateSeasonDate}
+          isDetecting={detectingWeek}
+          onRefreshWeek={detectSeasonWeek}
+          tr={tr}
+          language={language}
         />
 
-        {/* Center */}
+        {/* Center content */}
         <div className="flex-1 flex flex-col overflow-y-auto p-4 gap-4">
           {/* Input section */}
           <div className="hud-panel hud-corner p-4 relative overflow-hidden">
-            {/* Scan line restricted to this card */}
             <div className="scan-line-card" />
-
-            {/* Top-right corner accent */}
             <div
               className="absolute top-0 right-0 w-8 h-8 pointer-events-none"
-              style={{
-                borderTop: "1px solid #4fc3f7",
-                borderRight: "1px solid #4fc3f7",
-              }}
+              style={{ borderTop: "1px solid #4fc3f7", borderRight: "1px solid #4fc3f7" }}
             />
 
             <div className="flex items-center gap-2 mb-3">
               <Zap size={12} color="#4fc3f7" strokeWidth={1.5} />
               <label className="font-heading text-[10px] text-[#4fc3f7] tracking-[0.3em]">
-                ASK YOUR TACTICAL ADVISOR
+                {tr.askAdvisor}
               </label>
             </div>
 
-            {/* Image preview */}
             {imagePreview && (
               <div className="relative mb-3 border border-[#4fc3f7]/30 inline-block">
-                <img
-                  src={imagePreview}
-                  alt="Attachment"
-                  className="h-16 object-cover"
-                />
+                <img src={imagePreview} alt="Attachment" className="h-16 object-cover" />
                 <button
                   onClick={clearImage}
                   className="absolute -top-2 -right-2 w-5 h-5 bg-[#ff6f00] text-white flex items-center justify-center text-xs"
@@ -746,7 +881,7 @@ const WarRoom = ({ profile, onEditProfile }) => {
               value={question}
               onChange={(e) => setQuestion(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="Enter your tactical question... (Ctrl+Enter to send)"
+              placeholder={tr.questionPlaceholder}
               rows={3}
               className="war-input w-full px-3 py-2.5 text-sm resize-none"
             />
@@ -757,10 +892,10 @@ const WarRoom = ({ profile, onEditProfile }) => {
               </p>
             )}
 
-            {/* Quick action buttons — visible only before first response */}
+            {/* Quick actions — visible before first response */}
             {!response && !isLoading && (
               <div className="grid grid-cols-2 gap-1.5 mt-3" data-testid="quick-actions-grid">
-                {QUICK_ACTIONS.map(({ label, Icon, question: q }) => (
+                {quickActions.map(({ label, Icon, question: q }) => (
                   <button
                     key={label}
                     data-testid={`quick-action-${label.toLowerCase().replace(/\s+/g, "-")}`}
@@ -777,7 +912,6 @@ const WarRoom = ({ profile, onEditProfile }) => {
             )}
 
             <div className="flex gap-2 mt-3">
-              {/* Image upload */}
               <input
                 ref={fileInputRef}
                 data-testid="image-upload-input"
@@ -793,10 +927,9 @@ const WarRoom = ({ profile, onEditProfile }) => {
                 className="btn-primary px-3 py-2.5 flex items-center gap-1.5 cursor-pointer text-xs"
               >
                 <Camera size={14} strokeWidth={1.5} />
-                <span className="hidden sm:inline">ATTACH</span>
+                <span className="hidden sm:inline">{tr.attach}</span>
               </label>
 
-              {/* Submit */}
               <button
                 data-testid="get-briefing-button"
                 onClick={handleSubmit}
@@ -808,16 +941,12 @@ const WarRoom = ({ profile, onEditProfile }) => {
                     <span className="loading-dot" />
                     <span className="loading-dot" />
                     <span className="loading-dot" />
-                    <span className="font-heading tracking-[0.2em] ml-1">
-                      TRANSMITTING
-                    </span>
+                    <span className="font-heading tracking-[0.2em] ml-1">{tr.transmitting}</span>
                   </>
                 ) : (
                   <>
                     <Send size={13} strokeWidth={1.5} />
-                    <span className="font-heading tracking-[0.2em]">
-                      GET BRIEFING
-                    </span>
+                    <span className="font-heading tracking-[0.2em]">{tr.getBriefing}</span>
                   </>
                 )}
               </button>
@@ -827,7 +956,7 @@ const WarRoom = ({ profile, onEditProfile }) => {
           {/* Intelligence Report */}
           {response && (
             <div ref={reportRef}>
-              <IntelligenceReport text={response} isLatest />
+              <IntelligenceReport text={response} isLatest tr={tr} />
             </div>
           )}
 
@@ -842,7 +971,7 @@ const WarRoom = ({ profile, onEditProfile }) => {
               >
                 <Clock size={11} color="#37474f" strokeWidth={1.5} />
                 <span className="font-heading text-[10px] text-[#37474f] tracking-[0.25em] flex-1 text-left">
-                  MISSION HISTORY ({history.length})
+                  {tr.missionHistory} ({history.length})
                 </span>
                 <ChevronDown
                   size={12}
@@ -865,7 +994,7 @@ const WarRoom = ({ profile, onEditProfile }) => {
                     className="w-full mt-2 py-2 px-3 font-heading text-[9px] tracking-[0.25em] text-[#37474f] border border-[#37474f]/20 hover:text-[#ff6f00] hover:border-[#ff6f00]/30 transition-colors"
                     style={{ background: "rgba(10,14,26,0.3)" }}
                   >
-                    CLEAR HISTORY
+                    {tr.clearHistory}
                   </button>
                 </div>
               )}
@@ -877,7 +1006,7 @@ const WarRoom = ({ profile, onEditProfile }) => {
             <div className="flex flex-col items-center justify-center flex-1 py-12 opacity-20">
               <Zap size={40} color="#4fc3f7" strokeWidth={0.8} className="mb-3" />
               <p className="font-heading text-xs text-[#4fc3f7] tracking-[0.3em] text-center">
-                AWAITING MISSION BRIEFING REQUEST
+                {tr.awaiting}
               </p>
             </div>
           )}
