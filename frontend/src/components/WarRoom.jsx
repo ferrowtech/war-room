@@ -64,6 +64,7 @@ const TRANSLATIONS = {
     bonusDay: "YOUR BONUS DAY",
     noBossToday: "No Wanted Boss today",
     notYourBonus: "not your bonus",
+    dayWord: "day",
     // Dig site widget
     digSiteWidget: "DIG SITE TARGET",
     target: "TARGET",
@@ -109,6 +110,7 @@ const TRANSLATIONS = {
     bonusDay: "ВАШ БОНУСНЫЙ ДЕНЬ",
     noBossToday: "Сегодня нет Wanted Boss",
     notYourBonus: "не ваш бонус",
+    dayWord: "день",
     // Dig site widget
     digSiteWidget: "МЕСТО РАСКОПОК",
     target: "ЦЕЛЬ",
@@ -407,7 +409,7 @@ const TodaysBossWidget = ({ troopType, tr }) => {
           {isBonus ? (
             <p className="font-heading text-[9px] text-[#4fc3f7]">— {tr.bonusDay}! +50% {troopType}</p>
           ) : (
-            <p className="font-heading text-[9px] text-[#37474f]">— {boss.type} day ({tr.notYourBonus})</p>
+            <p className="font-heading text-[9px] text-[#37474f]">— {boss.type} {tr.dayWord} ({tr.notYourBonus})</p>
           )}
         </div>
       )}

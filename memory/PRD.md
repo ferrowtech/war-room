@@ -66,7 +66,15 @@ Build a web app called "WAR ROOM" — an AI tactical advisor for the "Last War: 
 - `warroom_history` — last 20 Q&A pairs
 - `warroom_lang` — "EN" | "RU"
 
-## Prioritized Backlog
+### Phase 4 — Sidebar Widgets (Session 4, Feb 2026)
+- **Removed Counter Intel widget** from sidebar
+- **Removed Troop Type badge** from TopBar (only server number remains)
+- **TODAY'S BOSS widget** — Mon/Thu=Frenzied Butcher(Tank), Tue/Fri=Frankenstein(Missile), Wed/Sat=Mutant Bulldog(Aircraft), Sun=none. Cyan-highlighted if matches Squad 1 type (+50% bonus day); gray otherwise
+- **DIG SITE TARGET widget** — Tank→BEAR, Missile→GORILLA, Aircraft→MAMMOTH; shows beast + troop type matchup
+- **WAR PHASE COUNTDOWN widget** — calculates time to next Wednesday or Saturday 12:00 ST; orange accent styling
+- **SEASON WEEK PRIORITY** — redesigned as a prominent card with `text-5xl` week number, border-left cyan accent, thicker progress bar, larger priority text
+- **UI text renames**: "ASK YOUR TACTICAL ADVISOR" → "TODAY'S FOCUS"; placeholder → "What do you need help with today?"; quick action "Today's Boss" → "Boss Deep Dive"
+- All 4 widgets fully translated to Russian (EN/RU toggle)
 
 ### P2 — Content (User to provide)
 - Populate `temperature_advanced.json`
