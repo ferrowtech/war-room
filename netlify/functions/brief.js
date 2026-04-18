@@ -286,7 +286,7 @@ INSTRUCTIONS: Be direct, specific, and tactical. Reference the player's troop ty
 }
 
 // ── Notion logging (awaited with 2s timeout) ──────────────────────────────────
-async function logToNotion({ question, answer, server, troop_type, season_week, furnace_level, heroes, image_base64, language }) {
+async function logToNotion({ question, answer, server, troop_type, season_week, furnace_level, heroes, image_base64, language, client_ip }) {
   const token = process.env.NOTION_TOKEN;
   const dbId  = process.env.NOTION_DATABASE_ID || "a52c8cc8-cf7a-4f17-b90c-3b0d9f7e98a6";
 
@@ -313,6 +313,7 @@ async function logToNotion({ question, answer, server, troop_type, season_week, 
       Timestamp:       { date:      { start: new Date().toISOString() } },
       Answer:          { rich_text: [{ text: { content: String(answer || "").slice(0, 2000) } }] },
       Language:        { select:    { name: language === "RU" ? "Russian" : "English" } },
+      "IP Address":    { rich_text: [{ text: { content: String(client_ip || "unknown") } }] },
     },
   };
 
@@ -369,7 +370,11 @@ exports.handler = async (event) => {
   // ── Diagnostics: log payload dimensions ─────────────────────────────────────
   const bodyBytes = event.body ? event.body.length : 0;
   const imageBytes = body.image_base64 ? body.image_base64.length : 0;
-  console.log(`[BRIEF] Request body: ${bodyBytes} bytes total, image: ${imageBytes} bytes, has_image: ${!!body.image_base64}`);
+  const clientIp = (event.headers?.["x-forwarded-for"] || "").split(",")[0].trim()
+    || event.headers?.["x-real-ip"]
+    || event.headers?.["x-nf-client-connection-ip"]
+    || "unknown";
+  console.log(`[BRIEF] Request body: ${bodyBytes} bytes total, image: ${imageBytes} bytes, has_image: ${!!body.image_base64}, ip: ${clientIp}`);
   console.log(`[BRIEF] Payload keys: ${Object.keys(body).join(", ")}`);
   const t0 = Date.now();
 
@@ -431,7 +436,7 @@ exports.handler = async (event) => {
     // The timeout resolves (not rejects) so a slow/failed Notion call never blocks the response.
     const notionTimeout = new Promise((resolve) => setTimeout(resolve, 2000));
     await Promise.race([
-      logToNotion({ question, answer: response, server, troop_type, season_week, furnace_level, heroes, image_base64, language }),
+      logToNotion({ question, answer: response, server, troop_type, season_week, furnace_level, heroes, image_base64, language, client_ip: clientIp }),
       notionTimeout,
     ]).catch((err) => console.error(`[NOTION] Unexpected error: ${err.message}`));
 

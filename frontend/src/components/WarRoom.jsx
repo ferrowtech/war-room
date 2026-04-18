@@ -72,7 +72,7 @@ const getWarCountdown = () => {
     const countdown = days > 0 ? `${days}d ${hours}h` : hours > 0 ? `${hours}h ${mins}m` : `${mins}m`;
     return { dayName: DAY_NAMES[d.getUTCDay()], countdown };
   }
-  return { dayName: "—", countdown: "—" };
+  return { dayName: "-", countdown: "-" };
 };
 
 // ── Translations ──────────────────────────────────────────────────
@@ -128,7 +128,7 @@ const QUICK_ACTIONS = {
     { label: "Compare Squads",   Icon: Zap,         question: "Compare my squad powers and recommend which squad to use for each situation - boss fights, dig sites, war phase attacks and defense." },
   ],
   RU: [
-    { label: "Ежедневный брифинг", Icon: Calendar,    question: "Дай полный ежедневный брифинг на сегодня — босс, раскопки, приоритеты и на что сосредоточиться" },
+    { label: "Ежедневный брифинг", Icon: Calendar,    question: "Дай полный ежедневный брифинг на сегодня - босс, раскопки, приоритеты и на что сосредоточиться" },
     { label: "Стратегия атаки",    Icon: Target,      question: "Какова лучшая стратегия атаки для моего отряда сегодня?" },
     { label: "Места раскопок",     Icon: Map,         question: "Какие раскопки захватить и как?" },
     { label: "Температура",        Icon: Thermometer, question: "Как управлять температурой базы и не замёрзнуть?" },
@@ -192,22 +192,22 @@ const WEEKLY_SCHEDULE = {
   EN: {
     1: "Build Titanium Alloy Factory, upgrade Furnace, capture first Dig Site. Level 1 cities unlock Day 3 at 12:00.",
     2: "Expand territory, upgrade Furnace, build Military Bases.",
-    3: "Choose faction (Rebels or Gendarmerie) — determines Rare Soil War opponents.",
-    4: "Rare Soil War begins — upgrade Alliance Furnace, coordinate with alliance.",
-    5: "Active war phase — attack/defense rotations.",
+    3: "Choose faction (Rebels or Gendarmerie) - determines Rare Soil War opponents.",
+    4: "Rare Soil War begins - upgrade Alliance Furnace, coordinate with alliance.",
+    5: "Active war phase - attack/defense rotations.",
     6: "Push Faction Award points, defend Alliance Furnace.",
-    7: "Faction Duel — 4v4 Capitol Conquest, final ranking.",
-    8: "Season ends — Transfer Surge available based on rank.",
+    7: "Faction Duel - 4v4 Capitol Conquest, final ranking.",
+    8: "Season ends - Transfer Surge available based on rank.",
   },
   RU: {
     1: "Постройте завод Титанового сплава, улучшайте Печь, захватите первые Раскопки. Города 1 ур. открываются на 3-й день в 12:00.",
     2: "Расширяйте территорию, улучшайте Печь, стройте Военные базы.",
-    3: "Выберите фракцию (Повстанцы или Жандармерия) — определяет противников в Войне за редкую почву.",
-    4: "Война за редкую почву — улучшайте Альянсовую печь, координируйте союз.",
-    5: "Активная фаза войны — ротации атаки и обороны.",
+    3: "Выберите фракцию (Повстанцы или Жандармерия) - определяет противников в Войне за редкую почву.",
+    4: "Война за редкую почву - улучшайте Альянсовую печь, координируйте союз.",
+    5: "Активная фаза войны - ротации атаки и обороны.",
     6: "Копите очки наград фракции, защищайте Альянсовую печь.",
-    7: "Дуэль фракций — 4 на 4, финальный рейтинг.",
-    8: "Сезон заканчивается — доступен Surge перевода по рейтингу.",
+    7: "Дуэль фракций - 4 на 4, финальный рейтинг.",
+    8: "Сезон заканчивается - доступен Surge перевода по рейтингу.",
   },
 };
 
@@ -346,9 +346,9 @@ const TodaysBossWidget = ({ troopType, tr }) => {
             ⚔️ {boss.name.toUpperCase()}
           </p>
           {isBonus ? (
-            <p className="font-heading text-[9px] text-[#4fc3f7]">— {tr.bonusDay}! +50% {troopType}</p>
+            <p className="font-heading text-[9px] text-[#4fc3f7]">- {tr.bonusDay}! +50% {troopType}</p>
           ) : (
-            <p className="font-heading text-[9px] text-[#b8d4e8]/70">— {boss.type} {tr.dayWord} ({tr.notYourBonus})</p>
+            <p className="font-heading text-[9px] text-[#b8d4e8]/70">- {boss.type} {tr.dayWord} ({tr.notYourBonus})</p>
           )}
         </div>
       )}
@@ -549,7 +549,7 @@ const ProfilePanelContent = ({
             const active = indices.map((i) => profile.heroes?.[i]).filter((h) => h && h !== "None");
             if (active.length === 0) return null;
             const power = profile.squadPowers?.[powerIdx];
-            const displayLabel = power ? `${label} — ${power}M` : label;
+            const displayLabel = power ? `${label} - ${power}M` : label;
             return (
               <div key={label} className="mb-2">
                 <p className="font-heading text-[8px] text-[#4fc3f7]/60 tracking-[0.2em] mb-1">{displayLabel}</p>
@@ -759,40 +759,6 @@ const WarRoom = ({ profile, onEditProfile }) => {
 
             {error && <p className="text-[#ff6f00] text-xs font-heading tracking-widest mt-2">⚠ {error}</p>}
 
-            {!response && !isLoading && (() => {
-              const [primary, ...rest] = quickActions;
-              const PrimaryIcon = primary.Icon;
-              return (
-                <div className="mt-3 space-y-1.5" data-testid="quick-actions-grid">
-                  <button
-                    data-testid={`quick-action-${primary.label.toLowerCase().replace(/\s+/g, "-")}`}
-                    onClick={() => handleQuickAction(primary.question)}
-                    className="quick-action-btn-primary w-full flex items-center gap-2.5 px-4 py-2.5 text-left"
-                  >
-                    <PrimaryIcon size={14} strokeWidth={1.5} className="flex-shrink-0 text-[#4fc3f7]" />
-                    <span className="font-heading text-[11px] tracking-[0.2em] text-[#4fc3f7] leading-tight">
-                      {primary.label.toUpperCase()}
-                    </span>
-                  </button>
-                  <div className="grid grid-cols-2 gap-1.5">
-                    {rest.map(({ label, Icon, question: q }) => (
-                      <button
-                        key={label}
-                        data-testid={`quick-action-${label.toLowerCase().replace(/\s+/g, "-")}`}
-                        onClick={() => handleQuickAction(q)}
-                        className="quick-action-btn flex items-center gap-2 px-3 py-2 text-left transition-all duration-150"
-                      >
-                        <Icon size={12} strokeWidth={1.5} className="flex-shrink-0 text-[#4fc3f7]" />
-                        <span className="font-heading text-[9px] tracking-[0.15em] text-[#b0bec5] leading-tight">
-                          {label.toUpperCase()}
-                        </span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              );
-            })()}
-
             <div className="flex gap-2 mt-3">
               <input ref={fileInputRef} data-testid="image-upload-input" type="file" accept="image/*" onChange={handleImageUpload} className="hidden" id="image-upload" />
               <label htmlFor="image-upload" data-testid="image-upload-btn" className="btn-primary px-3 py-2.5 flex items-center gap-1.5 cursor-pointer text-xs">
@@ -814,6 +780,41 @@ const WarRoom = ({ profile, onEditProfile }) => {
           </div>
 
           {response && <div ref={reportRef}><IntelligenceReport text={response} isLatest tr={tr} /></div>}
+
+          {/* Quick actions — always visible, below the report (hidden only while loading) */}
+          {!isLoading && (() => {
+            const [primary, ...rest] = quickActions;
+            const PrimaryIcon = primary.Icon;
+            return (
+              <div className="space-y-1.5" data-testid="quick-actions-grid">
+                <button
+                  data-testid={`quick-action-${primary.label.toLowerCase().replace(/\s+/g, "-")}`}
+                  onClick={() => handleQuickAction(primary.question)}
+                  className="quick-action-btn-primary w-full flex items-center gap-2.5 px-4 py-2.5 text-left"
+                >
+                  <PrimaryIcon size={14} strokeWidth={1.5} className="flex-shrink-0 text-[#4fc3f7]" />
+                  <span className="font-heading text-[11px] tracking-[0.2em] text-[#4fc3f7] leading-tight">
+                    {primary.label.toUpperCase()}
+                  </span>
+                </button>
+                <div className="grid grid-cols-2 gap-1.5">
+                  {rest.map(({ label, Icon, question: q }) => (
+                    <button
+                      key={label}
+                      data-testid={`quick-action-${label.toLowerCase().replace(/\s+/g, "-")}`}
+                      onClick={() => handleQuickAction(q)}
+                      className="quick-action-btn flex items-center gap-2 px-3 py-2 text-left transition-all duration-150"
+                    >
+                      <Icon size={12} strokeWidth={1.5} className="flex-shrink-0 text-[#4fc3f7]" />
+                      <span className="font-heading text-[9px] tracking-[0.15em] text-[#b0bec5] leading-tight">
+                        {label.toUpperCase()}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            );
+          })()}
 
           {history.length > 0 && (
             <div className="mt-2">

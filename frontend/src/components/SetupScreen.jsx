@@ -10,9 +10,9 @@ const HEROES_BY_TYPE = [
 const ALL_HEROES = HEROES_BY_TYPE.flatMap((g) => g.list);
 
 export const SQUAD_CONFIG = [
-  { en: "SQUAD 1 — PRIMARY",   ru: "ОТРЯД 1 — ОСНОВНОЙ",  start: 0  },
-  { en: "SQUAD 2 — SECONDARY", ru: "ОТРЯД 2 — ВТОРИЧНЫЙ", start: 5  },
-  { en: "SQUAD 3 — SUPPORT",   ru: "ОТРЯД 3 — ПОДДЕРЖКА", start: 10 },
+  { en: "SQUAD 1 - PRIMARY",   ru: "ОТРЯД 1 - ОСНОВНОЙ",  start: 0  },
+  { en: "SQUAD 2 - SECONDARY", ru: "ОТРЯД 2 - ВТОРИЧНЫЙ", start: 5  },
+  { en: "SQUAD 3 - SUPPORT",   ru: "ОТРЯД 3 - ПОДДЕРЖКА", start: 10 },
 ];
 
 const TOTAL_HERO_SLOTS = 15;
@@ -39,7 +39,7 @@ const SETUP_T = {
     furnaceLevel: "FURNACE LEVEL",
     squadPower: "SQUAD POWER (M)",
     squadPowerPlaceholder: "e.g. 20.62",
-    none: "— None —",
+    none: "- None -",
     enterWarRoom: "ENTER WAR ROOM",
     saveProfile: "SAVE PROFILE",
     footer: "LAST WAR: SURVIVAL // TACTICAL AI ADVISOR",
@@ -53,7 +53,7 @@ const SETUP_T = {
     furnaceLevel: "УРОВЕНЬ ПЕЧИ",
     squadPower: "МОЩНОСТЬ ОТРЯДА (М)",
     squadPowerPlaceholder: "напр. 20.62",
-    none: "— Пусто —",
+    none: "- Пусто -",
     enterWarRoom: "ВОЙТИ В КОМАНДНЫЙ ЦЕНТР",
     saveProfile: "СОХРАНИТЬ ПРОФИЛЬ",
     footer: "LAST WAR: SURVIVAL // ТАКТИЧЕСКИЙ ИИ-СОВЕТНИК",
@@ -297,7 +297,7 @@ const SetupScreen = ({ onComplete, initialProfile = null }) => {
                               );
                               if (available.length === 0) return null;
                               return (
-                                <optgroup key={type} label={`— ${type} —`} style={{ color: "#4fc3f7", background: "#0d1220" }}>
+                                <optgroup key={type} label={`- ${type} -`} style={{ color: "#4fc3f7", background: "#0d1220" }}>
                                   {available.map((hero) => (
                                     <option key={hero} value={hero} style={{ background: "#0d1220", color: "#fff" }}>
                                       {hero}
