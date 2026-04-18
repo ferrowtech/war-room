@@ -1,56 +1,80 @@
-# WAR ROOM — PRD
+# WAR ROOM — PRD & Memory
 
-## Overview
-AI tactical advisor web app for Last War: Survival game. Military HUD aesthetic.
+## Original Problem Statement
+Build a web app called "WAR ROOM" — an AI tactical advisor for the "Last War: Survival" game.
+- Dark military HUD aesthetic
+- Commander Setup screen (Server number, Squad/Hero configuration)
+- Main War Room chat interface with Claude AI
+- Embedded game knowledge base
+- Game-specific configurations and highly contextual tactical advice
 
 ## Architecture
-- **Frontend**: React (CRA + Craco), Tailwind CSS, Rajdhani/Chivo fonts, lucide-react
-- **Backend**: Netlify Functions (Node.js 18) — `/netlify/functions/brief.js` + `/netlify/functions/health.js`
-- **Storage**: localStorage only (no DB for user data)
-- **AI**: Anthropic Claude `claude-sonnet-4-5-20250929` via direct `https://api.anthropic.com/v1/messages` call
-- **Deployment**: Netlify — `netlify.toml` at repo root (`base=frontend`, `functions=../netlify/functions`, `NODE_VERSION=18`)
+```
+/app/
+├── netlify.toml                  # NODE_VERSION=22
+├── netlify/functions/
+│   ├── brief.js                  # Main LLM endpoint (Claude via Anthropic API)
+│   ├── health.js                 # Healthcheck
+│   └── server-week.js            # Auto-detects season week from cpt-hedge.com
+├── frontend/src/components/
+│   ├── SetupScreen.jsx           # Free-form 3-squad setup, troop type inferred
+│   └── WarRoom.jsx               # Chat UI, EN/RU toggle, auto-week detection
+├── knowledge/                    # 8 JSON knowledge base files
+└── memory/PRD.md
+```
 
-## Implemented (April 2026)
+## What's Been Implemented
 
-### Screen 1 — Commander Setup
-- Server number input, troop type select (Tank/Aircraft/Missile)
-- Furnace level slider 1–20, 3 hero name inputs
-- "ENTER WAR ROOM" CTA, validation, saved to localStorage
+### Phase 1 — Foundation (Session 1)
+- Military HUD aesthetic (dark theme, scan lines, grid, glow effects)
+- Commander Setup screen with server + furnace level inputs
+- Basic chat interface with Claude integration (Emergent LLM key)
+- Knowledge base JSON files (bosses, heroes, star progression, etc.)
 
-### Screen 2 — War Room
-- Top bar: WAR ROOM logo, server/troop badge, Edit Profile link
-- Left panel: Commander profile summary (server, troop, furnace, heroes, counter intel)
-  - Always visible on desktop (md+), collapsible overlay on mobile
-  - **Season Week Tracker (Polar Storm)**: set Season 2 start date, shows current week 1–8 with progress bar and priority action. Editable.
-- Center: Question textarea + image upload (file/camera), GET BRIEFING button
-- Intelligence Report: typewriter effect, react-markdown v8 rendering with styled custom renderers
-  - **COPY BRIEFING button** — always visible (disabled during typewriter animation), copies full response
-- **Mission History**: collapsible MISSION HISTORY section below response, each item expandable with full markdown + COPY button; persisted in localStorage `warroom_history` (last 20)
-- Bottom bar: MISSIONS REMAINING X/3, turns orange when ≤1
-- Locked overlay when missions = 0 (DAILY MISSION LIMIT REACHED + placeholder Stripe button)
+### Phase 2 — Backend Migration & Features (Session 2)
+- **Migrated** backend from Python/FastAPI to Netlify Functions (Node.js)
+- Canvas-based image compression (max 1280px, max 3MB) to prevent upload failures
+- Dynamic KB fetching from GitHub API (5-min cache, 8 JSON files)
+- Boss schedule embedded in system prompt with today's boss auto-detection
+- Notion API logging (async, 2s timeout, non-blocking)
+- 6 Quick Action buttons (Today's Boss, Dig Sites, Temperature, Week Priority, Hero Advice, War Phase)
+- 3-Squad hero setup: Squad 1 (Tank), Squad 2 (Aircraft), Squad 3 (Missile), 5 heroes each
 
-### AI Integration
-- POST /api/brief — sends question + optional base64 image + player profile
-- POST /api/debug-prompt — returns parsed hero data + full system prompt (no LLM call, for verification)
-- System prompt structure: COMMANDER PROFILE block (verified facts, visual separators) → EXPLICIT UPGRADE PROHIBITIONS per hero → KNOWLEDGE BASE → BEAST TARGETING
-- Hero parsing uses Unicode codepoint `\u2605` (★) regex to prevent encoding ambiguity
-- Explicit per-hero "DO NOT suggest upgrading" prohibitions for heroes already at 4★ or 5★
-- Model: claude-sonnet-4-5-20250929 via emergentintegrations
-- Responds in English or Russian based on user input
+### Phase 3 — UX Automation & Localization (Session 3, Feb 2026)
+- **Removed manual Troop Type dropdown** — inferred from Squad 1 hero composition (most common hero type in slots 0–4; Tank is default)
+- **Free-form squads** — All heroes available in any squad; Squad 1 = PRIMARY, Squad 2 = SECONDARY, Squad 3 = SUPPORT
+- **Server Week Auto-detection** — `server-week.js` fetches `cpt-hedge.com/servers`, parses HTML/JSON for the server's current season week (graceful fallback if site unreachable)
+- **EN/RU Language Toggle** — in top bar; saved to `localStorage('warroom_lang')`; translates all UI labels, squad names, quick actions, season tracker
+- **Russian Quick Actions** — separate question translations for Russian users
+- **Russian Weekly Schedule** — localized week-priority descriptions in SeasonTracker
+- **Claude language directive** — `brief.js` system prompt instructs Claude to respond in Russian when `language=RU`
+- **Notion language logging** — uses explicit `language` field from payload instead of Cyrillic detection
 
-### Tech Notes
-- react-markdown downgraded to v8.0.7 (v10 broke `className` prop and caused runtime errors)
+## Key Technical Details
+- **Troop Type Inference**: `inferTroopType(heroes)` counts hero types in Squad 1 (indices 0–4). Most common type wins; Tank is default if all empty.
+- **Season Week**: Stored as `profile.seasonWeek` (integer) in localStorage. Backward compat: falls back to computing from `profile.seasonStartDate` if `seasonWeek` is absent.
+- **Language State**: `localStorage('warroom_lang')` = "EN" | "RU". Read by both SetupScreen (from localStorage directly) and WarRoom (React state).
+- **Notion DB Schema**: Question, Server, Troop Type, Season Week, Furnace Level, Heroes, Has Image, Timestamp, Answer, Language
 
-## Design
-- Background: #0a0e1a with SVG noise texture overlay
-- Accent: #4fc3f7 (cyan glow), Warning: #ff6f00 (orange)
-- No rounded corners anywhere (rounded-none enforced globally)
-- Scanning HUD line animation
-- Font: Rajdhani (headings/labels/buttons), Chivo (body/AI text)
+## 3rd Party Integrations
+- **Anthropic Claude** (claude-sonnet-4-5) via Emergent LLM Key (`ANTHROPIC_API_KEY`)
+- **Notion API** (`NOTION_TOKEN`, `NOTION_DATABASE_ID`) — async logging
+- **GitHub API** — unauthenticated, fetches `/knowledge/*.json` dynamically
 
-## Backlog
-- P0: Add history/persistence of past responses
-- P1: Share briefing button (copy to clipboard)
-- P1: Real Stripe integration for premium tier
-- P2: More knowledge base content (heroes, events)
-- P2: Russian UI option
+## LocalStorage Keys
+- `warroom_profile` — `{ server, troopType, furnaceLevel, heroes[], seasonWeek }`
+- `warroom_history` — last 20 Q&A pairs
+- `warroom_lang` — "EN" | "RU"
+
+## Prioritized Backlog
+
+### P2 — Content (User to provide)
+- Populate `temperature_advanced.json`
+- Populate `tips_and_tricks_s2.json`
+- Populate `war_strategy_s2.json`
+
+### P3 — Future Enhancements
+- Multi-language expansion (e.g., Chinese, Spanish)
+- Session persistence beyond localStorage (cloud sync)
+- Hero tier list / recommendation engine
+- Alliance coordination features
