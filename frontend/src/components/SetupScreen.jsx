@@ -8,17 +8,7 @@ const ALL_HEROES = [
   "Swift", "Tesla", "Fiona", "Adam", "Venom", "McGregor", "Elsa", "Kane",
 ];
 
-export const TIMEZONE_OPTIONS = [
-  { label: "UTC-8", offset: -8 },
-  { label: "UTC-5", offset: -5 },
-  { label: "UTC+0", offset:  0 },
-  { label: "UTC+1", offset:  1 },
-  { label: "UTC+3", offset:  3 },
-  { label: "UTC+5", offset:  5 },
-  { label: "UTC+8", offset:  8 },
-];
-
-const SQUAD_CONFIG = [
+export const SQUAD_CONFIG = [
   { en: "SQUAD 1 — PRIMARY",   ru: "ОТРЯД 1 — ОСНОВНОЙ",  start: 0  },
   { en: "SQUAD 2 — SECONDARY", ru: "ОТРЯД 2 — ВТОРИЧНЫЙ", start: 5  },
   { en: "SQUAD 3 — SUPPORT",   ru: "ОТРЯД 3 — ПОДДЕРЖКА", start: 10 },
@@ -45,8 +35,9 @@ const SETUP_T = {
     editProfile: "EDIT PROFILE",
     serverNumber: "SERVER NUMBER",
     serverPlaceholder: "e.g. 1042",
-    timezoneLabel: "SERVER TIMEZONE",
     furnaceLevel: "FURNACE LEVEL",
+    squadPower: "SQUAD POWER (M)",
+    squadPowerPlaceholder: "e.g. 20.62",
     none: "— None —",
     enterWarRoom: "ENTER WAR ROOM",
     saveProfile: "SAVE PROFILE",
@@ -58,8 +49,9 @@ const SETUP_T = {
     editProfile: "РЕДАКТИРОВАТЬ ПРОФИЛЬ",
     serverNumber: "НОМЕР СЕРВЕРА",
     serverPlaceholder: "напр. 1042",
-    timezoneLabel: "ЧАСОВОЙ ПОЯС СЕРВЕРА",
     furnaceLevel: "УРОВЕНЬ ПЕЧИ",
+    squadPower: "МОЩНОСТЬ ОТРЯДА (М)",
+    squadPowerPlaceholder: "напр. 20.62",
     none: "— Пусто —",
     enterWarRoom: "ВОЙТИ В КОМАНДНЫЙ ЦЕНТР",
     saveProfile: "СОХРАНИТЬ ПРОФИЛЬ",
@@ -74,7 +66,11 @@ const SetupScreen = ({ onComplete, initialProfile = null }) => {
   const isEditing = Boolean(initialProfile);
 
   const [server, setServer] = useState(initialProfile?.server || "");
-  const [timezoneOffset, setTimezoneOffset] = useState(initialProfile?.timezoneOffset ?? 0);
+  const [squadPowers, setSquadPowers] = useState([
+    initialProfile?.squadPowers?.[0] ?? "",
+    initialProfile?.squadPowers?.[1] ?? "",
+    initialProfile?.squadPowers?.[2] ?? "",
+  ]);
   const [furnaceLevel, setFurnaceLevel] = useState(
     initialProfile ? [initialProfile.furnaceLevel] : [5]
   );
@@ -115,7 +111,7 @@ const SetupScreen = ({ onComplete, initialProfile = null }) => {
       server,
       furnaceLevel: furnaceLevel[0],
       heroes: formattedHeroes,
-      timezoneOffset,
+      squadPowers: squadPowers.map((p) => (p !== "" && p !== null ? parseFloat(p) : null)),
       seasonWeek: initialProfile?.seasonWeek,
     });
   };
@@ -180,31 +176,6 @@ const SetupScreen = ({ onComplete, initialProfile = null }) => {
               />
             </div>
 
-            {/* Server Timezone */}
-            <div>
-              <label className="block font-heading text-xs text-[#4fc3f7] tracking-[0.25em] mb-2">
-                {T.timezoneLabel}
-              </label>
-              <div className="grid grid-cols-7 gap-1" data-testid="timezone-selector">
-                {TIMEZONE_OPTIONS.map(({ label, offset }) => (
-                  <button
-                    key={label}
-                    type="button"
-                    data-testid={`setup-tz-${label.replace("+", "p").replace("-", "m")}`}
-                    onClick={() => setTimezoneOffset(offset)}
-                    className="py-2 font-heading text-[9px] tracking-wide border transition-all"
-                    style={{
-                      background: timezoneOffset === offset ? "rgba(79,195,247,0.2)" : "rgba(10,14,26,0.8)",
-                      borderColor: timezoneOffset === offset ? "#4fc3f7" : "rgba(55,71,79,0.5)",
-                      color: timezoneOffset === offset ? "#4fc3f7" : "#546e7a",
-                    }}
-                  >
-                    {label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
             {/* Furnace Level */}
             <div>
               <div className="flex justify-between items-center mb-3">
@@ -239,7 +210,7 @@ const SetupScreen = ({ onComplete, initialProfile = null }) => {
 
             {/* Hero Squads — Squad 1 determines troop type */}
             <div className="space-y-5">
-              {SQUAD_CONFIG.map(({ en, ru, start }) => (
+              {SQUAD_CONFIG.map(({ en, ru, start }, squadIdx) => (
                 <div key={start}>
                   <div className="flex items-center gap-2 mb-2">
                     <div className="h-px flex-1 bg-[#4fc3f7]/20" />
@@ -287,6 +258,26 @@ const SetupScreen = ({ onComplete, initialProfile = null }) => {
                         </div>
                       );
                     })}
+                  </div>
+                  {/* Squad Power */}
+                  <div className="flex items-center gap-2 mt-2">
+                    <label className="font-heading text-[9px] text-[#37474f] tracking-[0.2em] flex-shrink-0">
+                      {T.squadPower}
+                    </label>
+                    <input
+                      data-testid={`setup-squad-power-${squadIdx + 1}`}
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      value={squadPowers[squadIdx]}
+                      onChange={(e) => {
+                        const updated = [...squadPowers];
+                        updated[squadIdx] = e.target.value;
+                        setSquadPowers(updated);
+                      }}
+                      placeholder={T.squadPowerPlaceholder}
+                      className="war-input flex-1 px-3 py-1.5 text-sm"
+                    />
                   </div>
                 </div>
               ))}

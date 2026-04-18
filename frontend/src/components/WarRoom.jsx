@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import axios from "axios";
 import ReactMarkdown from "react-markdown";
 import {
-  Menu, X, Camera, Send, Zap, User, ChevronRight, Copy, Clock,
+  Menu, X, Camera, Send, Zap, User, Copy, Clock,
   ChevronDown, Calendar, Check, Target, Map, Thermometer, Star, Shield, RefreshCw,
 } from "lucide-react";
 
@@ -37,33 +37,21 @@ const inferTroopType = (heroes = []) => {
   return Object.keys(counts).find((k) => counts[k] === max) || "Tank";
 };
 
-// ── Timezone helpers ──────────────────────────────────────────────
-const TIMEZONE_OPTIONS = [
-  { label: "UTC-8", offset: -8 },
-  { label: "UTC-5", offset: -5 },
-  { label: "UTC+0", offset:  0 },
-  { label: "UTC+1", offset:  1 },
-  { label: "UTC+3", offset:  3 },
-  { label: "UTC+5", offset:  5 },
-  { label: "UTC+8", offset:  8 },
-];
+// ── Server timezone — all Last War servers use UTC-2 (fixed) ─────
+const SERVER_UTC_OFFSET = -2;
 
-const getTimezoneLabel = (offset) =>
-  offset === 0 ? "UTC+0" : offset > 0 ? `UTC+${offset}` : `UTC${offset}`;
-
-// Returns server's current HH:MM using UTC-based arithmetic (no locale dependency)
-const getServerTime = (timezoneOffset = 0) => {
+// Returns current server time as HH:MM (UTC-2, no locale dependency)
+const getServerTime = () => {
   const now = new Date();
-  const serverMs = now.getTime() + now.getTimezoneOffset() * 60000 + timezoneOffset * 3600000;
+  const serverMs = now.getTime() + now.getTimezoneOffset() * 60000 + SERVER_UTC_OFFSET * 3600000;
   const d = new Date(serverMs);
   return `${String(d.getUTCHours()).padStart(2, "0")}:${String(d.getUTCMinutes()).padStart(2, "0")}`;
 };
 
-// Returns time until next Wednesday/Saturday 12:00 in the chosen server timezone
-const getWarCountdown = (timezoneOffset = 0) => {
+// Returns time until next Wednesday/Saturday 12:00 server time (UTC-2)
+const getWarCountdown = () => {
   const now = new Date();
-  // Express "server now" in UTC ms — getUTC* methods on this give correct server-local values
-  const serverNowMs = now.getTime() + now.getTimezoneOffset() * 60000 + timezoneOffset * 3600000;
+  const serverNowMs = now.getTime() + now.getTimezoneOffset() * 60000 + SERVER_UTC_OFFSET * 3600000;
   const warDayNums  = [3, 6]; // Wednesday=3, Saturday=6
   const DAY_NAMES   = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
 
@@ -71,12 +59,10 @@ const getWarCountdown = (timezoneOffset = 0) => {
     const d = new Date(serverNowMs + daysAhead * 86400000);
     if (!warDayNums.includes(d.getUTCDay())) continue;
 
-    // Server-local 12:00 on this day (expressed as UTC ms)
     const warServerMs = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), 12, 0, 0);
     if (warServerMs <= serverNowMs) continue;
 
-    // Actual UTC moment of the war
-    const warActualUTC = warServerMs - timezoneOffset * 3600000;
+    const warActualUTC = warServerMs - SERVER_UTC_OFFSET * 3600000;
     const diffMs = warActualUTC - now.getTime();
     if (diffMs <= 0) continue;
 
@@ -89,14 +75,20 @@ const getWarCountdown = (timezoneOffset = 0) => {
   return { dayName: "—", countdown: "—" };
 };
 
+// ── Available languages (add entries here to extend) ──────────────
+const LANGUAGES = [
+  { code: "EN", label: "English" },
+  { code: "RU", label: "Русский" },
+];
+
 // ── Translations ──────────────────────────────────────────────────
 const TRANSLATIONS = {
   EN: {
     askAdvisor: "INTELLIGENCE REQUEST",
     questionPlaceholder: "Enter your tactical query...",
-    attach: "ATTACH", getBriefing: "GET BRIEFING", transmitting: "TRANSMITTING",
+    attach: "SCAN SCREEN", getBriefing: "GET BRIEFING", transmitting: "TRANSMITTING",
     intelReport: "INTELLIGENCE REPORT", copyBriefing: "COPY BRIEFING", copied: "COPIED",
-    editProfile: "EDIT PROFILE", commander: "COMMANDER", server: "SERVER",
+    editProfile: "EDIT PROFILE", commander: "FIELD STATUS", server: "SERVER",
     furnaceLevel: "FURNACE LEVEL", squads: "SQUADS",
     sq1: "SQ1 PRIMARY", sq2: "SQ2 SECONDARY", sq3: "SQ3 SUPPORT",
     polarStorm: "POLAR STORM", week: "WEEK", autoLabel: "AUTO",
@@ -113,9 +105,9 @@ const TRANSLATIONS = {
   RU: {
     askAdvisor: "ЗАПРОС РАЗВЕДКИ",
     questionPlaceholder: "Введите тактический запрос...",
-    attach: "ФАЙЛ", getBriefing: "ПОЛУЧИТЬ ПРИКАЗ", transmitting: "ПЕРЕДАЧА...",
+    attach: "СКАНИРОВАТЬ ЭКРАН", getBriefing: "ПОЛУЧИТЬ ПРИКАЗ", transmitting: "ПЕРЕДАЧА...",
     intelReport: "ОПЕРАТИВНАЯ СВОДКА", copyBriefing: "КОПИРОВАТЬ", copied: "СКОПИРОВАНО",
-    editProfile: "ПРОФИЛЬ", commander: "КОМАНДИР", server: "СЕРВЕР",
+    editProfile: "ПРОФИЛЬ", commander: "БОЕВОЙ СТАТУС", server: "СЕРВЕР",
     furnaceLevel: "УРОВЕНЬ ПЕЧИ", squads: "ОТРЯДЫ",
     sq1: "ОТР.1 ОСНОВНОЙ", sq2: "ОТР.2 ВТОРИЧНЫЙ", sq3: "ОТР.3 ПОДДЕРЖКА",
     polarStorm: "ПОЛЯРНЫЙ ШТОРМ", week: "НЕДЕЛЯ", autoLabel: "АВТО",
@@ -431,11 +423,10 @@ const SeasonTracker = ({ seasonWeek, isDetecting, onRefresh, tr, language }) => 
   );
 };
 
-// ── War Phase Countdown + Timezone Selector ───────────────────────
-const WarCountdownWidget = ({ tr, language, timezoneOffset, onTimezoneChange }) => {
-  const tzLabel        = getTimezoneLabel(timezoneOffset);
-  const serverTimeStr  = getServerTime(timezoneOffset);
-  const { dayName, countdown } = getWarCountdown(timezoneOffset);
+// ── War Phase Countdown (UTC-2 fixed) ─────────────────────────────
+const WarCountdownWidget = ({ tr, language }) => {
+  const serverTimeStr  = getServerTime();
+  const { dayName, countdown } = getWarCountdown();
   const displayDay     = language === "RU" ? (DAY_NAMES_RU[dayName] || dayName) : dayName;
 
   return (
@@ -444,44 +435,26 @@ const WarCountdownWidget = ({ tr, language, timezoneOffset, onTimezoneChange }) 
       style={{ background: "rgba(255,111,0,0.03)" }}
       data-testid="war-countdown-widget"
     >
-      {/* Header row: label + inline timezone selector */}
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-1.5">
           <Shield size={10} color="#ff6f00" strokeWidth={1.5} />
           <span className="font-heading text-[9px] text-[#ff6f00] tracking-[0.3em]">{tr.warPhaseLabel}</span>
         </div>
-        <select
-          data-testid="sidebar-timezone-select"
-          value={timezoneOffset}
-          onChange={(e) => onTimezoneChange(Number(e.target.value))}
-          className="font-heading text-[8px] tracking-widest border border-[#ff6f00]/30 px-1 py-0.5 cursor-pointer appearance-none"
-          style={{ background: "rgba(10,14,26,0.9)", color: "#ff6f00" }}
-        >
-          {TIMEZONE_OPTIONS.map(({ label, offset }) => (
-            <option key={label} value={offset} style={{ background: "#0d1220", color: "#ff6f00" }}>
-              {label}
-            </option>
-          ))}
-        </select>
+        <span className="font-heading text-[8px] text-[#ff6f00]/50 tracking-widest" data-testid="server-time-display">
+          {tr.serverNow}: {serverTimeStr}
+        </span>
       </div>
-
-      {/* Countdown card */}
       <div className="border border-[#ff6f00]/30 p-2" style={{ background: "rgba(255,111,0,0.06)" }}>
         <p className="font-heading text-[9px] text-[#ff6f00]/70 tracking-widest mb-1">
           {tr.nextWar}: {displayDay} 12:00 {tr.st}
         </p>
-        <div className="flex items-end justify-between">
-          <p
-            className="font-heading text-xl text-white leading-none"
-            style={{ textShadow: "0 0 12px rgba(255,111,0,0.5)" }}
-            data-testid="war-countdown-display"
-          >
-            {tr.inTime} {countdown}
-          </p>
-          <p className="font-heading text-[9px] text-[#ff6f00]/60 tracking-widest" data-testid="server-time-display">
-            {tr.serverNow}: {serverTimeStr} {tzLabel}
-          </p>
-        </div>
+        <p
+          className="font-heading text-xl text-white leading-none"
+          style={{ textShadow: "0 0 12px rgba(255,111,0,0.5)" }}
+          data-testid="war-countdown-display"
+        >
+          {tr.inTime} {countdown}
+        </p>
       </div>
       <p className="font-heading text-[8px] text-[#37474f] tracking-wide mt-1.5">
         {tr.timezoneHint}
@@ -490,8 +463,51 @@ const WarCountdownWidget = ({ tr, language, timezoneOffset, onTimezoneChange }) 
   );
 };
 
+// ── Language Dropdown Selector ─────────────────────────────────────
+const LanguageSelector = ({ language, onSetLanguage }) => {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="relative" data-testid="language-selector">
+      <button
+        data-testid="language-dropdown-btn"
+        onClick={() => setOpen((v) => !v)}
+        className="btn-primary px-2.5 py-1 flex items-center gap-1 font-heading text-[9px] tracking-widest"
+      >
+        <span>{language}</span>
+        <ChevronDown size={9} className={`transition-transform duration-150 ${open ? "rotate-180" : ""}`} />
+      </button>
+      {open && (
+        <>
+          <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
+          <div
+            className="absolute right-0 top-full mt-1 z-50 border border-[#4fc3f7]/30 min-w-[110px]"
+            style={{ background: "rgba(8,12,22,0.98)" }}
+          >
+            {LANGUAGES.map(({ code, label }) => (
+              <button
+                key={code}
+                data-testid={`lang-option-${code.toLowerCase()}`}
+                onClick={() => { onSetLanguage(code); setOpen(false); }}
+                className="w-full text-left px-3 py-2 font-heading text-[9px] tracking-widest transition-colors"
+                style={{
+                  color: code === language ? "#4fc3f7" : "#546e7a",
+                  background: code === language ? "rgba(79,195,247,0.08)" : "transparent",
+                }}
+                onMouseEnter={(e) => { if (code !== language) e.currentTarget.style.color = "#b3e5fc"; }}
+                onMouseLeave={(e) => { if (code !== language) e.currentTarget.style.color = "#546e7a"; }}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
+};
+
 // ── Top Bar ───────────────────────────────────────────────────────
-const TopBar = ({ profile, onEditProfile, onTogglePanel, language, onToggleLanguage, tr }) => (
+const TopBar = ({ profile, onEditProfile, onTogglePanel, language, onSetLanguage, tr }) => (
   <div
     className="flex items-center justify-between px-4 py-3 border-b border-[#4fc3f7]/20"
     style={{ background: "rgba(10,14,26,0.95)" }}
@@ -515,16 +531,11 @@ const TopBar = ({ profile, onEditProfile, onTogglePanel, language, onToggleLangu
     </div>
 
     <div className="flex items-center gap-2">
-      {/* Server badge — no troop type shown here */}
       <div className="hidden sm:flex items-center px-2 py-1 border border-[#4fc3f7]/30" style={{ background: "rgba(79,195,247,0.06)" }}>
         <span className="font-heading text-[10px] text-[#b3e5fc] tracking-widest">S-{profile.server}</span>
       </div>
 
-      {/* EN / RU toggle */}
-      <div data-testid="language-toggle" className="flex items-center overflow-hidden border border-[#4fc3f7]/30" style={{ background: "rgba(79,195,247,0.04)" }}>
-        <button data-testid="lang-en-btn" onClick={() => language !== "EN" && onToggleLanguage()} className={`px-2 py-1 font-heading text-[9px] tracking-widest transition-all ${language === "EN" ? "bg-[#4fc3f7] text-[#0a0e1a]" : "text-[#37474f] hover:text-[#b3e5fc]"}`}>EN</button>
-        <button data-testid="lang-ru-btn" onClick={() => language !== "RU" && onToggleLanguage()} className={`px-2 py-1 font-heading text-[9px] tracking-widest transition-all ${language === "RU" ? "bg-[#4fc3f7] text-[#0a0e1a]" : "text-[#37474f] hover:text-[#b3e5fc]"}`}>RU</button>
-      </div>
+      <LanguageSelector language={language} onSetLanguage={onSetLanguage} />
 
       <button data-testid="edit-profile-link" onClick={onEditProfile} className="font-heading text-[10px] text-[#37474f] tracking-widest hover:text-[#4fc3f7] transition-colors">
         {tr.editProfile}
@@ -537,12 +548,11 @@ const TopBar = ({ profile, onEditProfile, onTogglePanel, language, onToggleLangu
 const ProfilePanelContent = ({
   profile, troopType, onClose, isMobile,
   isDetecting, onRefreshWeek, tr, language,
-  timezoneOffset, onTimezoneChange,
 }) => {
   const squadDefs = [
-    { label: tr.sq1, indices: [0, 1, 2, 3, 4] },
-    { label: tr.sq2, indices: [5, 6, 7, 8, 9] },
-    { label: tr.sq3, indices: [10, 11, 12, 13, 14] },
+    { label: tr.sq1, indices: [0, 1, 2, 3, 4], powerIdx: 0 },
+    { label: tr.sq2, indices: [5, 6, 7, 8, 9],  powerIdx: 1 },
+    { label: tr.sq3, indices: [10, 11, 12, 13, 14], powerIdx: 2 },
   ];
 
   return (
@@ -569,7 +579,7 @@ const ProfilePanelContent = ({
         </div>
         <div className="h-px bg-[#37474f]/40" />
 
-        {/* Furnace level — troop type section removed; shown only in Boss/Dig widgets */}
+        {/* Furnace level */}
         <div>
           <p className="font-heading text-[9px] text-[#37474f] tracking-[0.3em] mb-1">{tr.furnaceLevel}</p>
           <div className="flex items-center gap-2">
@@ -581,22 +591,23 @@ const ProfilePanelContent = ({
         </div>
         <div className="h-px bg-[#37474f]/40" />
 
-        {/* Hero squads */}
+        {/* Hero squads with power */}
         <div>
           <p className="font-heading text-[9px] text-[#37474f] tracking-[0.3em] mb-2">{tr.squads}</p>
-          {squadDefs.map(({ label, indices }) => {
+          {squadDefs.map(({ label, indices, powerIdx }) => {
             const active = indices.map((i) => profile.heroes?.[i]).filter((h) => h && h !== "None");
             if (active.length === 0) return null;
+            const power = profile.squadPowers?.[powerIdx];
+            const displayLabel = power ? `${label} — ${power}M` : label;
             return (
               <div key={label} className="mb-2">
-                <p className="font-heading text-[8px] text-[#4fc3f7]/60 tracking-[0.2em] mb-1">{label}</p>
+                <p className="font-heading text-[8px] text-[#4fc3f7]/60 tracking-[0.2em] mb-1">{displayLabel}</p>
                 <div className="space-y-1">
                   {active.map((hero, i) => {
                     const m = hero.match(/^(.+?) \((\d)★\)$/);
                     const name = m ? m[1] : hero, stars = m ? parseInt(m[2]) : 0;
                     return (
                       <div key={i} className="flex items-center gap-1.5">
-                        <ChevronRight size={10} color="#4fc3f7" />
                         <span className="font-heading text-xs text-[#b3e5fc]">{name}</span>
                         {stars > 0 && (
                           <span className="text-xs leading-none">
@@ -627,14 +638,14 @@ const ProfilePanelContent = ({
       {/* Pinned: Season Week */}
       <SeasonTracker seasonWeek={profile.seasonWeek} isDetecting={isDetecting} onRefresh={onRefreshWeek} tr={tr} language={language} />
 
-      {/* Pinned: War Countdown + Timezone */}
-      <WarCountdownWidget tr={tr} language={language} timezoneOffset={timezoneOffset} onTimezoneChange={onTimezoneChange} />
+      {/* Pinned: War Countdown */}
+      <WarCountdownWidget tr={tr} language={language} />
     </div>
   );
 };
 
 // ── Profile Panel ─────────────────────────────────────────────────
-const ProfilePanel = ({ profile, troopType, isOpen, onClose, isDetecting, onRefreshWeek, tr, language, timezoneOffset, onTimezoneChange }) => (
+const ProfilePanel = ({ profile, troopType, isOpen, onClose, isDetecting, onRefreshWeek, tr, language }) => (
   <>
     {isOpen && (
       <div className="md:hidden fixed inset-0 z-50">
@@ -642,16 +653,14 @@ const ProfilePanel = ({ profile, troopType, isOpen, onClose, isDetecting, onRefr
         <div data-testid="profile-panel-mobile" className="absolute left-0 top-0 bottom-0 w-72 flex flex-col"
           style={{ background: "rgba(8,12,22,0.98)", borderRight: "1px solid rgba(79,195,247,0.35)", boxShadow: "4px 0 20px rgba(0,0,0,0.5)", animation: "slideInLeft 0.25s ease" }}>
           <ProfilePanelContent profile={profile} troopType={troopType} onClose={onClose} isMobile
-            isDetecting={isDetecting} onRefreshWeek={onRefreshWeek} tr={tr} language={language}
-            timezoneOffset={timezoneOffset} onTimezoneChange={onTimezoneChange} />
+            isDetecting={isDetecting} onRefreshWeek={onRefreshWeek} tr={tr} language={language} />
         </div>
       </div>
     )}
     <div data-testid="profile-panel" className="hidden md:flex flex-col w-52 flex-shrink-0"
       style={{ background: "rgba(8,12,22,0.95)", borderRight: "1px solid rgba(79,195,247,0.3)", boxShadow: "2px 0 12px rgba(79,195,247,0.08)" }}>
       <ProfilePanelContent profile={profile} troopType={troopType} onClose={onClose} isMobile={false}
-        isDetecting={isDetecting} onRefreshWeek={onRefreshWeek} tr={tr} language={language}
-        timezoneOffset={timezoneOffset} onTimezoneChange={onTimezoneChange} />
+        isDetecting={isDetecting} onRefreshWeek={onRefreshWeek} tr={tr} language={language} />
     </div>
   </>
 );
@@ -680,21 +689,10 @@ const WarRoom = ({ profile, onEditProfile }) => {
   const reportRef   = useRef(null);
   const fileInputRef = useRef(null);
 
-  const timezoneOffset = localProfile?.timezoneOffset ?? 0;
-
-  const toggleLanguage = () => {
-    const next = language === "EN" ? "RU" : "EN";
-    setLanguage(next);
-    localStorage.setItem(LANG_KEY, next);
+  const setLang = (code) => {
+    setLanguage(code);
+    localStorage.setItem(LANG_KEY, code);
   };
-
-  const handleTimezoneChange = useCallback((offset) => {
-    setLocalProfile((prev) => {
-      const updated = { ...prev, timezoneOffset: offset };
-      localStorage.setItem("warroom_profile", JSON.stringify(updated));
-      return updated;
-    });
-  }, []);
 
   const detectSeasonWeek = useCallback(async () => {
     if (!localProfile?.server) return;
@@ -744,9 +742,10 @@ const WarRoom = ({ profile, onEditProfile }) => {
       const payload = {
         question: q,
         server: String(localProfile.server),
-        troop_type: inferredTroopType,   // always from Squad 1 inference, never profile field
+        troop_type: inferredTroopType,
         furnace_level: Number(localProfile.furnaceLevel),
         heroes: localProfile.heroes,
+        squad_powers: localProfile.squadPowers || [],
         season_week: effectiveWeek,
         language,
         ...(uploadedImage ? { image_base64: uploadedImage } : {}),
@@ -770,7 +769,7 @@ const WarRoom = ({ profile, onEditProfile }) => {
     <div className="war-noise min-h-screen bg-[#0a0e1a] flex flex-col relative overflow-hidden" data-testid="warroom-screen">
       <div className="absolute inset-0 pointer-events-none" style={{ backgroundImage: "linear-gradient(rgba(79,195,247,0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(79,195,247,0.025) 1px, transparent 1px)", backgroundSize: "60px 60px" }} />
 
-      <TopBar profile={localProfile} onEditProfile={onEditProfile} onTogglePanel={() => setPanelOpen((v) => !v)} language={language} onToggleLanguage={toggleLanguage} tr={tr} />
+      <TopBar profile={localProfile} onEditProfile={onEditProfile} onTogglePanel={() => setPanelOpen((v) => !v)} language={language} onSetLanguage={setLang} tr={tr} />
 
       <div className="flex flex-1 overflow-hidden relative z-10">
         <ProfilePanel
@@ -782,8 +781,6 @@ const WarRoom = ({ profile, onEditProfile }) => {
           onRefreshWeek={detectSeasonWeek}
           tr={tr}
           language={language}
-          timezoneOffset={timezoneOffset}
-          onTimezoneChange={handleTimezoneChange}
         />
 
         <div className="flex-1 flex flex-col overflow-y-auto p-4 gap-4">
@@ -812,23 +809,39 @@ const WarRoom = ({ profile, onEditProfile }) => {
 
             {error && <p className="text-[#ff6f00] text-xs font-heading tracking-widest mt-2">⚠ {error}</p>}
 
-            {!response && !isLoading && (
-              <div className="grid grid-cols-2 gap-1.5 mt-3" data-testid="quick-actions-grid">
-                {quickActions.map(({ label, Icon, question: q }) => (
+            {!response && !isLoading && (() => {
+              const [primary, ...rest] = quickActions;
+              const PrimaryIcon = primary.Icon;
+              return (
+                <div className="mt-3 space-y-1.5" data-testid="quick-actions-grid">
                   <button
-                    key={label}
-                    data-testid={`quick-action-${label.toLowerCase().replace(/\s+/g, "-")}`}
-                    onClick={() => handleQuickAction(q)}
-                    className="quick-action-btn flex items-center gap-2 px-3 py-2 text-left transition-all duration-150"
+                    data-testid={`quick-action-${primary.label.toLowerCase().replace(/\s+/g, "-")}`}
+                    onClick={() => handleQuickAction(primary.question)}
+                    className="quick-action-btn-primary w-full flex items-center gap-2.5 px-4 py-2.5 text-left"
                   >
-                    <Icon size={12} strokeWidth={1.5} className="flex-shrink-0 text-[#4fc3f7]" />
-                    <span className="font-heading text-[9px] tracking-[0.15em] text-[#b0bec5] leading-tight">
-                      {label.toUpperCase()}
+                    <PrimaryIcon size={14} strokeWidth={1.5} className="flex-shrink-0 text-[#4fc3f7]" />
+                    <span className="font-heading text-[11px] tracking-[0.2em] text-[#4fc3f7] leading-tight">
+                      {primary.label.toUpperCase()}
                     </span>
                   </button>
-                ))}
-              </div>
-            )}
+                  <div className="grid grid-cols-2 gap-1.5">
+                    {rest.map(({ label, Icon, question: q }) => (
+                      <button
+                        key={label}
+                        data-testid={`quick-action-${label.toLowerCase().replace(/\s+/g, "-")}`}
+                        onClick={() => handleQuickAction(q)}
+                        className="quick-action-btn flex items-center gap-2 px-3 py-2 text-left transition-all duration-150"
+                      >
+                        <Icon size={12} strokeWidth={1.5} className="flex-shrink-0 text-[#4fc3f7]" />
+                        <span className="font-heading text-[9px] tracking-[0.15em] text-[#b0bec5] leading-tight">
+                          {label.toUpperCase()}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              );
+            })()}
 
             <div className="flex gap-2 mt-3">
               <input ref={fileInputRef} data-testid="image-upload-input" type="file" accept="image/*" onChange={handleImageUpload} className="hidden" id="image-upload" />

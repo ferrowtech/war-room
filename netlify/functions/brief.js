@@ -166,7 +166,7 @@ function inferTroopTypeFromHeroes(heroes = []) {
 }
 
 // ── System prompt builder ─────────────────────────────────────────────────────
-function buildSystemPrompt({ server, troop_type, furnace_level, heroes = [], season_week, kbStr, language }) {
+function buildSystemPrompt({ server, troop_type, furnace_level, heroes = [], season_week, squad_powers = [], kbStr, language }) {
   const parsedHeroes = parseHeroes(heroes);
 
   // Heroes block — one line per hero with exact star status + troop type label
@@ -221,6 +221,13 @@ function buildSystemPrompt({ server, troop_type, furnace_level, heroes = [], sea
       : `Today (${today}): ${activeBossToday} is active (not your bonus boss). Your next bonus days: ${wantedMonster.days}.`
     : `Today (${today}) is Sunday \u2014 no Wanted Monster is active today.`;
 
+  const squadPowerLine = (() => {
+    const sp = Array.isArray(squad_powers) ? squad_powers : [];
+    if (sp.every((v) => !v)) return "";
+    const fmt = (v) => (v != null && v !== "" ? `${v}M` : "not set");
+    return `Squad Power Levels: SQ1=${fmt(sp[0])}, SQ2=${fmt(sp[1])}, SQ3=${fmt(sp[2])}`;
+  })();
+
   return `You are WAR ROOM, a tactical AI advisor for Last War: Survival game.
 
 =================================================================
@@ -231,6 +238,7 @@ Primary Troop Type: ${troop_type}
 Furnace Level: ${furnace_level}
 Today: ${today}
 ${weekLine}
+${squadPowerLine}
 
 HERO ROSTER \u2014 EXACT CURRENT STAR LEVELS (THIS IS GROUND TRUTH):
 ${heroesBlock}
@@ -359,6 +367,7 @@ exports.handler = async (event) => {
   }
 
   const { question, server, furnace_level, heroes, season_week, image_base64, language = "EN" } = body;
+  const squad_powers = Array.isArray(body.squad_powers) ? body.squad_powers : [];
   // Infer primary troop type from Squad 1 heroes when client does not send it
   const troop_type = body.troop_type || inferTroopTypeFromHeroes(heroes);
 
@@ -369,7 +378,7 @@ exports.handler = async (event) => {
   // Fetch (or serve from cache) the combined knowledge base
   const kbStr = await fetchKnowledgeBase();
 
-  const systemPrompt = buildSystemPrompt({ server, troop_type, furnace_level, heroes, season_week, kbStr, language });
+  const systemPrompt = buildSystemPrompt({ server, troop_type, furnace_level, heroes, season_week, squad_powers, kbStr, language });
 
   // Build user message content (with optional image attachment)
   const userContent = image_base64
