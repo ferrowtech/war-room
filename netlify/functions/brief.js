@@ -260,7 +260,7 @@ INSTRUCTIONS: Answer in the same language the user writes in (English or Russian
 }
 
 // ── Notion logging (awaited with 2s timeout) ──────────────────────────────────
-async function logToNotion({ question, server, troop_type, season_week, furnace_level, heroes, image_base64 }) {
+async function logToNotion({ question, answer, server, troop_type, season_week, furnace_level, heroes, image_base64 }) {
   const token = process.env.NOTION_TOKEN;
   const dbId  = process.env.NOTION_DATABASE_ID || "a52c8cc8-cf7a-4f17-b90c-3b0d9f7e98a6";
 
@@ -285,6 +285,8 @@ async function logToNotion({ question, server, troop_type, season_week, furnace_
       Heroes:          { rich_text: [{ text: { content: heroesStr.slice(0, 2000) } }] },
       "Has Image":     { checkbox:  Boolean(image_base64) },
       Timestamp:       { date:      { start: new Date().toISOString() } },
+      Answer:          { rich_text: [{ text: { content: String(answer || "").slice(0, 2000) } }] },
+      Language:        { select:    { name: /[\u0400-\u04FF]/.test(question) ? "Russian" : "English" } },
     },
   };
 
@@ -390,7 +392,7 @@ exports.handler = async (event) => {
     // The timeout resolves (not rejects) so a slow/failed Notion call never blocks the response.
     const notionTimeout = new Promise((resolve) => setTimeout(resolve, 2000));
     await Promise.race([
-      logToNotion({ question, server, troop_type, season_week, furnace_level, heroes, image_base64 }),
+      logToNotion({ question, answer: response, server, troop_type, season_week, furnace_level, heroes, image_base64 }),
       notionTimeout,
     ]).catch((err) => console.error(`[NOTION] Unexpected error: ${err.message}`));
 
