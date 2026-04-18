@@ -1,12 +1,13 @@
 import React, { useState } from "react";
 import * as SliderPrimitive from "@radix-ui/react-slider";
 
-// All heroes available in every squad — Squad 1 defines troop type (computed in WarRoom)
-const ALL_HEROES = [
-  "Murphy", "Kimberly", "Marshall", "Williams", "Mason", "Violet", "Richard", "Monica", "Scarlett", "Stetmann",
-  "DVA", "Carlie", "Schuyler", "Morrison", "Lucius", "Sarah", "Maxwell", "Cage",
-  "Swift", "Tesla", "Fiona", "Adam", "Venom", "McGregor", "Elsa", "Kane",
+// ── Hero roster grouped by troop type ─────────────────────────────
+const HEROES_BY_TYPE = [
+  { type: "TANK",     list: ["Murphy", "Kimberly", "Marshall", "Williams", "Mason", "Violet", "Richard", "Monica", "Scarlett", "Stetmann"] },
+  { type: "AIRCRAFT", list: ["DVA", "Carlie", "Schuyler", "Morrison", "Lucius", "Sarah", "Maxwell", "Cage"] },
+  { type: "MISSILE",  list: ["Swift", "Tesla", "Fiona", "Adam", "Venom", "McGregor", "Elsa", "Kane"] },
 ];
+const ALL_HEROES = HEROES_BY_TYPE.flatMap((g) => g.list);
 
 export const SQUAD_CONFIG = [
   { en: "SQUAD 1 — PRIMARY",   ru: "ОТРЯД 1 — ОСНОВНОЙ",  start: 0  },
@@ -60,10 +61,59 @@ const SETUP_T = {
   },
 };
 
+const SETUP_LANGUAGES = [
+  { code: "EN", label: "English" },
+  { code: "RU", label: "Русский" },
+];
+
+const SetupLanguageSelector = ({ lang, onSetLang }) => {
+  const [open, setOpen] = React.useState(false);
+  return (
+    <div className="relative" data-testid="setup-language-selector">
+      <button
+        data-testid="setup-language-btn"
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="btn-primary px-2.5 py-1 flex items-center gap-1 font-heading text-[9px] tracking-widest"
+      >
+        <span>{lang}</span>
+        <span style={{ fontSize: "8px" }}>{open ? "▴" : "▾"}</span>
+      </button>
+      {open && (
+        <>
+          <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
+          <div
+            className="absolute right-0 top-full mt-1 z-50 border border-[#4fc3f7]/30 min-w-[110px]"
+            style={{ background: "rgba(8,12,22,0.98)" }}
+          >
+            {SETUP_LANGUAGES.map(({ code, label }) => (
+              <button
+                key={code}
+                type="button"
+                data-testid={`setup-lang-option-${code.toLowerCase()}`}
+                onClick={() => { onSetLang(code); setOpen(false); }}
+                className="w-full text-left px-3 py-2 font-heading text-[9px] tracking-widest"
+                style={{ color: code === lang ? "#4fc3f7" : "#546e7a", background: code === lang ? "rgba(79,195,247,0.08)" : "transparent" }}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
+};
+
 const SetupScreen = ({ onComplete, initialProfile = null }) => {
-  const lang = localStorage.getItem("warroom_lang") || "EN";
+  const [lang, setLangState] = useState(() => localStorage.getItem("warroom_lang") || "EN");
   const T = SETUP_T[lang] || SETUP_T.EN;
   const isEditing = Boolean(initialProfile);
+
+  const setLang = (code) => {
+    localStorage.setItem("warroom_lang", code);
+    setLangState(code);
+  };
 
   const [server, setServer] = useState(initialProfile?.server || "");
   const [squadPowers, setSquadPowers] = useState([
@@ -130,6 +180,11 @@ const SetupScreen = ({ onComplete, initialProfile = null }) => {
           backgroundSize: "40px 40px",
         }}
       />
+
+      {/* Language selector — top-right corner */}
+      <div className="fixed top-4 right-4 z-50">
+        <SetupLanguageSelector lang={lang} onSetLang={setLang} />
+      </div>
 
       <div className="relative z-10 w-full max-w-md">
         {/* Header */}
@@ -232,10 +287,14 @@ const SetupScreen = ({ onComplete, initialProfile = null }) => {
                             style={{ background: "rgba(10,14,26,0.95)" }}
                           >
                             <option value="None" style={{ background: "#0d1220" }}>{T.none}</option>
-                            {ALL_HEROES.map((hero) => (
-                              <option key={hero} value={hero} style={{ background: "#0d1220", color: "#fff" }}>
-                                {hero}
-                              </option>
+                            {HEROES_BY_TYPE.map(({ type, list }) => (
+                              <optgroup key={type} label={`— ${type} —`} style={{ color: "#4fc3f7", background: "#0d1220" }}>
+                                {list.map((hero) => (
+                                  <option key={hero} value={hero} style={{ background: "#0d1220", color: "#fff" }}>
+                                    {hero}
+                                  </option>
+                                ))}
+                              </optgroup>
                             ))}
                           </select>
                           {heroes[i].name !== "None" && (

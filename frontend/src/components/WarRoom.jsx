@@ -75,12 +75,6 @@ const getWarCountdown = () => {
   return { dayName: "—", countdown: "—" };
 };
 
-// ── Available languages (add entries here to extend) ──────────────
-const LANGUAGES = [
-  { code: "EN", label: "English" },
-  { code: "RU", label: "Русский" },
-];
-
 // ── Translations ──────────────────────────────────────────────────
 const TRANSLATIONS = {
   EN: {
@@ -125,12 +119,13 @@ const TRANSLATIONS = {
 
 const QUICK_ACTIONS = {
   EN: [
-    { label: "Daily Briefing",  Icon: Calendar,    question: "Give me a full daily briefing for today - boss, dig sites, priorities and what to focus on" },
-    { label: "Attack Strategy", Icon: Target,      question: "What is the best attack strategy for my squad today?" },
-    { label: "Dig Sites",       Icon: Map,         question: "Which dig sites should I capture and how?" },
-    { label: "Temperature",     Icon: Thermometer, question: "How do I manage my base temperature and avoid freezing?" },
-    { label: "Hero Upgrade",    Icon: Star,        question: "Which hero should I upgrade next and how?" },
-    { label: "War Phase",       Icon: Shield,      question: "Explain the War Phase and when I should attack the enemy furnace" },
+    { label: "Daily Briefing",   Icon: Calendar,    question: "Give me a full daily briefing for today - boss, dig sites, priorities and what to focus on" },
+    { label: "Attack Strategy",  Icon: Target,      question: "What is the best attack strategy for my squad today?" },
+    { label: "Dig Sites",        Icon: Map,         question: "Which dig sites should I capture and how?" },
+    { label: "Temperature",      Icon: Thermometer, question: "How do I manage my base temperature and avoid freezing?" },
+    { label: "Hero Upgrade",     Icon: Star,        question: "Which hero should I upgrade next and how?" },
+    { label: "War Phase",        Icon: Shield,      question: "Explain the War Phase and when I should attack the enemy furnace" },
+    { label: "Compare Squads",   Icon: Zap,         question: "Compare my squad powers and recommend which squad to use for each situation - boss fights, dig sites, war phase attacks and defense." },
   ],
   RU: [
     { label: "Ежедневный брифинг", Icon: Calendar,    question: "Дай полный ежедневный брифинг на сегодня — босс, раскопки, приоритеты и на что сосредоточиться" },
@@ -139,6 +134,7 @@ const QUICK_ACTIONS = {
     { label: "Температура",        Icon: Thermometer, question: "Как управлять температурой базы и не замёрзнуть?" },
     { label: "Прокачка героев",    Icon: Star,        question: "Какого героя прокачивать следующим и как?" },
     { label: "Военная фаза",       Icon: Shield,      question: "Объясни военную фазу и когда атаковать печь врага" },
+    { label: "Сравнить отряды",    Icon: Zap,         question: "Сравни мои отряды и порекомендуй какой использовать для боссов, мест раскопок, атаки и защиты в войне." },
   ],
 };
 
@@ -463,51 +459,8 @@ const WarCountdownWidget = ({ tr, language }) => {
   );
 };
 
-// ── Language Dropdown Selector ─────────────────────────────────────
-const LanguageSelector = ({ language, onSetLanguage }) => {
-  const [open, setOpen] = useState(false);
-  return (
-    <div className="relative" data-testid="language-selector">
-      <button
-        data-testid="language-dropdown-btn"
-        onClick={() => setOpen((v) => !v)}
-        className="btn-primary px-2.5 py-1 flex items-center gap-1 font-heading text-[9px] tracking-widest"
-      >
-        <span>{language}</span>
-        <ChevronDown size={9} className={`transition-transform duration-150 ${open ? "rotate-180" : ""}`} />
-      </button>
-      {open && (
-        <>
-          <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-          <div
-            className="absolute right-0 top-full mt-1 z-50 border border-[#4fc3f7]/30 min-w-[110px]"
-            style={{ background: "rgba(8,12,22,0.98)" }}
-          >
-            {LANGUAGES.map(({ code, label }) => (
-              <button
-                key={code}
-                data-testid={`lang-option-${code.toLowerCase()}`}
-                onClick={() => { onSetLanguage(code); setOpen(false); }}
-                className="w-full text-left px-3 py-2 font-heading text-[9px] tracking-widest transition-colors"
-                style={{
-                  color: code === language ? "#4fc3f7" : "#546e7a",
-                  background: code === language ? "rgba(79,195,247,0.08)" : "transparent",
-                }}
-                onMouseEnter={(e) => { if (code !== language) e.currentTarget.style.color = "#b3e5fc"; }}
-                onMouseLeave={(e) => { if (code !== language) e.currentTarget.style.color = "#546e7a"; }}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-        </>
-      )}
-    </div>
-  );
-};
-
 // ── Top Bar ───────────────────────────────────────────────────────
-const TopBar = ({ profile, onEditProfile, onTogglePanel, language, onSetLanguage, tr }) => (
+const TopBar = ({ profile, onEditProfile, onTogglePanel, tr }) => (
   <div
     className="flex items-center justify-between px-4 py-3 border-b border-[#4fc3f7]/20"
     style={{ background: "rgba(10,14,26,0.95)" }}
@@ -534,8 +487,6 @@ const TopBar = ({ profile, onEditProfile, onTogglePanel, language, onSetLanguage
       <div className="hidden sm:flex items-center px-2 py-1 border border-[#4fc3f7]/30" style={{ background: "rgba(79,195,247,0.06)" }}>
         <span className="font-heading text-[10px] text-[#b3e5fc] tracking-widest">S-{profile.server}</span>
       </div>
-
-      <LanguageSelector language={language} onSetLanguage={onSetLanguage} />
 
       <button data-testid="edit-profile-link" onClick={onEditProfile} className="font-heading text-[10px] text-[#37474f] tracking-widest hover:text-[#4fc3f7] transition-colors">
         {tr.editProfile}
@@ -689,11 +640,6 @@ const WarRoom = ({ profile, onEditProfile }) => {
   const reportRef   = useRef(null);
   const fileInputRef = useRef(null);
 
-  const setLang = (code) => {
-    setLanguage(code);
-    localStorage.setItem(LANG_KEY, code);
-  };
-
   const detectSeasonWeek = useCallback(async () => {
     if (!localProfile?.server) return;
     setDetectingWeek(true);
@@ -769,7 +715,7 @@ const WarRoom = ({ profile, onEditProfile }) => {
     <div className="war-noise min-h-screen bg-[#0a0e1a] flex flex-col relative overflow-hidden" data-testid="warroom-screen">
       <div className="absolute inset-0 pointer-events-none" style={{ backgroundImage: "linear-gradient(rgba(79,195,247,0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(79,195,247,0.025) 1px, transparent 1px)", backgroundSize: "60px 60px" }} />
 
-      <TopBar profile={localProfile} onEditProfile={onEditProfile} onTogglePanel={() => setPanelOpen((v) => !v)} language={language} onSetLanguage={setLang} tr={tr} />
+      <TopBar profile={localProfile} onEditProfile={onEditProfile} onTogglePanel={() => setPanelOpen((v) => !v)} tr={tr} />
 
       <div className="flex flex-1 overflow-hidden relative z-10">
         <ProfilePanel
