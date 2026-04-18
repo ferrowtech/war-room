@@ -731,9 +731,13 @@ const WarRoom = ({ profile, onEditProfile }) => {
 
         <div className="flex-1 flex flex-col overflow-y-auto p-4 gap-4">
           {/* Input section */}
-          <div className="hud-panel hud-corner p-4 relative overflow-hidden">
+          <div className="hud-panel p-4 relative" data-testid="intelligence-request-card">
             <div className="scan-line-card" />
-            <div className="absolute top-0 right-0 w-8 h-8 pointer-events-none" style={{ borderTop: "1px solid #4fc3f7", borderRight: "1px solid #4fc3f7" }} />
+            {/* HUD corner brackets — all 4 explicit, consistent 12px × 2px cyan */}
+            <div className="absolute top-0 left-0 w-3 h-3 pointer-events-none" style={{ borderTop: "2px solid #4fc3f7", borderLeft: "2px solid #4fc3f7", zIndex: 3 }} />
+            <div className="absolute top-0 right-0 w-3 h-3 pointer-events-none" style={{ borderTop: "2px solid #4fc3f7", borderRight: "2px solid #4fc3f7", zIndex: 3 }} />
+            <div className="absolute bottom-0 left-0 w-3 h-3 pointer-events-none" style={{ borderBottom: "2px solid #4fc3f7", borderLeft: "2px solid #4fc3f7", zIndex: 3 }} />
+            <div className="absolute bottom-0 right-0 w-3 h-3 pointer-events-none" style={{ borderBottom: "2px solid #4fc3f7", borderRight: "2px solid #4fc3f7", zIndex: 3 }} />
             <div className="flex items-center gap-2 mb-3">
               <Zap size={12} color="#4fc3f7" strokeWidth={1.5} />
               <label className="font-heading text-[10px] text-[#4fc3f7] tracking-[0.3em]">{tr.askAdvisor}</label>
