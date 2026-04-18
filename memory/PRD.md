@@ -86,6 +86,23 @@ Build a web app called "WAR ROOM" — an AI tactical advisor for the "Last War: 
 - **UI text renames**: "ASK YOUR TACTICAL ADVISOR" → "TODAY'S FOCUS"; placeholder → "What do you need help with today?"; quick action "Today's Boss" → "Boss Deep Dive"
 - All 4 widgets fully translated to Russian (EN/RU toggle)
 
+### Phase 5 — Polar Storm Palette & Timezone (Session 5, Feb 2026)
+- **Server Timezone Selector**: UTC-8 to UTC+8; saved to profile; war phase countdown uses selected offset
+- **Troop Type Audit**: `profile.troopType` fully removed; `inferTroopType()` is single source of truth
+- **INTELLIGENCE REQUEST** label rename; 6 new quick actions with full EN/RU; Last War logo in TopBar
+- **Polar Storm palette**: snow-blue (#b8d4e8) + ice-white (#e8f4f8) accents
+- **Timezone hint** below WAR PHASE widget
+
+### Phase 6 — UI Restructure & Squad Power (Session 6, Feb 2026)
+- **DAILY BRIEFING** full-width primary button with cyan glow (`.quick-action-btn-primary`); other 5 in 2-col grid
+- **UTC-2 hardcoded**: Removed timezone selector; `SERVER_UTC_OFFSET=-2`; sidebar shows `SERVER: HH:MM`
+- **SCAN SCREEN** rename (ATTACH → SCAN SCREEN; RU: СКАНИРОВАТЬ ЭКРАН)
+- **Hero list cleanup**: Removed `ChevronRight` arrows from sidebar hero list items
+- **Squad Power** field per squad in Setup; stored as `squadPowers[]`; shown as `SQ1 PRIMARY — 20.62M`; passed to Claude in system prompt
+- **Language dropdown**: Replaced EN/RU toggle with `LanguageSelector` (EN ▾ → English/Русский); `LANGUAGES` array for easy extension
+- **FIELD STATUS** rename (COMMANDER → FIELD STATUS; RU: БОЕВОЙ СТАТУС)
+- `warroom_profile` schema: removed `timezoneOffset`, added `squadPowers: [f1, f2, f3]`
+
 ### P2 — Content (User to provide)
 - Populate `temperature_advanced.json`
 - Populate `tips_and_tricks_s2.json`
