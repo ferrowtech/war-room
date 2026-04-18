@@ -109,6 +109,11 @@ Build a web app called "WAR ROOM" — an AI tactical advisor for the "Last War: 
 - **COMPARE SQUADS** added as 7th quick action (completes 2×3 grid under DAILY BRIEFING); EN/RU translated, auto-submit
 - `HEROES_BY_TYPE` array replaces `ALL_HEROES` in SetupScreen; `ALL_HEROES` derived via `.flatMap`
 
+### Phase 9 — Quick Actions Permanent, Em-Dash Cleanup, IP Logging (Session 9, Feb 2026)
+- **Quick actions always visible**: Moved from inside input card (condition `!response && !isLoading`) to permanent position below IntelligenceReport card (condition `!isLoading`). Users can always tap another action without scrolling.
+- **Em dash audit**: All `—` replaced with `-` in UI strings across WarRoom.jsx (season descriptions, boss widget, squad labels, countdown fallback) and SetupScreen.jsx (SQUAD_CONFIG, None placeholder, optgroup labels).
+- **IP address Notion logging**: Extracts `clientIp` from `x-forwarded-for` (first IP) → `x-real-ip` → `x-nf-client-connection-ip` → "unknown"; passed to `logToNotion` and stored as `"IP Address": rich_text` in Notion page properties. Also logged in `[BRIEF]` console line.
+
 ### Phase 8 — Bug Fixes: Hero Dedup, Week Detection Debug, Brief Diagnostics (Session 8, Feb 2026)
 - **Hero deduplication**: `usedHeroSet` computed on each render in SetupScreen; each dropdown filters out heroes already selected in any other slot — reactive, O(n) per render
 - **server-week.js debug logging**: Added detailed logs — HTTP status, HTML length, first 600 chars, JSON array detection, server line match, cleaned context, each regex strategy result, page text sample when server not found
