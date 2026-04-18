@@ -790,7 +790,8 @@ const WarRoom = ({ profile, onEditProfile }) => {
                 <button
                   data-testid={`quick-action-${primary.label.toLowerCase().replace(/\s+/g, "-")}`}
                   onClick={() => handleQuickAction(primary.question)}
-                  className="quick-action-btn-primary w-full flex items-center gap-2.5 px-4 py-2.5 text-left"
+                  className="quick-action-btn-primary w-full flex items-center gap-2.5 px-4 text-left"
+                  style={{ minHeight: "48px" }}
                 >
                   <PrimaryIcon size={14} strokeWidth={1.5} className="flex-shrink-0 text-[#4fc3f7]" />
                   <span className="font-heading text-[11px] tracking-[0.2em] text-[#4fc3f7] leading-tight">
