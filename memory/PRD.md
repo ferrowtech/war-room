@@ -109,6 +109,11 @@ Build a web app called "WAR ROOM" — an AI tactical advisor for the "Last War: 
 - **COMPARE SQUADS** added as 7th quick action (completes 2×3 grid under DAILY BRIEFING); EN/RU translated, auto-submit
 - `HEROES_BY_TYPE` array replaces `ALL_HEROES` in SetupScreen; `ALL_HEROES` derived via `.flatMap`
 
+### Phase 8 — Bug Fixes: Hero Dedup, Week Detection Debug, Brief Diagnostics (Session 8, Feb 2026)
+- **Hero deduplication**: `usedHeroSet` computed on each render in SetupScreen; each dropdown filters out heroes already selected in any other slot — reactive, O(n) per render
+- **server-week.js debug logging**: Added detailed logs — HTTP status, HTML length, first 600 chars, JSON array detection, server line match, cleaned context, each regex strategy result, page text sample when server not found
+- **brief.js diagnostics + timeout**: Added body/image/prompt size logging; added `AbortSignal.timeout(25000)` to Anthropic fetch to prevent silent hangs; logs total KB fetch + prompt build time vs Anthropic response time
+
 ### P2 — Content (User to provide)
 - Populate `temperature_advanced.json`
 - Populate `tips_and_tricks_s2.json`
