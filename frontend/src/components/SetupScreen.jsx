@@ -1,38 +1,29 @@
 import React, { useState } from "react";
 import * as SliderPrimitive from "@radix-ui/react-slider";
 
-// Hero-to-type map — used for Squad 1 troop type inference
-const HERO_TYPES = {
-  Murphy: "Tank", Kimberly: "Tank", Marshall: "Tank", Williams: "Tank",
-  Mason: "Tank", Violet: "Tank", Richard: "Tank", Monica: "Tank",
-  Scarlett: "Tank", Stetmann: "Tank",
-  DVA: "Aircraft", Carlie: "Aircraft", Schuyler: "Aircraft", Morrison: "Aircraft",
-  Lucius: "Aircraft", Sarah: "Aircraft", Maxwell: "Aircraft", Cage: "Aircraft",
-  Swift: "Missile", Tesla: "Missile", Fiona: "Missile", Adam: "Missile",
-  Venom: "Missile", McGregor: "Missile", Elsa: "Missile", Kane: "Missile",
-};
+// All heroes available in every squad — Squad 1 defines troop type (computed in WarRoom)
+const ALL_HEROES = [
+  "Murphy", "Kimberly", "Marshall", "Williams", "Mason", "Violet", "Richard", "Monica", "Scarlett", "Stetmann",
+  "DVA", "Carlie", "Schuyler", "Morrison", "Lucius", "Sarah", "Maxwell", "Cage",
+  "Swift", "Tesla", "Fiona", "Adam", "Venom", "McGregor", "Elsa", "Kane",
+];
 
-const ALL_HEROES = Object.keys(HERO_TYPES);
-
-// Squad 1 defines the primary troop type — infer from its heroes
-const inferTroopType = (heroes) => {
-  const counts = { Tank: 0, Aircraft: 0, Missile: 0 };
-  heroes.slice(0, 5).forEach((h) => {
-    if (h.name !== "None") {
-      const t = HERO_TYPES[h.name];
-      if (t) counts[t]++;
-    }
-  });
-  const max = Math.max(...Object.values(counts));
-  if (max === 0) return "Tank";
-  return Object.keys(counts).find((k) => counts[k] === max) || "Tank";
-};
+export const TIMEZONE_OPTIONS = [
+  { label: "UTC-8", offset: -8 },
+  { label: "UTC-5", offset: -5 },
+  { label: "UTC+0", offset:  0 },
+  { label: "UTC+1", offset:  1 },
+  { label: "UTC+3", offset:  3 },
+  { label: "UTC+5", offset:  5 },
+  { label: "UTC+8", offset:  8 },
+];
 
 const SQUAD_CONFIG = [
   { en: "SQUAD 1 — PRIMARY",   ru: "ОТРЯД 1 — ОСНОВНОЙ",  start: 0  },
   { en: "SQUAD 2 — SECONDARY", ru: "ОТРЯД 2 — ВТОРИЧНЫЙ", start: 5  },
   { en: "SQUAD 3 — SUPPORT",   ru: "ОТРЯД 3 — ПОДДЕРЖКА", start: 10 },
 ];
+
 const TOTAL_HERO_SLOTS = 15;
 
 const emptySlots = () =>
@@ -54,6 +45,7 @@ const SETUP_T = {
     editProfile: "EDIT PROFILE",
     serverNumber: "SERVER NUMBER",
     serverPlaceholder: "e.g. 1042",
+    timezoneLabel: "SERVER TIMEZONE",
     furnaceLevel: "FURNACE LEVEL",
     none: "— None —",
     enterWarRoom: "ENTER WAR ROOM",
@@ -66,6 +58,7 @@ const SETUP_T = {
     editProfile: "РЕДАКТИРОВАТЬ ПРОФИЛЬ",
     serverNumber: "НОМЕР СЕРВЕРА",
     serverPlaceholder: "напр. 1042",
+    timezoneLabel: "ЧАСОВОЙ ПОЯС СЕРВЕРА",
     furnaceLevel: "УРОВЕНЬ ПЕЧИ",
     none: "— Пусто —",
     enterWarRoom: "ВОЙТИ В КОМАНДНЫЙ ЦЕНТР",
@@ -81,13 +74,13 @@ const SetupScreen = ({ onComplete, initialProfile = null }) => {
   const isEditing = Boolean(initialProfile);
 
   const [server, setServer] = useState(initialProfile?.server || "");
+  const [timezoneOffset, setTimezoneOffset] = useState(initialProfile?.timezoneOffset ?? 0);
   const [furnaceLevel, setFurnaceLevel] = useState(
     initialProfile ? [initialProfile.furnaceLevel] : [5]
   );
   const [heroes, setHeroes] = useState(() => {
     const slots = emptySlots();
     if (!initialProfile?.heroes) return slots;
-    // Position-based: map stored heroes directly to their slot indices
     initialProfile.heroes.forEach((h, i) => {
       if (i < TOTAL_HERO_SLOTS) slots[i] = parseHero(h);
     });
@@ -99,8 +92,7 @@ const SetupScreen = ({ onComplete, initialProfile = null }) => {
     const updated = [...heroes];
     updated[index] = {
       name,
-      stars:
-        name === "None" ? 1 : updated[index].name === name ? updated[index].stars : 1,
+      stars: name === "None" ? 1 : updated[index].name === name ? updated[index].stars : 1,
     };
     setHeroes(updated);
   };
@@ -113,20 +105,17 @@ const SetupScreen = ({ onComplete, initialProfile = null }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!server) {
-      setError(T.errorServer);
-      return;
-    }
+    if (!server) { setError(T.errorServer); return; }
     setError("");
-    const troopType = inferTroopType(heroes);
     const formattedHeroes = heroes.map((h) =>
       h.name !== "None" ? `${h.name} (${h.stars}★)` : "None"
     );
+    // troopType is NOT stored in profile — always inferred fresh from Squad 1 heroes
     onComplete({
       server,
-      troopType,
       furnaceLevel: furnaceLevel[0],
       heroes: formattedHeroes,
+      timezoneOffset,
       seasonWeek: initialProfile?.seasonWeek,
     });
   };
@@ -168,7 +157,6 @@ const SetupScreen = ({ onComplete, initialProfile = null }) => {
           </div>
         </div>
 
-        {/* Form Panel */}
         <div className="hud-panel hud-corner p-6 relative">
           <div
             className="absolute top-0 right-0 w-10 h-10 pointer-events-none"
@@ -192,6 +180,31 @@ const SetupScreen = ({ onComplete, initialProfile = null }) => {
               />
             </div>
 
+            {/* Server Timezone */}
+            <div>
+              <label className="block font-heading text-xs text-[#4fc3f7] tracking-[0.25em] mb-2">
+                {T.timezoneLabel}
+              </label>
+              <div className="grid grid-cols-7 gap-1" data-testid="timezone-selector">
+                {TIMEZONE_OPTIONS.map(({ label, offset }) => (
+                  <button
+                    key={label}
+                    type="button"
+                    data-testid={`setup-tz-${label.replace("+", "p").replace("-", "m")}`}
+                    onClick={() => setTimezoneOffset(offset)}
+                    className="py-2 font-heading text-[9px] tracking-wide border transition-all"
+                    style={{
+                      background: timezoneOffset === offset ? "rgba(79,195,247,0.2)" : "rgba(10,14,26,0.8)",
+                      borderColor: timezoneOffset === offset ? "#4fc3f7" : "rgba(55,71,79,0.5)",
+                      color: timezoneOffset === offset ? "#4fc3f7" : "#546e7a",
+                    }}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
             {/* Furnace Level */}
             <div>
               <div className="flex justify-between items-center mb-3">
@@ -211,9 +224,7 @@ const SetupScreen = ({ onComplete, initialProfile = null }) => {
                 className="relative flex w-full touch-none select-none items-center"
                 value={furnaceLevel}
                 onValueChange={setFurnaceLevel}
-                min={1}
-                max={20}
-                step={1}
+                min={1} max={20} step={1}
               >
                 <SliderPrimitive.Track className="relative h-1 w-full grow overflow-hidden bg-[#37474f]/60">
                   <SliderPrimitive.Range className="absolute h-full bg-[#4fc3f7]" />
@@ -226,7 +237,7 @@ const SetupScreen = ({ onComplete, initialProfile = null }) => {
               </div>
             </div>
 
-            {/* Hero Squads — free-form, Squad 1 defines the primary troop type */}
+            {/* Hero Squads — Squad 1 determines troop type */}
             <div className="space-y-5">
               {SQUAD_CONFIG.map(({ en, ru, start }) => (
                 <div key={start}>
@@ -249,25 +260,15 @@ const SetupScreen = ({ onComplete, initialProfile = null }) => {
                             className="war-input flex-1 min-w-0 px-3 py-2 text-sm appearance-none cursor-pointer"
                             style={{ background: "rgba(10,14,26,0.95)" }}
                           >
-                            <option value="None" style={{ background: "#0d1220" }}>
-                              {T.none}
-                            </option>
+                            <option value="None" style={{ background: "#0d1220" }}>{T.none}</option>
                             {ALL_HEROES.map((hero) => (
-                              <option
-                                key={hero}
-                                value={hero}
-                                style={{ background: "#0d1220", color: "#fff" }}
-                              >
+                              <option key={hero} value={hero} style={{ background: "#0d1220", color: "#fff" }}>
                                 {hero}
                               </option>
                             ))}
                           </select>
-
                           {heroes[i].name !== "None" && (
-                            <div
-                              className="flex gap-0.5 flex-shrink-0"
-                              data-testid={`hero-${i + 1}-stars`}
-                            >
+                            <div className="flex gap-0.5 flex-shrink-0" data-testid={`hero-${i + 1}-stars`}>
                               {[1, 2, 3, 4, 5].map((s) => (
                                 <button
                                   key={s}
@@ -275,9 +276,7 @@ const SetupScreen = ({ onComplete, initialProfile = null }) => {
                                   data-testid={`setup-hero-${i + 1}-star-${s}`}
                                   onClick={() => handleHeroStars(i, s)}
                                   className="w-6 h-6 flex items-center justify-center text-base leading-none transition-all hover:scale-125 focus:outline-none"
-                                  style={{
-                                    color: heroes[i].stars >= s ? "#fbbf24" : "#37474f",
-                                  }}
+                                  style={{ color: heroes[i].stars >= s ? "#fbbf24" : "#37474f" }}
                                   title={`${s}★`}
                                 >
                                   ★
@@ -294,9 +293,7 @@ const SetupScreen = ({ onComplete, initialProfile = null }) => {
             </div>
 
             {error && (
-              <p className="text-[#ff6f00] text-xs font-heading tracking-widest">
-                ⚠ {error}
-              </p>
+              <p className="text-[#ff6f00] text-xs font-heading tracking-widest">⚠ {error}</p>
             )}
 
             <button
