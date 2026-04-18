@@ -14,21 +14,31 @@ exports.handler = async (event) => {
   }
 
   try {
+    const fetchStart = Date.now();
     const res = await fetch("https://cpt-hedge.com/servers", {
       headers: { "User-Agent": "Mozilla/5.0 (compatible; war-room-bot/1.0)" },
       signal: AbortSignal.timeout(8000),
     });
     const html = await res.text();
+    const elapsed = Date.now() - fetchStart;
+
+    console.log(`[SERVER-WEEK] Fetch complete: HTTP ${res.status}, ${html.length} chars, ${elapsed}ms`);
+    console.log(`[SERVER-WEEK] First 600 chars:\n${html.slice(0, 600)}`);
+
     const serverStr = String(server).trim();
 
     // ── Strategy 1: embedded JSON array ──────────────────────────
     const jsonMatch = html.match(/\[\s*\{[\s\S]*?\}\s*\]/);
+    console.log(`[SERVER-WEEK] Strategy 1 (JSON array): ${jsonMatch ? `found ${jsonMatch[0].length} chars` : "no match"}`);
+
     if (jsonMatch) {
       try {
         const arr = JSON.parse(jsonMatch[0]);
+        console.log(`[SERVER-WEEK] JSON parsed: ${arr.length} entries, keys: ${Object.keys(arr[0] || {}).join(", ")}`);
         const entry = arr.find(
           (e) => String(e.server || e.server_id || e.id || "").trim() === serverStr
         );
+        console.log(`[SERVER-WEEK] Server ${serverStr} in JSON: ${entry ? JSON.stringify(entry) : "not found"}`);
         if (entry) {
           const week = entry.week ?? entry.season_week ?? entry.current_week ?? null;
           const startDate = entry.start_date ?? entry.season_start ?? null;
@@ -38,23 +48,33 @@ exports.handler = async (event) => {
             return { statusCode: 200, headers: CORS, body: JSON.stringify({ week: w, season: 2, source: "json_date" }) };
           }
         }
-      } catch (_) { /* not valid JSON, continue */ }
+      } catch (jsonErr) {
+        console.warn(`[SERVER-WEEK] JSON parse failed: ${jsonErr.message}`);
+      }
     }
 
     // ── Strategy 2: HTML table row containing the server number ──
     // Strip tags to get text and search line by line
     const lines = html.split(/[\n\r]+/);
+    console.log(`[SERVER-WEEK] Strategy 2 (HTML lines): ${lines.length} lines total`);
+
     // Find the line index that contains our server number as a standalone value
     const serverPattern = new RegExp(`(?:^|[^\\d])${serverStr}(?:[^\\d]|$)`);
     const idx = lines.findIndex((l) => serverPattern.test(l));
+    console.log(`[SERVER-WEEK] Server ${serverStr} line match: ${idx !== -1 ? `line ${idx}` : "NOT FOUND"}`);
+    if (idx !== -1) {
+      console.log(`[SERVER-WEEK] Matching line raw: ${lines[idx].slice(0, 200)}`);
+    }
 
     if (idx !== -1) {
       // Look at surrounding ±5 lines for week or date information
       const context = lines.slice(Math.max(0, idx - 3), idx + 8).join(" ");
       const cleaned = context.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ");
+      console.log(`[SERVER-WEEK] Cleaned context (300 chars): ${cleaned.slice(0, 300)}`);
 
       // Try week number pattern e.g. "Week 3" or "week3" or "/8"
       const weekMatch = cleaned.match(/[Ww]eek[\s:]*(\d+)/) || cleaned.match(/(\d)\s*\/\s*8/);
+      console.log(`[SERVER-WEEK] Week pattern match: ${weekMatch ? weekMatch[0] : "no match"}`);
       if (weekMatch) {
         const w = Math.min(Math.max(parseInt(weekMatch[1]), 1), 8);
         return { statusCode: 200, headers: CORS, body: JSON.stringify({ week: w, season: 2, source: "html_week" }) };
@@ -62,6 +82,7 @@ exports.handler = async (event) => {
 
       // Try ISO date pattern e.g. 2025-01-15
       const dateMatch = cleaned.match(/(\d{4}-\d{2}-\d{2})/);
+      console.log(`[SERVER-WEEK] ISO date match: ${dateMatch ? dateMatch[0] : "no match"}`);
       if (dateMatch) {
         const w = dateToWeek(dateMatch[1]);
         return { statusCode: 200, headers: CORS, body: JSON.stringify({ week: w, season: 2, source: "html_date" }) };
@@ -69,6 +90,7 @@ exports.handler = async (event) => {
 
       // Try DD/MM/YYYY or MM/DD/YYYY
       const slashDate = cleaned.match(/(\d{1,2})[\/.](\d{1,2})[\/.](\d{4})/);
+      console.log(`[SERVER-WEEK] Slash date match: ${slashDate ? slashDate[0] : "no match"}`);
       if (slashDate) {
         const iso = `${slashDate[3]}-${slashDate[2].padStart(2,"0")}-${slashDate[1].padStart(2,"0")}`;
         const w = dateToWeek(iso);
@@ -80,8 +102,9 @@ exports.handler = async (event) => {
       return { statusCode: 200, headers: CORS, body: JSON.stringify({ week: null, season: 2, debug: cleaned.slice(0, 300) }) };
     }
 
-    // Server not found in page
-    console.warn(`[SERVER-WEEK] Server ${serverStr} not found in page (${html.length} chars)`);
+    // Server not found — log a sample of the page to understand its structure
+    const textSample = html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").slice(0, 800);
+    console.warn(`[SERVER-WEEK] Server ${serverStr} not found. Page text sample: ${textSample}`);
     return { statusCode: 200, headers: CORS, body: JSON.stringify({ week: null, season: 2, error: "server not found" }) };
 
   } catch (err) {

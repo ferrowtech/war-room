@@ -366,6 +366,13 @@ exports.handler = async (event) => {
     return { statusCode: 400, headers: CORS, body: JSON.stringify({ error: "Invalid JSON body" }) };
   }
 
+  // ── Diagnostics: log payload dimensions ─────────────────────────────────────
+  const bodyBytes = event.body ? event.body.length : 0;
+  const imageBytes = body.image_base64 ? body.image_base64.length : 0;
+  console.log(`[BRIEF] Request body: ${bodyBytes} bytes total, image: ${imageBytes} bytes, has_image: ${!!body.image_base64}`);
+  console.log(`[BRIEF] Payload keys: ${Object.keys(body).join(", ")}`);
+  const t0 = Date.now();
+
   const { question, server, furnace_level, heroes, season_week, image_base64, language = "EN" } = body;
   const squad_powers = Array.isArray(body.squad_powers) ? body.squad_powers : [];
   // Infer primary troop type from Squad 1 heroes when client does not send it
@@ -379,6 +386,7 @@ exports.handler = async (event) => {
   const kbStr = await fetchKnowledgeBase();
 
   const systemPrompt = buildSystemPrompt({ server, troop_type, furnace_level, heroes, season_week, squad_powers, kbStr, language });
+  console.log(`[BRIEF] System prompt: ${systemPrompt.length} chars | KB fetch took ${Date.now() - t0}ms`);
 
   // Build user message content (with optional image attachment)
   const userContent = image_base64
@@ -402,7 +410,9 @@ exports.handler = async (event) => {
         system: systemPrompt,
         messages: [{ role: "user", content: userContent }],
       }),
+      signal: AbortSignal.timeout(25000),
     });
+    console.log(`[BRIEF] Anthropic responded: HTTP ${anthropicRes.status} in ${Date.now() - t0}ms`);
 
     const data = await anthropicRes.json();
 

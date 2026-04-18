@@ -166,6 +166,10 @@ const SetupScreen = ({ onComplete, initialProfile = null }) => {
     });
   };
 
+  // Compute the set of selected hero names so each hero can only appear once.
+  // Each slot's dropdown filters out heroes already chosen in OTHER slots.
+  const usedHeroSet = new Set(heroes.map((h) => h.name).filter((n) => n !== "None"));
+
   return (
     <div
       className="war-noise min-h-screen bg-[#0a0e1a] flex items-center justify-center px-4 py-8 relative overflow-hidden"
@@ -287,15 +291,21 @@ const SetupScreen = ({ onComplete, initialProfile = null }) => {
                             style={{ background: "rgba(10,14,26,0.95)" }}
                           >
                             <option value="None" style={{ background: "#0d1220" }}>{T.none}</option>
-                            {HEROES_BY_TYPE.map(({ type, list }) => (
-                              <optgroup key={type} label={`— ${type} —`} style={{ color: "#4fc3f7", background: "#0d1220" }}>
-                                {list.map((hero) => (
-                                  <option key={hero} value={hero} style={{ background: "#0d1220", color: "#fff" }}>
-                                    {hero}
-                                  </option>
-                                ))}
-                              </optgroup>
-                            ))}
+                            {HEROES_BY_TYPE.map(({ type, list }) => {
+                              const available = list.filter(
+                                (hero) => hero === heroes[i].name || !usedHeroSet.has(hero)
+                              );
+                              if (available.length === 0) return null;
+                              return (
+                                <optgroup key={type} label={`— ${type} —`} style={{ color: "#4fc3f7", background: "#0d1220" }}>
+                                  {available.map((hero) => (
+                                    <option key={hero} value={hero} style={{ background: "#0d1220", color: "#fff" }}>
+                                      {hero}
+                                    </option>
+                                  ))}
+                                </optgroup>
+                              );
+                            })}
                           </select>
                           {heroes[i].name !== "None" && (
                             <div className="flex gap-0.5 flex-shrink-0" data-testid={`hero-${i + 1}-stars`}>
