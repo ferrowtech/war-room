@@ -50,6 +50,16 @@ Build a web app called "WAR ROOM" — an AI tactical advisor for the "Last War: 
 - **Claude language directive** — `brief.js` system prompt instructs Claude to respond in Russian when `language=RU`
 - **Notion language logging** — uses explicit `language` field from payload instead of Cyrillic detection
 
+### Phase 5 — Polar Storm Palette, UI Refresh & Timezone (Session 5, Feb 2026)
+- **Server Timezone Selector** — UTC-8 to UTC+8 (7 presets); shown in SetupScreen and in WAR PHASE COUNTDOWN widget sidebar; saved to `profile.timezoneOffset`
+- **War Phase Countdown fix** — correctly uses selected UTC offset; shows accurate server local time (HH:MM) and calculates time to Wed/Sat 12:00 ST
+- **Troop Type Audit complete** — `profile.troopType` fully removed; `inferTroopType()` is single source of truth frontend & backend
+- **Label renames**: "TODAY'S FOCUS" → "INTELLIGENCE REQUEST" (RU: ЗАПРОС РАЗВЕДКИ); placeholder "Enter your tactical query..." (RU: Введите тактический запрос...)
+- **6 New Quick Actions**: DAILY BRIEFING, ATTACK STRATEGY, DIG SITES, TEMPERATURE, HERO UPGRADE, WAR PHASE (all with full RU translations)
+- **Last War logo** in TopBar — `https://www.lastwar.com/en/img/logo.png` h=28px, left of WAR ROOM text
+- **Polar Storm color palette**: snow-blue (#b8d4e8) for DigSite widget bg/border and non-bonus boss indicator; ice-white (#e8f4f8) on widget hover via `.widget-ice-hover` CSS class; quick-action-btn hover updated to snow-blue
+- **Timezone hint** below WAR PHASE widget: "Set timezone to match your server time" (RU: Установите часовой пояс сервера)
+
 ## Key Technical Details
 - **Troop Type Inference**: `inferTroopType(heroes)` counts hero types in Squad 1 (indices 0–4). Most common type wins; Tank is default if all empty.
 - **Season Week**: Stored as `profile.seasonWeek` (integer) in localStorage. Backward compat: falls back to computing from `profile.seasonStartDate` if `seasonWeek` is absent.
@@ -62,7 +72,7 @@ Build a web app called "WAR ROOM" — an AI tactical advisor for the "Last War: 
 - **GitHub API** — unauthenticated, fetches `/knowledge/*.json` dynamically
 
 ## LocalStorage Keys
-- `warroom_profile` — `{ server, troopType, furnaceLevel, heroes[], seasonWeek }`
+- `warroom_profile` — `{ server, furnaceLevel, heroes[], timezoneOffset, seasonWeek }` (troopType is inferred, never stored)
 - `warroom_history` — last 20 Q&A pairs
 - `warroom_lang` — "EN" | "RU"
 
