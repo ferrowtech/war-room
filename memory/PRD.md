@@ -137,4 +137,4 @@ Build a web app called "WAR ROOM" — an AI tactical advisor for the "Last War: 
 - Session persistence beyond localStorage (cloud sync)
 - Hero tier list / recommendation engine
 - Alliance coordination features
-- Fix "WEEK NOT DETECTED" in server-week.js (P1 - diagnostic logs in place, parsing logic needs update)
+- Fix "WEEK NOT DETECTED" in server-week.js - RESOLVED in Phase 10
