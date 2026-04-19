@@ -10,9 +10,9 @@ const HEROES_BY_TYPE = [
 const ALL_HEROES = HEROES_BY_TYPE.flatMap((g) => g.list);
 
 export const SQUAD_CONFIG = [
-  { en: "SQUAD 1 - PRIMARY",   ru: "ОТРЯД 1 - ОСНОВНОЙ",  start: 0  },
-  { en: "SQUAD 2 - SECONDARY", ru: "ОТРЯД 2 - ВТОРИЧНЫЙ", start: 5  },
-  { en: "SQUAD 3 - SUPPORT",   ru: "ОТРЯД 3 - ПОДДЕРЖКА", start: 10 },
+  { en: "SQUAD 1 - PRIMARY",   ru: "ОТРЯД 1 - ОСНОВНОЙ",  fr: "ESCOUADE 1 - PRINCIPALE",  start: 0  },
+  { en: "SQUAD 2 - SECONDARY", ru: "ОТРЯД 2 - ВТОРИЧНЫЙ", fr: "ESCOUADE 2 - SECONDAIRE",  start: 5  },
+  { en: "SQUAD 3 - SUPPORT",   ru: "ОТРЯД 3 - ПОДДЕРЖКА", fr: "ESCOUADE 3 - SOUTIEN",     start: 10 },
 ];
 
 const TOTAL_HERO_SLOTS = 15;
@@ -59,11 +59,26 @@ const SETUP_T = {
     footer: "LAST WAR: SURVIVAL // ТАКТИЧЕСКИЙ ИИ-СОВЕТНИК",
     errorServer: "НОМЕР СЕРВЕРА обязателен.",
   },
+  FR: {
+    commanderSetup: "CONFIGURATION DU COMMANDANT",
+    editProfile: "MODIFIER LE PROFIL",
+    serverNumber: "NUMERO DE SERVEUR",
+    serverPlaceholder: "ex. 1042",
+    furnaceLevel: "NIVEAU DU FOURNEAU",
+    squadPower: "PUISSANCE ESCOUADE (M)",
+    squadPowerPlaceholder: "ex. 20.62",
+    none: "- Aucun -",
+    enterWarRoom: "ENTRER DANS LA SALLE DE GUERRE",
+    saveProfile: "SAUVEGARDER LE PROFIL",
+    footer: "LAST WAR: SURVIVAL // CONSEILLER TACTIQUE IA",
+    errorServer: "NUMERO DE SERVEUR requis.",
+  },
 };
 
 const SETUP_LANGUAGES = [
   { code: "EN", label: "English" },
   { code: "RU", label: "Русский" },
+  { code: "FR", label: "Français" },
 ];
 
 const SetupLanguageSelector = ({ lang, onSetLang }) => {
@@ -269,12 +284,12 @@ const SetupScreen = ({ onComplete, initialProfile = null }) => {
 
             {/* Hero Squads — Squad 1 determines troop type */}
             <div className="space-y-5">
-              {SQUAD_CONFIG.map(({ en, ru, start }, squadIdx) => (
+              {SQUAD_CONFIG.map(({ en, ru, fr, start }, squadIdx) => (
                 <div key={start}>
                   <div className="flex items-center gap-2 mb-2">
                     <div className="h-px flex-1 bg-[#4fc3f7]/20" />
                     <label className="font-heading text-[10px] text-[#4fc3f7] tracking-[0.25em] whitespace-nowrap">
-                      {lang === "RU" ? ru : en}
+                      {lang === "RU" ? ru : lang === "FR" ? fr : en}
                     </label>
                     <div className="h-px flex-1 bg-[#4fc3f7]/20" />
                   </div>
