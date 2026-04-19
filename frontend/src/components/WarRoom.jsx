@@ -115,6 +115,25 @@ const TRANSLATIONS = {
     warPhaseLabel: "ФАЗА ВОЙНЫ", nextWar: "СЛЕДУЮЩАЯ ВОЙНА", st: "CT", inTime: "через", serverNow: "СЕРВЕР",
     timezoneHint: "Установите часовой пояс сервера",
   },
+  FR: {
+    askAdvisor: "DEMANDE DE RENSEIGNEMENT",
+    questionPlaceholder: "Entrez votre requête tactique...",
+    attach: "SCANNER L'ÉCRAN", getBriefing: "OBTENIR LE BRIEFING", transmitting: "TRANSMISSION...",
+    intelReport: "RAPPORT DE RENSEIGNEMENT", copyBriefing: "COPIER", copied: "COPIÉ",
+    editProfile: "MODIFIER LE PROFIL", commander: "STATUT TERRAIN", server: "SERVEUR",
+    furnaceLevel: "NIVEAU DU FOURNEAU", squads: "ESCOUADES",
+    sq1: "ESC.1 PRINCIPALE", sq2: "ESC.2 SECONDAIRE", sq3: "ESC.3 SOUTIEN",
+    polarStorm: "TEMPÊTE POLAIRE", week: "SEMAINE", autoLabel: "AUTO",
+    refresh: "ACTUALISER", detecting: "DÉTECTION...", weekNotFound: "Semaine non détectée",
+    missionHistory: "HISTORIQUE DES MISSIONS", clearHistory: "EFFACER L'HISTORIQUE",
+    awaiting: "EN ATTENTE D'UN BRIEFING DE MISSION", noHeroes: "Aucun héros configuré",
+    transmissionFailed: "ÉCHEC DE TRANSMISSION. RÉESSAYER.",
+    todaysBoss: "BOSS DU JOUR", bonusDay: "VOTRE JOUR DE BONUS",
+    noBossToday: "Pas de Wanted Boss aujourd'hui", notYourBonus: "pas votre bonus", dayWord: "jour",
+    digSiteWidget: "CIBLE DE FOUILLE", target: "CIBLE", digSites: "SITES DE FOUILLE", weakToShort: "faible contre",
+    warPhaseLabel: "PHASE DE GUERRE", nextWar: "PROCHAINE GUERRE", st: "HS", inTime: "dans", serverNow: "SERVEUR",
+    timezoneHint: "Réglez le fuseau horaire de votre serveur",
+  },
 };
 
 const QUICK_ACTIONS = {
