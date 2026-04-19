@@ -432,7 +432,7 @@ exports.handler = async (event) => {
       };
     }
 
-    const response = data.content?.[0]?.text || "";
+    const response = (data.content?.[0]?.text || "").replace(/—/g, "-");
 
     // Await Notion log with 2s cap so the function doesn't exit before it completes.
     // The timeout resolves (not rejects) so a slow/failed Notion call never blocks the response.
