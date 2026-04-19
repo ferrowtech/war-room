@@ -1,0 +1,51 @@
+{
+  "code_boss": {
+    "source": "President's letter - server 1768 - 2026-04-19",
+    "description": "Code Boss is a special boss event in Season 2. Three separate bosses appear (Missiles, Tank, Air type). Use S1 squad only. 3 attacks per boss = 9 total attacks per event day.",
+    "attacks_per_boss": 3,
+    "total_attacks_per_day": 9,
+    "note": "Hit ONLY with your S1 squad throughout the entire event.",
+    "pre_battle_checklist": [
+      "Scout another player first to activate the scouting buff",
+      "Equip boss-specific drone chip set directly from your base (not default set)",
+      "Equip Mushroom Skin if you have it - provides +5% Code Boss damage",
+      "Ask alliance teammates to warm your base to 70°C for damage bonus",
+      "Switch to correct equipment set for boss type",
+      "Collect rewards after each boss is defeated"
+    ],
+    "meta_formations": {
+      "note": "Marshall and Mason in squad often outperform a full mono-type formation bonus - do not underestimate support heroes. If your Air or Missile squad is weak, keep Kim/Stetman/Mason in the back and put 2 strong attackers in front instead.",
+      "Missiles_Boss": {
+        "front_row": ["Tesla", "Swift"],
+        "back_row": ["Adam", "Fiona", "Marshall"],
+        "troop_advantage": "Missile"
+      },
+      "Tank_Boss": {
+        "front_row": ["Kimberly", "Stetmann"],
+        "back_row": ["Tesla", "Mason", "Marshall"],
+        "troop_advantage": "Tank"
+      },
+      "Air_Boss": {
+        "front_row": ["DVA", "Morrison"],
+        "back_row": ["Kimberly", "Schuyler", "Marshall"],
+        "troop_advantage": "Aircraft"
+      }
+    },
+    "variant_strategy": {
+      "when_to_use": "When your Air or Missile squad is significantly weaker than your Tank squad",
+      "approach": "Keep Kim + Stetman + Mason in back row for universal damage support, place your 2 strongest available attackers in front regardless of type",
+      "reasoning": "Hybrid support cores can outperform a full mono-type formation in practice"
+    },
+    "damage_boosters": [
+      "Mushroom Skin base skin: +5% Code Boss damage",
+      "Base temperature at 70°C: damage bonus from heat",
+      "Scouting buff: scout any player before attacking",
+      "Correct drone chip set equipped for boss type",
+      "War Fever activation before attack"
+    ],
+    "season_2_schedule": {
+      "occurrences": 3,
+      "note": "3 Code Boss events during Season 2. Final event occurs during ULTIME FIGHT week alongside Arms Race and SVS content."
+    }
+  }
+}
