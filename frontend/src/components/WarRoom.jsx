@@ -417,9 +417,13 @@ const DigSiteWidget = ({ troopType, tr }) => {
 };
 
 // ── Season Tracker ────────────────────────────────────────────────
+const POST_SEASON_LABEL = { EN: "POST-SEASON", RU: "ПОСТ-СЕЗОН", FR: "HORS-SAISON" };
+
 const SeasonTracker = ({ seasonWeek, isDetecting, onRefresh, tr, language }) => {
-  const schedule  = WEEKLY_SCHEDULE[language] || WEEKLY_SCHEDULE.EN;
-  const priority  = seasonWeek ? schedule[seasonWeek] : null;
+  const schedule    = WEEKLY_SCHEDULE[language] || WEEKLY_SCHEDULE.EN;
+  const isPostSeason = seasonWeek > 8;
+  const priority    = !isPostSeason && seasonWeek ? schedule[seasonWeek] : null;
+  const barWidth    = seasonWeek ? Math.min((seasonWeek / 8) * 100, 100) : 0;
   return (
     <div className="mx-0 border-t border-[#4fc3f7]/20 px-4 py-3" style={{ background: "rgba(79,195,247,0.04)" }}>
       <div className="flex items-center justify-between mb-3">
@@ -448,10 +452,14 @@ const SeasonTracker = ({ seasonWeek, isDetecting, onRefresh, tr, language }) => 
             <span className="font-heading text-[8px] text-[#4fc3f7]/50 tracking-widest">{tr.autoLabel}</span>
           </div>
           <div className="font-heading text-5xl text-white leading-none mb-2" style={{ textShadow: "0 0 20px rgba(79,195,247,0.65)" }} data-testid="season-week-display">
-            {seasonWeek}<span className="text-sm text-[#37474f] ml-1">/8</span>
+            {isPostSeason ? (
+              <span className="text-2xl text-[#4fc3f7]">{POST_SEASON_LABEL[language] || POST_SEASON_LABEL.EN}</span>
+            ) : (
+              <>{seasonWeek}<span className="text-sm text-[#37474f] ml-1">/8</span></>
+            )}
           </div>
           <div className="h-2 bg-[#37474f]/30 mb-3 overflow-hidden">
-            <div className="h-full bg-[#4fc3f7] transition-all" style={{ width: `${(seasonWeek / 8) * 100}%` }} />
+            <div className="h-full bg-[#4fc3f7] transition-all" style={{ width: `${barWidth}%` }} />
           </div>
           {priority && <p className="font-report text-[11px] text-[#b3e5fc] leading-relaxed">{priority}</p>}
         </div>
@@ -689,9 +697,9 @@ const WarRoom = ({ profile, onEditProfile }) => {
     try {
       const res  = await fetch(`${SERVER_WEEK_URL}?server=${localProfile.server}`);
       const data = await res.json();
-      if (data.week) {
+      if (data.week != null && data.week > 0) {
         setLocalProfile((prev) => {
-          const updated = { ...prev, seasonWeek: data.week };
+          const updated = { ...prev, seasonWeek: data.week, currentSeason: data.season };
           localStorage.setItem("warroom_profile", JSON.stringify(updated));
           return updated;
         });

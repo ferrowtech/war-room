@@ -5,6 +5,58 @@ const CORS = {
   "Content-Type": "application/json",
 };
 
+const SITE_URL    = "https://cpt-hedge.com";
+const SERVERS_URL = `${SITE_URL}/servers`;
+
+// In-memory cache — reuse between warm Netlify invocations (5-min TTL)
+const cache = { data: null, timestamp: 0 };
+const CACHE_TTL_MS = 5 * 60 * 1000;
+
+// Fetch all server data from cpt-hedge.com.
+// Strategy: parse /servers HTML to find the Next.js page chunk URL,
+// fetch that chunk, extract the embedded JSON blob.
+async function fetchServerData() {
+  const now = Date.now();
+  if (cache.data && now - cache.timestamp < CACHE_TTL_MS) {
+    console.log("[SERVER-WEEK] Served from cache");
+    return cache.data;
+  }
+
+  // Step 1: Get the /servers page HTML to discover the chunk URL
+  const htmlRes = await fetch(SERVERS_URL, {
+    headers: { "User-Agent": "Mozilla/5.0 (compatible; war-room-bot/1.0)" },
+    signal: AbortSignal.timeout(8000),
+  });
+  if (!htmlRes.ok) throw new Error(`HTML fetch HTTP ${htmlRes.status}`);
+  const html = await htmlRes.text();
+  console.log(`[SERVER-WEEK] HTML fetched: ${html.length} chars`);
+
+  // Step 2: Find the app/servers/page-*.js chunk URL in the script tags
+  const chunkMatch = html.match(/\/_next\/static\/chunks\/app\/servers\/page-[a-f0-9]+\.js[^"']*/);
+  if (!chunkMatch) throw new Error("Could not find servers page chunk URL in HTML");
+  const chunkUrl = `${SITE_URL}${chunkMatch[0]}`;
+  console.log(`[SERVER-WEEK] Chunk URL: ${chunkUrl}`);
+
+  // Step 3: Fetch the JS chunk
+  const chunkRes = await fetch(chunkUrl, {
+    headers: { "User-Agent": "Mozilla/5.0 (compatible; war-room-bot/1.0)" },
+    signal: AbortSignal.timeout(10000),
+  });
+  if (!chunkRes.ok) throw new Error(`Chunk fetch HTTP ${chunkRes.status}`);
+  const js = await chunkRes.text();
+  console.log(`[SERVER-WEEK] Chunk fetched: ${js.length} chars`);
+
+  // Step 4: Extract the embedded JSON — d=JSON.parse('{"c":[...]}')
+  const jsonMatch = js.match(/JSON\.parse\('(\{"c":\[[\s\S]*?\})\'\)/);
+  if (!jsonMatch) throw new Error("Could not find server JSON in chunk");
+  const data = JSON.parse(jsonMatch[1]);
+  console.log(`[SERVER-WEEK] Parsed ${data.c.length} server entries`);
+
+  cache.data = data.c;
+  cache.timestamp = now;
+  return data.c;
+}
+
 exports.handler = async (event) => {
   if (event.httpMethod === "OPTIONS") return { statusCode: 200, headers: CORS, body: "" };
 
@@ -13,109 +65,44 @@ exports.handler = async (event) => {
     return { statusCode: 400, headers: CORS, body: JSON.stringify({ error: "server param required" }) };
   }
 
+  const serverStr = String(server).trim();
+
   try {
-    const fetchStart = Date.now();
-    const res = await fetch("https://cpt-hedge.com/servers", {
-      headers: { "User-Agent": "Mozilla/5.0 (compatible; war-room-bot/1.0)" },
-      signal: AbortSignal.timeout(8000),
-    });
-    const html = await res.text();
-    const elapsed = Date.now() - fetchStart;
+    const servers = await fetchServerData();
 
-    console.log(`[SERVER-WEEK] Fetch complete: HTTP ${res.status}, ${html.length} chars, ${elapsed}ms`);
-    console.log(`[SERVER-WEEK] First 600 chars:\n${html.slice(0, 600)}`);
+    // Find by exact id match
+    const entry = servers.find((e) => String(e.id).trim() === serverStr);
 
-    const serverStr = String(server).trim();
-
-    // ── Strategy 1: embedded JSON array ──────────────────────────
-    const jsonMatch = html.match(/\[\s*\{[\s\S]*?\}\s*\]/);
-    console.log(`[SERVER-WEEK] Strategy 1 (JSON array): ${jsonMatch ? `found ${jsonMatch[0].length} chars` : "no match"}`);
-
-    if (jsonMatch) {
-      try {
-        const arr = JSON.parse(jsonMatch[0]);
-        console.log(`[SERVER-WEEK] JSON parsed: ${arr.length} entries, keys: ${Object.keys(arr[0] || {}).join(", ")}`);
-        const entry = arr.find(
-          (e) => String(e.server || e.server_id || e.id || "").trim() === serverStr
-        );
-        console.log(`[SERVER-WEEK] Server ${serverStr} in JSON: ${entry ? JSON.stringify(entry) : "not found"}`);
-        if (entry) {
-          const week = entry.week ?? entry.season_week ?? entry.current_week ?? null;
-          const startDate = entry.start_date ?? entry.season_start ?? null;
-          if (week) return { statusCode: 200, headers: CORS, body: JSON.stringify({ week: Number(week), season: 2, source: "json" }) };
-          if (startDate) {
-            const w = dateToWeek(startDate);
-            return { statusCode: 200, headers: CORS, body: JSON.stringify({ week: w, season: 2, source: "json_date" }) };
-          }
-        }
-      } catch (jsonErr) {
-        console.warn(`[SERVER-WEEK] JSON parse failed: ${jsonErr.message}`);
-      }
+    if (!entry) {
+      console.warn(`[SERVER-WEEK] Server ${serverStr} not found in ${servers.length} entries`);
+      return {
+        statusCode: 200,
+        headers: CORS,
+        body: JSON.stringify({ week: null, season: null, error: "server not found" }),
+      };
     }
 
-    // ── Strategy 2: HTML table row containing the server number ──
-    // Strip tags to get text and search line by line
-    const lines = html.split(/[\n\r]+/);
-    console.log(`[SERVER-WEEK] Strategy 2 (HTML lines): ${lines.length} lines total`);
+    const week   = entry.currentWeek   || null;
+    const season = entry.currentSeason || null;
 
-    // Find the line index that contains our server number as a standalone value
-    const serverPattern = new RegExp(`(?:^|[^\\d])${serverStr}(?:[^\\d]|$)`);
-    const idx = lines.findIndex((l) => serverPattern.test(l));
-    console.log(`[SERVER-WEEK] Server ${serverStr} line match: ${idx !== -1 ? `line ${idx}` : "NOT FOUND"}`);
-    if (idx !== -1) {
-      console.log(`[SERVER-WEEK] Matching line raw: ${lines[idx].slice(0, 200)}`);
-    }
+    console.log(`[SERVER-WEEK] Server ${serverStr}: season=${season}, week=${week}, isPostSeason=${entry.isPostSeason}`);
 
-    if (idx !== -1) {
-      // Look at surrounding ±5 lines for week or date information
-      const context = lines.slice(Math.max(0, idx - 3), idx + 8).join(" ");
-      const cleaned = context.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ");
-      console.log(`[SERVER-WEEK] Cleaned context (300 chars): ${cleaned.slice(0, 300)}`);
-
-      // Try week number pattern e.g. "Week 3" or "week3" or "/8"
-      const weekMatch = cleaned.match(/[Ww]eek[\s:]*(\d+)/) || cleaned.match(/(\d)\s*\/\s*8/);
-      console.log(`[SERVER-WEEK] Week pattern match: ${weekMatch ? weekMatch[0] : "no match"}`);
-      if (weekMatch) {
-        const w = Math.min(Math.max(parseInt(weekMatch[1]), 1), 8);
-        return { statusCode: 200, headers: CORS, body: JSON.stringify({ week: w, season: 2, source: "html_week" }) };
-      }
-
-      // Try ISO date pattern e.g. 2025-01-15
-      const dateMatch = cleaned.match(/(\d{4}-\d{2}-\d{2})/);
-      console.log(`[SERVER-WEEK] ISO date match: ${dateMatch ? dateMatch[0] : "no match"}`);
-      if (dateMatch) {
-        const w = dateToWeek(dateMatch[1]);
-        return { statusCode: 200, headers: CORS, body: JSON.stringify({ week: w, season: 2, source: "html_date" }) };
-      }
-
-      // Try DD/MM/YYYY or MM/DD/YYYY
-      const slashDate = cleaned.match(/(\d{1,2})[\/.](\d{1,2})[\/.](\d{4})/);
-      console.log(`[SERVER-WEEK] Slash date match: ${slashDate ? slashDate[0] : "no match"}`);
-      if (slashDate) {
-        const iso = `${slashDate[3]}-${slashDate[2].padStart(2,"0")}-${slashDate[1].padStart(2,"0")}`;
-        const w = dateToWeek(iso);
-        return { statusCode: 200, headers: CORS, body: JSON.stringify({ week: w, season: 2, source: "html_slash_date" }) };
-      }
-
-      // Return a snippet for debugging if nothing matched
-      console.log(`[SERVER-WEEK] Found server ${serverStr} but could not extract week. Context: ${cleaned.slice(0, 300)}`);
-      return { statusCode: 200, headers: CORS, body: JSON.stringify({ week: null, season: 2, debug: cleaned.slice(0, 300) }) };
-    }
-
-    // Server not found — log a sample of the page to understand its structure
-    const textSample = html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").slice(0, 800);
-    console.warn(`[SERVER-WEEK] Server ${serverStr} not found. Page text sample: ${textSample}`);
-    return { statusCode: 200, headers: CORS, body: JSON.stringify({ week: null, season: 2, error: "server not found" }) };
-
+    return {
+      statusCode: 200,
+      headers: CORS,
+      body: JSON.stringify({
+        week,
+        season,
+        isPostSeason: entry.isPostSeason || false,
+        source: "cpt-hedge",
+      }),
+    };
   } catch (err) {
     console.error("[SERVER-WEEK] Error:", err.message);
-    return { statusCode: 500, headers: CORS, body: JSON.stringify({ error: err.message }) };
+    return {
+      statusCode: 500,
+      headers: CORS,
+      body: JSON.stringify({ error: err.message }),
+    };
   }
 };
-
-function dateToWeek(dateStr) {
-  const start = new Date(dateStr);
-  const now   = new Date();
-  const days  = Math.floor((now - start) / 86400000);
-  return Math.min(Math.max(Math.floor(days / 7) + 1, 1), 8);
-}
