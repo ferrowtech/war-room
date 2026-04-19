@@ -99,7 +99,7 @@ const TRANSLATIONS = {
   RU: {
     askAdvisor: "ЗАПРОС РАЗВЕДКИ",
     questionPlaceholder: "Введите тактический запрос...",
-    attach: "СКАНИРОВАТЬ ЭКРАН", getBriefing: "ПОЛУЧИТЬ ПРИКАЗ", transmitting: "ПЕРЕДАЧА...",
+    attach: "СКАНИРОВАТЬ ЭКРАН", getBriefing: "ПОЛУЧИТЬ БРИФИНГ", transmitting: "ПЕРЕДАЧА...",
     intelReport: "ОПЕРАТИВНАЯ СВОДКА", copyBriefing: "КОПИРОВАТЬ", copied: "СКОПИРОВАНО",
     editProfile: "ПРОФИЛЬ", commander: "БОЕВОЙ СТАТУС", server: "СЕРВЕР",
     furnaceLevel: "УРОВЕНЬ ПЕЧИ", squads: "ОТРЯДЫ",
@@ -793,8 +793,8 @@ const WarRoom = ({ profile, onEditProfile }) => {
                   className="quick-action-btn-primary w-full flex items-center gap-2.5 px-4 text-left"
                   style={{ minHeight: "48px" }}
                 >
-                  <PrimaryIcon size={14} strokeWidth={1.5} className="flex-shrink-0 text-[#4fc3f7]" />
-                  <span className="font-heading text-[11px] tracking-[0.2em] text-[#4fc3f7] leading-tight">
+                  <PrimaryIcon size={16} strokeWidth={1.5} className="flex-shrink-0 text-[#4fc3f7]" />
+                  <span className="font-heading text-[13px] tracking-[0.2em] text-[#4fc3f7] leading-tight">
                     {primary.label.toUpperCase()}
                   </span>
                 </button>
@@ -804,10 +804,11 @@ const WarRoom = ({ profile, onEditProfile }) => {
                       key={label}
                       data-testid={`quick-action-${label.toLowerCase().replace(/\s+/g, "-")}`}
                       onClick={() => handleQuickAction(q)}
-                      className="quick-action-btn flex items-center gap-2 px-3 py-2 text-left transition-all duration-150"
+                      className="quick-action-btn flex items-center gap-2 px-3 text-left transition-all duration-150"
+                      style={{ minHeight: "48px" }}
                     >
-                      <Icon size={12} strokeWidth={1.5} className="flex-shrink-0 text-[#4fc3f7]" />
-                      <span className="font-heading text-[9px] tracking-[0.15em] text-[#b0bec5] leading-tight">
+                      <Icon size={13} strokeWidth={1.5} className="flex-shrink-0 text-[#4fc3f7]" />
+                      <span className="font-heading text-[11px] tracking-[0.12em] text-[#b0bec5] leading-tight">
                         {label.toUpperCase()}
                       </span>
                     </button>
