@@ -280,6 +280,8 @@ SCREENSHOT / IMAGE ANALYSIS RULES:
 
 ${language === "RU"
   ? "LANGUAGE DIRECTIVE: You MUST respond entirely in Russian (Русский язык). Do not write any English in your response - every word must be in Russian."
+  : language === "FR"
+  ? "LANGUAGE DIRECTIVE: You MUST respond entirely in French (Francais). Do not write any English in your response - every word must be in French."
   : "LANGUAGE DIRECTIVE: Respond in English."}
 
 INSTRUCTIONS: Be direct, specific, and tactical. Reference the player's troop type (${troop_type}), furnace level (${furnace_level}), and actual hero stars from the profile above. Recommend the correct beast type for their troop. Keep answers under 200 words. Format with clear sections when helpful.
@@ -314,7 +316,7 @@ async function logToNotion({ question, answer, server, troop_type, season_week, 
       "Has Image":     { checkbox:  Boolean(image_base64) },
       Timestamp:       { date:      { start: new Date().toISOString() } },
       Answer:          { rich_text: [{ text: { content: String(answer || "").slice(0, 2000) } }] },
-      Language:        { select:    { name: language === "RU" ? "Russian" : "English" } },
+      Language:        { select:    { name: language === "RU" ? "Russian" : language === "FR" ? "French" : "English" } },
       "IP Address":    { rich_text: [{ text: { content: String(client_ip || "unknown") } }] },
     },
   };

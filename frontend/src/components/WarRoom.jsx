@@ -115,6 +115,25 @@ const TRANSLATIONS = {
     warPhaseLabel: "ФАЗА ВОЙНЫ", nextWar: "СЛЕДУЮЩАЯ ВОЙНА", st: "CT", inTime: "через", serverNow: "СЕРВЕР",
     timezoneHint: "Установите часовой пояс сервера",
   },
+  FR: {
+    askAdvisor: "DEMANDE DE RENSEIGNEMENT",
+    questionPlaceholder: "Entrez votre requête tactique...",
+    attach: "SCANNER L'ÉCRAN", getBriefing: "OBTENIR LE BRIEFING", transmitting: "TRANSMISSION...",
+    intelReport: "RAPPORT DE RENSEIGNEMENT", copyBriefing: "COPIER", copied: "COPIÉ",
+    editProfile: "MODIFIER LE PROFIL", commander: "STATUT TERRAIN", server: "SERVEUR",
+    furnaceLevel: "NIVEAU DU FOURNEAU", squads: "ESCOUADES",
+    sq1: "ESC.1 PRINCIPALE", sq2: "ESC.2 SECONDAIRE", sq3: "ESC.3 SOUTIEN",
+    polarStorm: "TEMPÊTE POLAIRE", week: "SEMAINE", autoLabel: "AUTO",
+    refresh: "ACTUALISER", detecting: "DÉTECTION...", weekNotFound: "Semaine non détectée",
+    missionHistory: "HISTORIQUE DES MISSIONS", clearHistory: "EFFACER L'HISTORIQUE",
+    awaiting: "EN ATTENTE D'UN BRIEFING DE MISSION", noHeroes: "Aucun héros configuré",
+    transmissionFailed: "ÉCHEC DE TRANSMISSION. RÉESSAYER.",
+    todaysBoss: "BOSS DU JOUR", bonusDay: "VOTRE JOUR DE BONUS",
+    noBossToday: "Pas de Wanted Boss aujourd'hui", notYourBonus: "pas votre bonus", dayWord: "jour",
+    digSiteWidget: "CIBLE DE FOUILLE", target: "CIBLE", digSites: "SITES DE FOUILLE", weakToShort: "faible contre",
+    warPhaseLabel: "PHASE DE GUERRE", nextWar: "PROCHAINE GUERRE", st: "HS", inTime: "dans", serverNow: "SERVEUR",
+    timezoneHint: "Réglez le fuseau horaire de votre serveur",
+  },
 };
 
 const QUICK_ACTIONS = {
@@ -135,6 +154,15 @@ const QUICK_ACTIONS = {
     { label: "Прокачка героев",    Icon: Star,        question: "Какого героя прокачивать следующим и как?" },
     { label: "Военная фаза",       Icon: Shield,      question: "Объясни военную фазу и когда атаковать печь врага" },
     { label: "Сравнить отряды",    Icon: Zap,         question: "Сравни мои отряды и порекомендуй какой использовать для боссов, мест раскопок, атаки и защиты в войне." },
+  ],
+  FR: [
+    { label: "Briefing Quotidien",   Icon: Calendar,    question: "Donne-moi un briefing complet pour aujourd'hui - boss, sites de fouille, priorites et objectifs du jour" },
+    { label: "Strategie d'Attaque",  Icon: Target,      question: "Quelle est la meilleure strategie d'attaque pour mon escouade aujourd'hui?" },
+    { label: "Sites de Fouille",     Icon: Map,         question: "Quels sites de fouille devrais-je capturer et comment?" },
+    { label: "Temperature",          Icon: Thermometer, question: "Comment gerer la temperature de ma base et eviter le gel?" },
+    { label: "Amelioration Heros",   Icon: Star,        question: "Quel heros devrais-je ameliorer en priorite et comment?" },
+    { label: "Phase de Guerre",      Icon: Shield,      question: "Explique la Phase de Guerre et quand je dois attaquer le fourneau ennemi" },
+    { label: "Comparer Escouades",   Icon: Zap,         question: "Compare mes puissances d'escouade et recommande laquelle utiliser pour chaque situation - combats de boss, sites de fouille, attaques et defense en phase de guerre." },
   ],
 };
 
@@ -158,6 +186,11 @@ const DIG_SITE = {
 const DAY_NAMES_RU = {
   Monday: "Понедельник", Tuesday: "Вторник",  Wednesday: "Среда",
   Thursday: "Четверг",   Friday: "Пятница",   Saturday: "Суббота", Sunday: "Воскресенье",
+};
+
+const DAY_NAMES_FR = {
+  Monday: "Lundi", Tuesday: "Mardi",  Wednesday: "Mercredi",
+  Thursday: "Jeudi", Friday: "Vendredi", Saturday: "Samedi", Sunday: "Dimanche",
 };
 
 // ── Image compression ─────────────────────────────────────────────
@@ -208,6 +241,16 @@ const WEEKLY_SCHEDULE = {
     6: "Копите очки наград фракции, защищайте Альянсовую печь.",
     7: "Дуэль фракций - 4 на 4, финальный рейтинг.",
     8: "Сезон заканчивается - доступен Surge перевода по рейтингу.",
+  },
+  FR: {
+    1: "Construisez l'Usine d'Alliage de Titane, ameliorez le Fourneau, capturez votre premier Site de Fouille. Les villes niveau 1 s'ouvrent le Jour 3 a 12:00.",
+    2: "Etendez votre territoire, ameliorez le Fourneau, construisez des Bases Militaires.",
+    3: "Choisissez votre faction (Rebelles ou Gendarmerie) - determine vos adversaires dans la Guerre pour le Sol Rare.",
+    4: "La Guerre pour le Sol Rare commence - ameliorez le Fourneau de l'Alliance, coordonnez votre alliance.",
+    5: "Phase de guerre active - rotations attaque/defense.",
+    6: "Accumulez des points de Recompense de Faction, defendez le Fourneau de l'Alliance.",
+    7: "Duel de Factions - 4v4 Conquete du Capitole, classement final.",
+    8: "La saison se termine - le Transfert en Surge est disponible selon votre rang.",
   },
 };
 
@@ -423,7 +466,7 @@ const SeasonTracker = ({ seasonWeek, isDetecting, onRefresh, tr, language }) => 
 const WarCountdownWidget = ({ tr, language }) => {
   const serverTimeStr  = getServerTime();
   const { dayName, countdown } = getWarCountdown();
-  const displayDay     = language === "RU" ? (DAY_NAMES_RU[dayName] || dayName) : dayName;
+  const displayDay     = language === "RU" ? (DAY_NAMES_RU[dayName] || dayName) : language === "FR" ? (DAY_NAMES_FR[dayName] || dayName) : dayName;
 
   return (
     <div

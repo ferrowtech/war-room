@@ -119,13 +119,22 @@ Build a web app called "WAR ROOM" — an AI tactical advisor for the "Last War: 
 - **server-week.js debug logging**: Added detailed logs — HTTP status, HTML length, first 600 chars, JSON array detection, server line match, cleaned context, each regex strategy result, page text sample when server not found
 - **brief.js diagnostics + timeout**: Added body/image/prompt size logging; added `AbortSignal.timeout(25000)` to Anthropic fetch to prevent silent hangs; logs total KB fetch + prompt build time vs Anthropic response time
 
+### Phase 10 — French (FR) Integration + Page Title (Apr 2026)
+- **FR language option** added to language selector (Français) in SetupScreen
+- **SetupScreen FR translations**: SETUP_T['FR'] - all 12 keys (commanderSetup, serverNumber, furnaceLevel, squadPower, enterWarRoom, etc.)
+- **SQUAD_CONFIG FR keys**: ESCOUADE 1-2-3 labels
+- **WarRoom FR translations**: TRANSLATIONS['FR'] was already done; added QUICK_ACTIONS['FR'] (7 actions), WEEKLY_SCHEDULE['FR'] (8 weeks), DAY_NAMES_FR for War Countdown widget
+- **brief.js**: FR language directive - instructs Claude to respond entirely in French; Notion logs "French" for FR users
+- **Page title**: Changed from "WAR ROOM | Last War Tactical Advisor" to "Last War: Survival - AI Game Assistant" with OG meta tags
+
 ### P2 — Content (User to provide)
 - Populate `temperature_advanced.json`
 - Populate `tips_and_tricks_s2.json`
 - Populate `war_strategy_s2.json`
 
 ### P3 — Future Enhancements
-- Multi-language expansion (e.g., Chinese, Spanish)
+- Additional languages (e.g., Chinese, Spanish, German)
 - Session persistence beyond localStorage (cloud sync)
 - Hero tier list / recommendation engine
 - Alliance coordination features
+- Fix "WEEK NOT DETECTED" in server-week.js (P1 - diagnostic logs in place, parsing logic needs update)

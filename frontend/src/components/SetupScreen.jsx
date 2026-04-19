@@ -10,9 +10,9 @@ const HEROES_BY_TYPE = [
 const ALL_HEROES = HEROES_BY_TYPE.flatMap((g) => g.list);
 
 export const SQUAD_CONFIG = [
-  { en: "SQUAD 1 - PRIMARY",   ru: "ОТРЯД 1 - ОСНОВНОЙ",  start: 0  },
-  { en: "SQUAD 2 - SECONDARY", ru: "ОТРЯД 2 - ВТОРИЧНЫЙ", start: 5  },
-  { en: "SQUAD 3 - SUPPORT",   ru: "ОТРЯД 3 - ПОДДЕРЖКА", start: 10 },
+  { en: "SQUAD 1 - PRIMARY",   ru: "ОТРЯД 1 - ОСНОВНОЙ",  fr: "ESCOUADE 1 - PRINCIPALE",  start: 0  },
+  { en: "SQUAD 2 - SECONDARY", ru: "ОТРЯД 2 - ВТОРИЧНЫЙ", fr: "ESCOUADE 2 - SECONDAIRE",  start: 5  },
+  { en: "SQUAD 3 - SUPPORT",   ru: "ОТРЯД 3 - ПОДДЕРЖКА", fr: "ESCOUADE 3 - SOUTIEN",     start: 10 },
 ];
 
 const TOTAL_HERO_SLOTS = 15;
@@ -59,23 +59,40 @@ const SETUP_T = {
     footer: "LAST WAR: SURVIVAL // ТАКТИЧЕСКИЙ ИИ-СОВЕТНИК",
     errorServer: "НОМЕР СЕРВЕРА обязателен.",
   },
+  FR: {
+    commanderSetup: "CONFIGURATION DU COMMANDANT",
+    editProfile: "MODIFIER LE PROFIL",
+    serverNumber: "NUMERO DE SERVEUR",
+    serverPlaceholder: "ex. 1042",
+    furnaceLevel: "NIVEAU DU FOURNEAU",
+    squadPower: "PUISSANCE ESCOUADE (M)",
+    squadPowerPlaceholder: "ex. 20.62",
+    none: "- Aucun -",
+    enterWarRoom: "ENTRER DANS LA SALLE DE GUERRE",
+    saveProfile: "SAUVEGARDER LE PROFIL",
+    footer: "LAST WAR: SURVIVAL // CONSEILLER TACTIQUE IA",
+    errorServer: "NUMERO DE SERVEUR requis.",
+  },
 };
 
 const SETUP_LANGUAGES = [
-  { code: "EN", label: "English" },
-  { code: "RU", label: "Русский" },
+  { code: "EN", label: "English",  flag: "🇬🇧" },
+  { code: "RU", label: "Русский",  flag: "🇷🇺" },
+  { code: "FR", label: "Français", flag: "🇫🇷" },
 ];
 
 const SetupLanguageSelector = ({ lang, onSetLang }) => {
   const [open, setOpen] = React.useState(false);
+  const current = SETUP_LANGUAGES.find((l) => l.code === lang) || SETUP_LANGUAGES[0];
   return (
     <div className="relative" data-testid="setup-language-selector">
       <button
         data-testid="setup-language-btn"
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="btn-primary px-2.5 py-1 flex items-center gap-1 font-heading text-[9px] tracking-widest"
+        className="btn-primary px-2.5 py-1 flex items-center gap-1.5 font-heading text-[9px] tracking-widest"
       >
+        <span style={{ fontSize: "14px", lineHeight: 1 }}>{current.flag}</span>
         <span>{lang}</span>
         <span style={{ fontSize: "8px" }}>{open ? "▴" : "▾"}</span>
       </button>
@@ -83,19 +100,20 @@ const SetupLanguageSelector = ({ lang, onSetLang }) => {
         <>
           <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
           <div
-            className="absolute right-0 top-full mt-1 z-50 border border-[#4fc3f7]/30 min-w-[110px]"
+            className="absolute right-0 top-full mt-1 z-50 border border-[#4fc3f7]/30 min-w-[130px]"
             style={{ background: "rgba(8,12,22,0.98)" }}
           >
-            {SETUP_LANGUAGES.map(({ code, label }) => (
+            {SETUP_LANGUAGES.map(({ code, label, flag }) => (
               <button
                 key={code}
                 type="button"
                 data-testid={`setup-lang-option-${code.toLowerCase()}`}
                 onClick={() => { onSetLang(code); setOpen(false); }}
-                className="w-full text-left px-3 py-2 font-heading text-[9px] tracking-widest"
+                className="w-full text-left px-3 py-2 font-heading text-[9px] tracking-widest flex items-center gap-2"
                 style={{ color: code === lang ? "#4fc3f7" : "#546e7a", background: code === lang ? "rgba(79,195,247,0.08)" : "transparent" }}
               >
-                {label}
+                <span style={{ fontSize: "14px", lineHeight: 1 }}>{flag}</span>
+                <span>{label}</span>
               </button>
             ))}
           </div>
@@ -269,12 +287,12 @@ const SetupScreen = ({ onComplete, initialProfile = null }) => {
 
             {/* Hero Squads — Squad 1 determines troop type */}
             <div className="space-y-5">
-              {SQUAD_CONFIG.map(({ en, ru, start }, squadIdx) => (
+              {SQUAD_CONFIG.map(({ en, ru, fr, start }, squadIdx) => (
                 <div key={start}>
                   <div className="flex items-center gap-2 mb-2">
                     <div className="h-px flex-1 bg-[#4fc3f7]/20" />
                     <label className="font-heading text-[10px] text-[#4fc3f7] tracking-[0.25em] whitespace-nowrap">
-                      {lang === "RU" ? ru : en}
+                      {lang === "RU" ? ru : lang === "FR" ? fr : en}
                     </label>
                     <div className="h-px flex-1 bg-[#4fc3f7]/20" />
                   </div>
