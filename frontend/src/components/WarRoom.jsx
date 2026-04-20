@@ -855,7 +855,7 @@ const WarRoom = ({ profile, onEditProfile }) => {
           language={language}
         />
 
-        <div className="flex-1 flex flex-col overflow-y-auto p-4 gap-4">
+        <div className="flex-1 flex flex-col overflow-y-auto p-4 pb-16 gap-4">
           {/* Input section */}
           <div className="hud-panel p-4 relative" data-testid="intelligence-request-card">
             <div className="scan-line-card" />
