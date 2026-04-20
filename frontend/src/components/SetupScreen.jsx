@@ -371,15 +371,20 @@ const SetupScreen = ({ onComplete, initialProfile = null }) => {
       <div className="relative z-10 w-full max-w-md">
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="flex items-center justify-center gap-3 mb-2">
-            <span className="text-[#4fc3f7] text-2xl">❄️</span>
+          <div className="flex items-center justify-center gap-2 mb-2">
+            <img
+              src="https://www.lastwar.com/en/img/logo.png"
+              alt="Last War"
+              style={{ height: "28px" }}
+              className="object-contain"
+              onError={(e) => { e.target.style.display = "none"; }}
+            />
             <h1
-              className="font-heading text-4xl sm:text-5xl text-white tracking-[0.15em]"
-              style={{ textShadow: "0 0 20px rgba(79,195,247,0.6)" }}
+              className="font-heading text-xl text-white tracking-[0.2em]"
+              style={{ textShadow: "0 0 15px rgba(79,195,247,0.5)" }}
             >
               WAR ROOM
             </h1>
-            <span className="text-[#4fc3f7] text-2xl">⚔️</span>
           </div>
           <div className="flex items-center gap-2 justify-center">
             <div className="h-px flex-1 bg-[#4fc3f7]/30" />
