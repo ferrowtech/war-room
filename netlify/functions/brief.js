@@ -166,7 +166,7 @@ function inferTroopTypeFromHeroes(heroes = []) {
 }
 
 // ── System prompt builder ─────────────────────────────────────────────────────
-function buildSystemPrompt({ server, squad_types = [], troop_type, furnace_level, drone_level, hq_level, heroes = [], season_week, squad_powers = [], kbStr, language }) {
+function buildSystemPrompt({ server, squad_types = [], troop_type, furnace_level, drone_level, hq_level, virus_resistance, heroes = [], season_week, squad_powers = [], kbStr, language }) {
   const parsedHeroes = parseHeroes(heroes);
 
   // Heroes block — annotate each hero against their squad's declared troop type
@@ -263,6 +263,7 @@ Squad 3 Type: ${squad_types[2] || "not set"}
 Furnace Level: ${furnace_level}
 Drone Level: ${drone_level != null ? drone_level : "not set"}
 HQ Level: ${hq_level != null ? hq_level : "not set"}
+Virus Resistance: ${virus_resistance != null ? virus_resistance : "not set"}
 Today: ${today}
 ${weekLine}
 4+1 META NOTE: Player may use 1 off-type hero in their lineup (4+1 meta). The squad type declared by the player is always correct. Do not override it based on hero roster analysis. Only flag a mismatch if 2 or more heroes in a squad are off-type.
@@ -307,9 +308,23 @@ ${hq_level != null
   ? `HQ Level is ${hq_level}. Use this to calibrate building advice: HQ 1-19 = early game, HQ 20-25 = mid game critical phase, HQ 26-30 = late game competitive. Tailor all building recommendations accordingly.`
   : "HQ Level not set - use general building advice."}
 
+VIRUS RESISTANCE RULE:
+${virus_resistance != null ? `Player's Virus Resistance: ${virus_resistance}.
+Polar Beast thresholds: Level 1 requires 4000, Level 2 requires 6500, Level 3 requires 8500, Level 4 requires 9500.
+When player asks about Polar Beasts, Dig Sites, or Doom Walkers, state clearly:
+- Which beast levels they CAN attack right now (resistance >= threshold)
+- Which beast levels they CANNOT attack yet (resistance < threshold)
+- How much more resistance they need for the next level unlock
+${(() => {
+  const sp = Array.isArray(squad_powers) ? squad_powers : [];
+  const sq1 = sp[0] != null && sp[0] !== "" ? Number(sp[0]) : null;
+  if (!sq1) return "";
+  return sq1 > 50 ? "SQ1 power >50M: strong fighter - virus resistance is likely the main limiting factor." : sq1 < 20 ? "SQ1 power <20M: both power and resistance may be limiting factors - address both." : "";
+})()}
+Never list generic thresholds without comparing to this player's actual value of ${virus_resistance}.` : "Virus Resistance not set - if asked about beast levels, remind player to add this to their profile for accurate advice."}
+
 CODE BOSS RULE:
-When the player mentions any of: Code 87, Code 39, Code 64, "code boss", "код босс", or any variation - ALWAYS output a structured cheat sheet regardless of the player's own troop type:
-1. Which boss is active: Code 87 = Tank boss, Code 39 = Aircraft boss, Code 64 = Missile boss
+When any of Code 87, Code 39, Code 64, "code boss", or "код босс" is mentioned - ALWAYS output a structured cheat sheet regardless of the player's own troop type:
 2. The recommended squad for that specific boss type (from code_boss.json knowledge base)
 3. MANDATORY WARNING: Marshall is required in ALL Code Boss squads - always state this explicitly
 4. Attack limit: max 3 attacks per day for rewards (NOT 5 like Wanted Monsters)
@@ -494,8 +509,9 @@ exports.handler = async (event) => {
   const t0 = Date.now();
 
   const { question, server, furnace_level, heroes, season_week, image_base64, language = "EN" } = body;
-  const drone_level  = body.drone_level  || null;
-  const hq_level     = body.hq_level     || null;
+  const drone_level      = body.drone_level      || null;
+  const hq_level         = body.hq_level         || null;
+  const virus_resistance = body.virus_resistance != null ? Number(body.virus_resistance) : null;
   const squad_powers = Array.isArray(body.squad_powers) ? body.squad_powers : [];
   // Per-squad troop types — fall back to hero inference for squad 1
   const squad_types_raw = Array.isArray(body.squad_types) ? body.squad_types : [];
@@ -513,7 +529,7 @@ exports.handler = async (event) => {
   // Fetch (or serve from cache) the combined knowledge base
   const kbStr = await fetchKnowledgeBase();
 
-  const systemPrompt = buildSystemPrompt({ server, squad_types, troop_type, furnace_level, drone_level, hq_level, heroes, season_week, squad_powers, kbStr, language });
+  const systemPrompt = buildSystemPrompt({ server, squad_types, troop_type, furnace_level, drone_level, hq_level, virus_resistance, heroes, season_week, squad_powers, kbStr, language });
   console.log(`[BRIEF] System prompt: ${systemPrompt.length} chars | KB fetch took ${Date.now() - t0}ms`);
 
   // Build user message content (with optional image attachment)

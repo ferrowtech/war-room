@@ -42,6 +42,8 @@ const SETUP_T = {
     dronePlaceholder: "e.g. 75",
     hqLevel: "HQ LEVEL",
     hqPlaceholder: "e.g. 25",
+    virusResistance: "VIRUS RESISTANCE",
+    virusPlaceholder: "e.g. 8500",
     troopType: "TROOP TYPE",
     none: "- None -",
     enterWarRoom: "ENTER WAR ROOM",
@@ -61,6 +63,8 @@ const SETUP_T = {
     dronePlaceholder: "напр. 75",
     hqLevel: "УРОВЕНЬ ШТАБА",
     hqPlaceholder: "напр. 25",
+    virusResistance: "ВИРУСНАЯ УСТОЙЧИВОСТЬ",
+    virusPlaceholder: "напр. 8500",
     troopType: "ТИП ВОЙСК",
     none: "- Пусто -",
     enterWarRoom: "ВОЙТИ В КОМАНДНЫЙ ЦЕНТР",
@@ -80,6 +84,8 @@ const SETUP_T = {
     dronePlaceholder: "ex. 75",
     hqLevel: "NIVEAU QG",
     hqPlaceholder: "ex. 25",
+    virusResistance: "RESISTANCE VIRALE",
+    virusPlaceholder: "ex. 8500",
     troopType: "TYPE DE TROUPE",
     none: "- Aucun -",
     enterWarRoom: "ENTRER DANS LA SALLE DE GUERRE",
@@ -243,8 +249,9 @@ const SetupScreen = ({ onComplete, initialProfile = null }) => {
   const [furnaceLevel, setFurnaceLevel] = useState(
     initialProfile ? [initialProfile.furnaceLevel] : [5]
   );
-  const [droneLevel, setDroneLevel] = useState(initialProfile?.droneLevel ?? "");
-  const [hqLevel,    setHqLevel]    = useState(initialProfile?.hqLevel    ?? "");
+  const [droneLevel,       setDroneLevel]       = useState(initialProfile?.droneLevel       ?? "");
+  const [hqLevel,          setHqLevel]          = useState(initialProfile?.hqLevel          ?? "");
+  const [virusResistance,  setVirusResistance]  = useState(initialProfile?.virusResistance  ?? "");
   const [squadTypes, setSquadTypes] = useState(() => {
     const saved = initialProfile?.squadTypes;
     return Array.isArray(saved) ? saved : [null, null, null];
@@ -289,8 +296,9 @@ const SetupScreen = ({ onComplete, initialProfile = null }) => {
     onComplete({
       server,
       furnaceLevel: furnaceLevel[0],
-      droneLevel: droneLevel !== "" ? parseInt(droneLevel, 10) : null,
-      hqLevel:    hqLevel    !== "" ? parseInt(hqLevel,    10) : null,
+      droneLevel:       droneLevel       !== "" ? parseInt(droneLevel,       10) : null,
+      hqLevel:          hqLevel          !== "" ? parseInt(hqLevel,          10) : null,
+      virusResistance:  virusResistance  !== "" ? parseInt(virusResistance,  10) : null,
       squadTypes,
       heroes: formattedHeroes,
       squadPowers: initialProfile?.squadPowers || [null, null, null],
@@ -429,6 +437,22 @@ const SetupScreen = ({ onComplete, initialProfile = null }) => {
                   max="35"
                 />
               </div>
+            </div>
+
+            {/* Virus Resistance */}
+            <div>
+              <label className="block font-heading text-xs text-[#4fc3f7]/70 tracking-[0.25em] mb-2">
+                {T.virusResistance} <span className="text-[#37474f] text-[9px] normal-case tracking-normal">(opt)</span>
+              </label>
+              <input
+                data-testid="setup-virus-resistance-input"
+                type="number"
+                value={virusResistance}
+                onChange={(e) => setVirusResistance(e.target.value)}
+                placeholder={T.virusPlaceholder}
+                className="war-input w-full px-3 py-2.5 text-sm"
+                min="0"
+              />
             </div>
 
             {/* Squad 1 — always visible */}
