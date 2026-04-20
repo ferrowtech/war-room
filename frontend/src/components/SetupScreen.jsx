@@ -40,6 +40,8 @@ const SETUP_T = {
     furnaceLevel: "FURNACE LEVEL",
     droneLevel: "DRONE LEVEL",
     dronePlaceholder: "e.g. 75",
+    hqLevel: "HQ LEVEL",
+    hqPlaceholder: "e.g. 25",
     none: "- None -",
     enterWarRoom: "ENTER WAR ROOM",
     saveProfile: "SAVE PROFILE",
@@ -56,6 +58,8 @@ const SETUP_T = {
     furnaceLevel: "УРОВЕНЬ ПЕЧИ",
     droneLevel: "УРОВЕНЬ ДРОНА",
     dronePlaceholder: "напр. 75",
+    hqLevel: "УРОВЕНЬ ШТАБА",
+    hqPlaceholder: "напр. 25",
     none: "- Пусто -",
     enterWarRoom: "ВОЙТИ В КОМАНДНЫЙ ЦЕНТР",
     saveProfile: "СОХРАНИТЬ ПРОФИЛЬ",
@@ -72,6 +76,8 @@ const SETUP_T = {
     furnaceLevel: "NIVEAU DU FOURNEAU",
     droneLevel: "NIVEAU DU DRONE",
     dronePlaceholder: "ex. 75",
+    hqLevel: "NIVEAU QG",
+    hqPlaceholder: "ex. 25",
     none: "- Aucun -",
     enterWarRoom: "ENTRER DANS LA SALLE DE GUERRE",
     saveProfile: "SAUVEGARDER LE PROFIL",
@@ -212,6 +218,7 @@ const SetupScreen = ({ onComplete, initialProfile = null }) => {
     initialProfile ? [initialProfile.furnaceLevel] : [5]
   );
   const [droneLevel, setDroneLevel] = useState(initialProfile?.droneLevel ?? "");
+  const [hqLevel,    setHqLevel]    = useState(initialProfile?.hqLevel    ?? "");
   const [showSecondary, setShowSecondary] = useState(() => {
     // Auto-expand if editing and secondary squads have heroes
     if (!initialProfile?.heroes) return false;
@@ -253,6 +260,7 @@ const SetupScreen = ({ onComplete, initialProfile = null }) => {
       server,
       furnaceLevel: furnaceLevel[0],
       droneLevel: droneLevel !== "" ? parseInt(droneLevel, 10) : null,
+      hqLevel:    hqLevel    !== "" ? parseInt(hqLevel,    10) : null,
       heroes: formattedHeroes,
       squadPowers: initialProfile?.squadPowers || [null, null, null],
       seasonWeek: initialProfile?.seasonWeek,
@@ -346,7 +354,7 @@ const SetupScreen = ({ onComplete, initialProfile = null }) => {
                 className="relative flex w-full touch-none select-none items-center"
                 value={furnaceLevel}
                 onValueChange={setFurnaceLevel}
-                min={1} max={20} step={1}
+                min={1} max={30} step={1}
               >
                 <SliderPrimitive.Track className="relative h-1 w-full grow overflow-hidden bg-[#37474f]/60">
                   <SliderPrimitive.Range className="absolute h-full bg-[#4fc3f7]" />
@@ -355,24 +363,41 @@ const SetupScreen = ({ onComplete, initialProfile = null }) => {
               </SliderPrimitive.Root>
               <div className="flex justify-between mt-1">
                 <span className="text-[10px] text-[#37474f] font-heading">1</span>
-                <span className="text-[10px] text-[#37474f] font-heading">20</span>
+                <span className="text-[10px] text-[#37474f] font-heading">30</span>
               </div>
             </div>
 
-            {/* Drone Level */}
-            <div>
-              <label className="block font-heading text-xs text-[#4fc3f7] tracking-[0.25em] mb-2">
-                {T.droneLevel}
-              </label>
-              <input
-                data-testid="setup-drone-level-input"
-                type="number"
-                value={droneLevel}
-                onChange={(e) => setDroneLevel(e.target.value)}
-                placeholder={T.dronePlaceholder}
-                className="war-input w-full px-3 py-2.5 text-sm"
-                min="1"
-              />
+            {/* Drone Level + HQ Level — side by side */}
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block font-heading text-xs text-[#4fc3f7] tracking-[0.25em] mb-2">
+                  {T.droneLevel}
+                </label>
+                <input
+                  data-testid="setup-drone-level-input"
+                  type="number"
+                  value={droneLevel}
+                  onChange={(e) => setDroneLevel(e.target.value)}
+                  placeholder={T.dronePlaceholder}
+                  className="war-input w-full px-3 py-2.5 text-sm"
+                  min="1"
+                />
+              </div>
+              <div>
+                <label className="block font-heading text-xs text-[#4fc3f7]/70 tracking-[0.25em] mb-2">
+                  {T.hqLevel} <span className="text-[#37474f] text-[9px] normal-case tracking-normal">(opt)</span>
+                </label>
+                <input
+                  data-testid="setup-hq-level-input"
+                  type="number"
+                  value={hqLevel}
+                  onChange={(e) => setHqLevel(e.target.value)}
+                  placeholder={T.hqPlaceholder}
+                  className="war-input w-full px-3 py-2.5 text-sm"
+                  min="1"
+                  max="30"
+                />
+              </div>
             </div>
 
             {/* Squad 1 — always visible */}
