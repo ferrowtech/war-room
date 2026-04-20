@@ -377,13 +377,13 @@ const SetupScreen = ({ onComplete, initialProfile = null }) => {
           <img
             src="https://www.lastwar.com/en/img/logo.png"
             alt="Last War"
-            style={{ height: "28px" }}
+            style={{ height: "44px" }}
             className="object-contain"
             onError={(e) => { e.target.style.display = "none"; }}
           />
           <h1
-            className="font-heading text-xl text-white tracking-[0.2em]"
-            style={{ textShadow: "0 0 15px rgba(79,195,247,0.5)" }}
+            className="font-heading text-3xl text-white tracking-[0.2em]"
+            style={{ textShadow: "0 0 20px rgba(79,195,247,0.6)" }}
           >
             WAR ROOM
           </h1>
