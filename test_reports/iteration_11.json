@@ -1,0 +1,46 @@
+{
+  "summary": "Tested 4 new features for WAR ROOM app: Drone Level input, Secondary squads collapsible, Goal selector row, and FR translation. Most features working correctly except Drone Level is not displayed in the sidebar profile panel.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {
+        "component": "WarRoom sidebar/FIELD STATUS panel",
+        "issue": "Drone level is NOT shown in the sidebar profile panel. Only Furnace Level is displayed. The requirement states drone level should appear in the sidebar. Code review confirms no drone level rendering in WarRoom.jsx lines 612-621.",
+        "selector": "aside/field-status panel",
+        "priority": "MEDIUM"
+      }
+    ],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [],
+  "action_items": [
+    "Add drone level display to the sidebar/Field Status panel in WarRoom.jsx (after furnace level section, around line 622)"
+  ],
+  "critical_code_review_comments": [
+    "WarRoom.jsx sidebar does not render droneLevel from profile - needs to add a section similar to furnace level display (lines 612-621) to show drone level when present"
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "N/A", "frontend": "92%"},
+  "seed_data_creation": "",
+  "retest_needed": true,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Preview URL: https://war-ops-ai.preview.emergentagent.com. All 4 major features tested. Only issue is drone level not shown in sidebar. FR translation confirmed from iteration_10. Goal auto-submit confirmed working (shows TRANSMISSION FAILED because backend not available in preview - expected).",
+  "test_results": {
+    "drone_level_input_setup": "PASS - testid setup-drone-level-input found, placeholder 'e.g. 75'",
+    "drone_level_position": "PASS - shown after Furnace Level slider and before Squad 1",
+    "squad1_always_visible": "PASS - Squad 1 PRIMARY heroes always visible",
+    "toggle_secondary_squads": "PASS - testid toggle-secondary-squads found, text 'ADD SECONDARY SQUADS (OPTIONAL)— IMPROVES ADVICE ACCURACY'",
+    "secondary_squads_expand": "PASS - Squad 2 and 3 expand after clicking toggle (visually confirmed in screenshot)",
+    "squad_power_removed": "PASS - No squad power fields in setup form",
+    "war_room_loads": "PASS - After entering server=1042, furnace=5, drone=75, War Room loads",
+    "goal_selector_row": "PASS - testid goal-selector-row found above textarea",
+    "goal_6_buttons": "PASS - all 6 goal buttons found: who-to-upgrade-next, is-this-worth-spending, best-team-setup, what-to-do-today, event-advice, compare-options",
+    "goal_auto_submit": "PASS - clicking goal button sets textarea text and triggers API call (auto-submit confirmed)",
+    "drone_in_sidebar": "FAIL - Drone level NOT displayed in sidebar profile panel (only furnace level shown)",
+    "fr_niveau_du_drone": "PASS - confirmed by iteration_10 testing"
+  }
+}

@@ -166,7 +166,7 @@ function inferTroopTypeFromHeroes(heroes = []) {
 }
 
 // ── System prompt builder ─────────────────────────────────────────────────────
-function buildSystemPrompt({ server, troop_type, furnace_level, heroes = [], season_week, squad_powers = [], kbStr, language }) {
+function buildSystemPrompt({ server, troop_type, furnace_level, drone_level, heroes = [], season_week, squad_powers = [], kbStr, language }) {
   const parsedHeroes = parseHeroes(heroes);
 
   // Heroes block — one line per hero with exact star status + troop type label
@@ -236,6 +236,7 @@ COMMANDER PROFILE \u2014 VERIFIED FACTS \u2014 DO NOT CONTRADICT THESE
 Server: ${server}
 Primary Troop Type: ${troop_type}
 Furnace Level: ${furnace_level}
+Drone Level: ${drone_level != null ? drone_level : "not set"}
 Today: ${today}
 ${weekLine}
 ${squadPowerLine}
@@ -383,6 +384,7 @@ exports.handler = async (event) => {
   const t0 = Date.now();
 
   const { question, server, furnace_level, heroes, season_week, image_base64, language = "EN" } = body;
+  const drone_level  = body.drone_level  || null;
   const squad_powers = Array.isArray(body.squad_powers) ? body.squad_powers : [];
   // Infer primary troop type from Squad 1 heroes when client does not send it
   const troop_type = body.troop_type || inferTroopTypeFromHeroes(heroes);
@@ -394,7 +396,7 @@ exports.handler = async (event) => {
   // Fetch (or serve from cache) the combined knowledge base
   const kbStr = await fetchKnowledgeBase();
 
-  const systemPrompt = buildSystemPrompt({ server, troop_type, furnace_level, heroes, season_week, squad_powers, kbStr, language });
+  const systemPrompt = buildSystemPrompt({ server, troop_type, furnace_level, drone_level, heroes, season_week, squad_powers, kbStr, language });
   console.log(`[BRIEF] System prompt: ${systemPrompt.length} chars | KB fetch took ${Date.now() - t0}ms`);
 
   // Build user message content (with optional image attachment)
