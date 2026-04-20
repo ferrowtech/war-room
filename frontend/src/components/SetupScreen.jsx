@@ -1,6 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import * as SliderPrimitive from "@radix-ui/react-slider";
 import { ChevronDown } from "lucide-react";
+
+const SERVER_WEEK_URL = `${process.env.REACT_APP_BACKEND_URL}/.netlify/functions/server-week`;
 
 // ── Hero roster grouped by troop type ─────────────────────────────
 const HEROES_BY_TYPE = [
@@ -52,6 +54,9 @@ const SETUP_T = {
     errorServer: "SERVER NUMBER is required.",
     secondarySquads: "ADD SECONDARY SQUADS (OPTIONAL)",
     secondarySquadsHint: "improves advice accuracy",
+    detecting: "Detecting season...",
+    autoDetected: "Auto-detected",
+    serverNotFound: "Server not found - enter week manually",
   },
   RU: {
     commanderSetup: "НАСТРОЙКА КОМАНДИРА",
@@ -73,6 +78,9 @@ const SETUP_T = {
     errorServer: "НОМЕР СЕРВЕРА обязателен.",
     secondarySquads: "ДОПОЛНИТЕЛЬНЫЕ ОТРЯДЫ (необязательно)",
     secondarySquadsHint: "улучшает точность советов",
+    detecting: "Определяем сезон...",
+    autoDetected: "Определено автоматически",
+    serverNotFound: "Сервер не найден - введите неделю вручную",
   },
   FR: {
     commanderSetup: "CONFIGURATION DU COMMANDANT",
@@ -94,6 +102,9 @@ const SETUP_T = {
     errorServer: "NUMERO DE SERVEUR requis.",
     secondarySquads: "AJOUTER ESCOUADES SECONDAIRES (OPTIONNEL)",
     secondarySquadsHint: "ameliore la precision des conseils",
+    detecting: "Detection du saison...",
+    autoDetected: "Auto-detecte",
+    serverNotFound: "Serveur non trouve - entrez la semaine manuellement",
   },
 };
 
@@ -271,6 +282,34 @@ const SetupScreen = ({ onComplete, initialProfile = null }) => {
   });
   const [error, setError] = useState("");
 
+  // Season week auto-detection state
+  const [weekData,      setWeekData]      = useState(
+    initialProfile?.seasonWeek
+      ? { week: initialProfile.seasonWeek, season: initialProfile.currentSeason, serverDay: null, autoDetected: false }
+      : null
+  );
+  const [weekDetecting, setWeekDetecting] = useState(false);
+  const [weekManual,    setWeekManual]    = useState(initialProfile?.seasonWeek ? String(initialProfile.seasonWeek) : "");
+
+  const handleServerBlur = useCallback(async (num) => {
+    if (!num || !String(num).trim()) return;
+    setWeekDetecting(true);
+    try {
+      const res  = await fetch(`${SERVER_WEEK_URL}?server=${String(num).trim()}`);
+      const data = await res.json();
+      if (data.week != null && data.week > 0) {
+        setWeekData({ week: data.week, season: data.season, serverDay: data.serverDay, autoDetected: true });
+        setWeekManual(String(data.week));
+      } else {
+        setWeekData({ week: null, season: null, serverDay: null, autoDetected: false, notFound: true });
+      }
+    } catch {
+      setWeekData({ week: null, season: null, serverDay: null, autoDetected: false, notFound: true });
+    } finally {
+      setWeekDetecting(false);
+    }
+  }, []);
+
   const handleHero = (index, name) => {
     const updated = [...heroes];
     updated[index] = {
@@ -302,8 +341,8 @@ const SetupScreen = ({ onComplete, initialProfile = null }) => {
       squadTypes,
       heroes: formattedHeroes,
       squadPowers: initialProfile?.squadPowers || [null, null, null],
-      seasonWeek: initialProfile?.seasonWeek,
-      currentSeason: initialProfile?.currentSeason,
+      seasonWeek: weekData?.week || (weekManual !== "" ? parseInt(weekManual, 10) : initialProfile?.seasonWeek) || null,
+      currentSeason: weekData?.season || initialProfile?.currentSeason || null,
     });
   };
 
@@ -368,10 +407,58 @@ const SetupScreen = ({ onComplete, initialProfile = null }) => {
                 type="number"
                 value={server}
                 onChange={(e) => setServer(e.target.value)}
+                onBlur={(e) => handleServerBlur(e.target.value)}
                 placeholder={T.serverPlaceholder}
                 className="war-input w-full px-3 py-2.5 text-sm"
                 min="1"
               />
+
+              {/* Season week auto-detect row */}
+              <div className="mt-2 min-h-[28px]">
+                {weekDetecting && (
+                  <p className="font-heading text-[9px] text-[#37474f] tracking-widest animate-pulse">
+                    {T.detecting}
+                  </p>
+                )}
+                {!weekDetecting && weekData?.autoDetected && (
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="font-heading text-[9px] text-[#4fc3f7]/80 tracking-widest">
+                      S{weekData.season} WK{weekData.week}{weekData.serverDay ? ` DAY ${weekData.serverDay}` : ""}
+                    </span>
+                    <span
+                      className="font-heading text-[8px] px-1.5 py-0.5 tracking-widest"
+                      style={{ background: "rgba(79,195,247,0.08)", border: "1px solid rgba(79,195,247,0.25)", color: "#4fc3f7" }}
+                    >
+                      {T.autoDetected}
+                    </span>
+                    <input
+                      data-testid="setup-season-week-input"
+                      type="number"
+                      value={weekManual}
+                      onChange={(e) => setWeekManual(e.target.value)}
+                      className="war-input px-2 py-1 text-xs w-16 text-center"
+                      min="1"
+                      max="8"
+                      title="Override season week"
+                    />
+                  </div>
+                )}
+                {!weekDetecting && weekData?.notFound && (
+                  <div className="flex items-center gap-2">
+                    <p className="font-heading text-[9px] text-[#37474f] tracking-widest">{T.serverNotFound}</p>
+                    <input
+                      data-testid="setup-season-week-input"
+                      type="number"
+                      value={weekManual}
+                      onChange={(e) => setWeekManual(e.target.value)}
+                      placeholder="1-8"
+                      className="war-input px-2 py-1 text-xs w-16 text-center"
+                      min="1"
+                      max="8"
+                    />
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Furnace Level */}
