@@ -426,7 +426,7 @@ const SetupScreen = ({ onComplete, initialProfile = null }) => {
                   placeholder={T.hqPlaceholder}
                   className="war-input w-full px-3 py-2.5 text-sm"
                   min="1"
-                  max="30"
+                  max="35"
                 />
               </div>
             </div>
