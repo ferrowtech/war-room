@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import * as SliderPrimitive from "@radix-ui/react-slider";
+import { ChevronDown } from "lucide-react";
 
 // ── Hero roster grouped by troop type ─────────────────────────────
 const HEROES_BY_TYPE = [
@@ -37,13 +38,15 @@ const SETUP_T = {
     serverNumber: "SERVER NUMBER",
     serverPlaceholder: "e.g. 1042",
     furnaceLevel: "FURNACE LEVEL",
-    squadPower: "SQUAD POWER (M)",
-    squadPowerPlaceholder: "e.g. 20.62",
+    droneLevel: "DRONE LEVEL",
+    dronePlaceholder: "e.g. 75",
     none: "- None -",
     enterWarRoom: "ENTER WAR ROOM",
     saveProfile: "SAVE PROFILE",
     footer: "LAST WAR: SURVIVAL // TACTICAL AI ADVISOR",
     errorServer: "SERVER NUMBER is required.",
+    secondarySquads: "ADD SECONDARY SQUADS (OPTIONAL)",
+    secondarySquadsHint: "improves advice accuracy",
   },
   RU: {
     commanderSetup: "НАСТРОЙКА КОМАНДИРА",
@@ -51,13 +54,15 @@ const SETUP_T = {
     serverNumber: "НОМЕР СЕРВЕРА",
     serverPlaceholder: "напр. 1042",
     furnaceLevel: "УРОВЕНЬ ПЕЧИ",
-    squadPower: "МОЩНОСТЬ ОТРЯДА (М)",
-    squadPowerPlaceholder: "напр. 20.62",
+    droneLevel: "УРОВЕНЬ ДРОНА",
+    dronePlaceholder: "напр. 75",
     none: "- Пусто -",
     enterWarRoom: "ВОЙТИ В КОМАНДНЫЙ ЦЕНТР",
     saveProfile: "СОХРАНИТЬ ПРОФИЛЬ",
     footer: "LAST WAR: SURVIVAL // ТАКТИЧЕСКИЙ ИИ-СОВЕТНИК",
     errorServer: "НОМЕР СЕРВЕРА обязателен.",
+    secondarySquads: "ДОПОЛНИТЕЛЬНЫЕ ОТРЯДЫ (необязательно)",
+    secondarySquadsHint: "улучшает точность советов",
   },
   FR: {
     commanderSetup: "CONFIGURATION DU COMMANDANT",
@@ -65,13 +70,15 @@ const SETUP_T = {
     serverNumber: "NUMERO DE SERVEUR",
     serverPlaceholder: "ex. 1042",
     furnaceLevel: "NIVEAU DU FOURNEAU",
-    squadPower: "PUISSANCE ESCOUADE (M)",
-    squadPowerPlaceholder: "ex. 20.62",
+    droneLevel: "NIVEAU DU DRONE",
+    dronePlaceholder: "ex. 75",
     none: "- Aucun -",
     enterWarRoom: "ENTRER DANS LA SALLE DE GUERRE",
     saveProfile: "SAUVEGARDER LE PROFIL",
     footer: "LAST WAR: SURVIVAL // CONSEILLER TACTIQUE IA",
     errorServer: "NUMERO DE SERVEUR requis.",
+    secondarySquads: "AJOUTER ESCOUADES SECONDAIRES (OPTIONNEL)",
+    secondarySquadsHint: "ameliore la precision des conseils",
   },
 };
 
@@ -123,6 +130,71 @@ const SetupLanguageSelector = ({ lang, onSetLang }) => {
   );
 };
 
+// ── Single squad section (heroes + dedup) ─────────────────────────
+const SquadSection = ({ squadCfg, lang, squadIdx, heroes, usedHeroSet, onHero, onHeroStars, T }) => {
+  const { en, ru, fr, start } = squadCfg;
+  const label = lang === "RU" ? ru : lang === "FR" ? fr : en;
+  return (
+    <div>
+      <div className="flex items-center gap-2 mb-2">
+        <div className="h-px flex-1 bg-[#4fc3f7]/20" />
+        <span className="font-heading text-[10px] text-[#4fc3f7] tracking-[0.25em] whitespace-nowrap">{label}</span>
+        <div className="h-px flex-1 bg-[#4fc3f7]/20" />
+      </div>
+      <div className="space-y-2">
+        {[0, 1, 2, 3, 4].map((offset) => {
+          const i = start + offset;
+          return (
+            <div key={i} className="flex items-center gap-2">
+              <select
+                data-testid={`setup-hero-${i + 1}-input`}
+                value={heroes[i].name}
+                onChange={(e) => onHero(i, e.target.value)}
+                className="war-input flex-1 min-w-0 px-3 py-2 text-sm appearance-none cursor-pointer"
+                style={{ background: "rgba(10,14,26,0.95)" }}
+              >
+                <option value="None" style={{ background: "#0d1220" }}>{T.none}</option>
+                {HEROES_BY_TYPE.map(({ type, list }) => {
+                  const available = list.filter(
+                    (hero) => hero === heroes[i].name || !usedHeroSet.has(hero)
+                  );
+                  if (available.length === 0) return null;
+                  return (
+                    <optgroup key={type} label={`- ${type} -`} style={{ color: "#4fc3f7", background: "#0d1220" }}>
+                      {available.map((hero) => (
+                        <option key={hero} value={hero} style={{ background: "#0d1220", color: "#fff" }}>
+                          {hero}
+                        </option>
+                      ))}
+                    </optgroup>
+                  );
+                })}
+              </select>
+              {heroes[i].name !== "None" && (
+                <div className="flex gap-0.5 flex-shrink-0" data-testid={`hero-${i + 1}-stars`}>
+                  {[1, 2, 3, 4, 5].map((s) => (
+                    <button
+                      key={s}
+                      type="button"
+                      data-testid={`setup-hero-${i + 1}-star-${s}`}
+                      onClick={() => onHeroStars(i, s)}
+                      className="w-6 h-6 flex items-center justify-center text-base leading-none transition-all hover:scale-125 focus:outline-none"
+                      style={{ color: heroes[i].stars >= s ? "#fbbf24" : "#37474f" }}
+                      title={`${s}★`}
+                    >
+                      ★
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
 const SetupScreen = ({ onComplete, initialProfile = null }) => {
   const [lang, setLangState] = useState(() => localStorage.getItem("warroom_lang") || "EN");
   const T = SETUP_T[lang] || SETUP_T.EN;
@@ -134,14 +206,15 @@ const SetupScreen = ({ onComplete, initialProfile = null }) => {
   };
 
   const [server, setServer] = useState(initialProfile?.server || "");
-  const [squadPowers, setSquadPowers] = useState([
-    initialProfile?.squadPowers?.[0] ?? "",
-    initialProfile?.squadPowers?.[1] ?? "",
-    initialProfile?.squadPowers?.[2] ?? "",
-  ]);
   const [furnaceLevel, setFurnaceLevel] = useState(
     initialProfile ? [initialProfile.furnaceLevel] : [5]
   );
+  const [droneLevel, setDroneLevel] = useState(initialProfile?.droneLevel ?? "");
+  const [showSecondary, setShowSecondary] = useState(() => {
+    // Auto-expand if editing and secondary squads have heroes
+    if (!initialProfile?.heroes) return false;
+    return initialProfile.heroes.slice(5).some((h) => h && h !== "None");
+  });
   const [heroes, setHeroes] = useState(() => {
     const slots = emptySlots();
     if (!initialProfile?.heroes) return slots;
@@ -174,18 +247,17 @@ const SetupScreen = ({ onComplete, initialProfile = null }) => {
     const formattedHeroes = heroes.map((h) =>
       h.name !== "None" ? `${h.name} (${h.stars}★)` : "None"
     );
-    // troopType is NOT stored in profile — always inferred fresh from Squad 1 heroes
     onComplete({
       server,
       furnaceLevel: furnaceLevel[0],
+      droneLevel: droneLevel !== "" ? parseInt(droneLevel, 10) : null,
       heroes: formattedHeroes,
-      squadPowers: squadPowers.map((p) => (p !== "" && p !== null ? parseFloat(p) : null)),
+      squadPowers: initialProfile?.squadPowers || [null, null, null],
       seasonWeek: initialProfile?.seasonWeek,
+      currentSeason: initialProfile?.currentSeason,
     });
   };
 
-  // Compute the set of selected hero names so each hero can only appear once.
-  // Each slot's dropdown filters out heroes already chosen in OTHER slots.
   const usedHeroSet = new Set(heroes.map((h) => h.name).filter((n) => n !== "None"));
 
   return (
@@ -285,89 +357,79 @@ const SetupScreen = ({ onComplete, initialProfile = null }) => {
               </div>
             </div>
 
-            {/* Hero Squads — Squad 1 determines troop type */}
-            <div className="space-y-5">
-              {SQUAD_CONFIG.map(({ en, ru, fr, start }, squadIdx) => (
-                <div key={start}>
-                  <div className="flex items-center gap-2 mb-2">
-                    <div className="h-px flex-1 bg-[#4fc3f7]/20" />
-                    <label className="font-heading text-[10px] text-[#4fc3f7] tracking-[0.25em] whitespace-nowrap">
-                      {lang === "RU" ? ru : lang === "FR" ? fr : en}
-                    </label>
-                    <div className="h-px flex-1 bg-[#4fc3f7]/20" />
-                  </div>
-                  <div className="space-y-2">
-                    {[0, 1, 2, 3, 4].map((offset) => {
-                      const i = start + offset;
-                      return (
-                        <div key={i} className="flex items-center gap-2">
-                          <select
-                            data-testid={`setup-hero-${i + 1}-input`}
-                            value={heroes[i].name}
-                            onChange={(e) => handleHero(i, e.target.value)}
-                            className="war-input flex-1 min-w-0 px-3 py-2 text-sm appearance-none cursor-pointer"
-                            style={{ background: "rgba(10,14,26,0.95)" }}
-                          >
-                            <option value="None" style={{ background: "#0d1220" }}>{T.none}</option>
-                            {HEROES_BY_TYPE.map(({ type, list }) => {
-                              const available = list.filter(
-                                (hero) => hero === heroes[i].name || !usedHeroSet.has(hero)
-                              );
-                              if (available.length === 0) return null;
-                              return (
-                                <optgroup key={type} label={`- ${type} -`} style={{ color: "#4fc3f7", background: "#0d1220" }}>
-                                  {available.map((hero) => (
-                                    <option key={hero} value={hero} style={{ background: "#0d1220", color: "#fff" }}>
-                                      {hero}
-                                    </option>
-                                  ))}
-                                </optgroup>
-                              );
-                            })}
-                          </select>
-                          {heroes[i].name !== "None" && (
-                            <div className="flex gap-0.5 flex-shrink-0" data-testid={`hero-${i + 1}-stars`}>
-                              {[1, 2, 3, 4, 5].map((s) => (
-                                <button
-                                  key={s}
-                                  type="button"
-                                  data-testid={`setup-hero-${i + 1}-star-${s}`}
-                                  onClick={() => handleHeroStars(i, s)}
-                                  className="w-6 h-6 flex items-center justify-center text-base leading-none transition-all hover:scale-125 focus:outline-none"
-                                  style={{ color: heroes[i].stars >= s ? "#fbbf24" : "#37474f" }}
-                                  title={`${s}★`}
-                                >
-                                  ★
-                                </button>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                  {/* Squad Power */}
-                  <div className="flex items-center gap-2 mt-2">
-                    <label className="font-heading text-[9px] text-[#37474f] tracking-[0.2em] flex-shrink-0">
-                      {T.squadPower}
-                    </label>
-                    <input
-                      data-testid={`setup-squad-power-${squadIdx + 1}`}
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      value={squadPowers[squadIdx]}
-                      onChange={(e) => {
-                        const updated = [...squadPowers];
-                        updated[squadIdx] = e.target.value;
-                        setSquadPowers(updated);
-                      }}
-                      placeholder={T.squadPowerPlaceholder}
-                      className="war-input flex-1 px-3 py-1.5 text-sm"
-                    />
-                  </div>
+            {/* Drone Level */}
+            <div>
+              <label className="block font-heading text-xs text-[#4fc3f7] tracking-[0.25em] mb-2">
+                {T.droneLevel}
+              </label>
+              <input
+                data-testid="setup-drone-level-input"
+                type="number"
+                value={droneLevel}
+                onChange={(e) => setDroneLevel(e.target.value)}
+                placeholder={T.dronePlaceholder}
+                className="war-input w-full px-3 py-2.5 text-sm"
+                min="1"
+              />
+            </div>
+
+            {/* Squad 1 — always visible */}
+            <div>
+              <SquadSection
+                squadCfg={SQUAD_CONFIG[0]}
+                lang={lang}
+                squadIdx={0}
+                heroes={heroes}
+                usedHeroSet={usedHeroSet}
+                onHero={handleHero}
+                onHeroStars={handleHeroStars}
+                T={T}
+              />
+            </div>
+
+            {/* Secondary Squads — collapsible */}
+            <div>
+              <button
+                type="button"
+                data-testid="toggle-secondary-squads"
+                onClick={() => setShowSecondary((v) => !v)}
+                className="w-full flex items-center gap-2 py-2.5 px-3 border border-[#4fc3f7]/20 hover:border-[#4fc3f7]/40 transition-colors"
+                style={{ background: "rgba(79,195,247,0.04)" }}
+              >
+                <ChevronDown
+                  size={12}
+                  color="#4fc3f7"
+                  className={`flex-shrink-0 transition-transform duration-200 ${showSecondary ? "rotate-180" : ""}`}
+                />
+                <div className="flex-1 text-left">
+                  <span className="font-heading text-[10px] text-[#4fc3f7] tracking-[0.2em]">
+                    {T.secondarySquads}
+                  </span>
+                  {!showSecondary && (
+                    <span className="font-heading text-[9px] text-[#37474f] tracking-wide ml-2">
+                      — {T.secondarySquadsHint}
+                    </span>
+                  )}
                 </div>
-              ))}
+              </button>
+
+              {showSecondary && (
+                <div className="space-y-5 mt-4 pl-1 border-l border-[#4fc3f7]/15">
+                  {SQUAD_CONFIG.slice(1).map((cfg, idx) => (
+                    <SquadSection
+                      key={cfg.start}
+                      squadCfg={cfg}
+                      lang={lang}
+                      squadIdx={idx + 1}
+                      heroes={heroes}
+                      usedHeroSet={usedHeroSet}
+                      onHero={handleHero}
+                      onHeroStars={handleHeroStars}
+                      T={T}
+                    />
+                  ))}
+                </div>
+              )}
             </div>
 
             {error && (

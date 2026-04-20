@@ -83,7 +83,7 @@ const TRANSLATIONS = {
     attach: "SCAN SCREEN", getBriefing: "GET BRIEFING", transmitting: "TRANSMITTING",
     intelReport: "INTELLIGENCE REPORT", copyBriefing: "COPY BRIEFING", copied: "COPIED",
     editProfile: "EDIT PROFILE", commander: "FIELD STATUS", server: "SERVER",
-    furnaceLevel: "FURNACE LEVEL", squads: "SQUADS",
+    furnaceLevel: "FURNACE LEVEL", droneLevel: "DRONE LEVEL", squads: "SQUADS",
     sq1: "SQ1 PRIMARY", sq2: "SQ2 SECONDARY", sq3: "SQ3 SUPPORT",
     polarStorm: "POLAR STORM", week: "WEEK", autoLabel: "AUTO",
     refresh: "REFRESH", detecting: "DETECTING...", weekNotFound: "Week not detected",
@@ -102,7 +102,7 @@ const TRANSLATIONS = {
     attach: "СКАНИРОВАТЬ ЭКРАН", getBriefing: "ПОЛУЧИТЬ БРИФИНГ", transmitting: "ПЕРЕДАЧА...",
     intelReport: "ОПЕРАТИВНАЯ СВОДКА", copyBriefing: "КОПИРОВАТЬ", copied: "СКОПИРОВАНО",
     editProfile: "ПРОФИЛЬ", commander: "БОЕВОЙ СТАТУС", server: "СЕРВЕР",
-    furnaceLevel: "УРОВЕНЬ ПЕЧИ", squads: "ОТРЯДЫ",
+    furnaceLevel: "УРОВЕНЬ ПЕЧИ", droneLevel: "УРОВЕНЬ ДРОНА", squads: "ОТРЯДЫ",
     sq1: "ОТР.1 ОСНОВНОЙ", sq2: "ОТР.2 ВТОРИЧНЫЙ", sq3: "ОТР.3 ПОДДЕРЖКА",
     polarStorm: "ПОЛЯРНЫЙ ШТОРМ", week: "НЕДЕЛЯ", autoLabel: "АВТО",
     refresh: "ОБНОВИТЬ", detecting: "ОПРЕДЕЛЯЮ...", weekNotFound: "Неделя не определена",
@@ -121,7 +121,7 @@ const TRANSLATIONS = {
     attach: "SCANNER L'ÉCRAN", getBriefing: "OBTENIR LE BRIEFING", transmitting: "TRANSMISSION...",
     intelReport: "RAPPORT DE RENSEIGNEMENT", copyBriefing: "COPIER", copied: "COPIÉ",
     editProfile: "MODIFIER LE PROFIL", commander: "STATUT TERRAIN", server: "SERVEUR",
-    furnaceLevel: "NIVEAU DU FOURNEAU", squads: "ESCOUADES",
+    furnaceLevel: "NIVEAU DU FOURNEAU", droneLevel: "NIVEAU DU DRONE", squads: "ESCOUADES",
     sq1: "ESC.1 PRINCIPALE", sq2: "ESC.2 SECONDAIRE", sq3: "ESC.3 SOUTIEN",
     polarStorm: "TEMPÊTE POLAIRE", week: "SEMAINE", autoLabel: "AUTO",
     refresh: "ACTUALISER", detecting: "DÉTECTION...", weekNotFound: "Semaine non détectée",
@@ -163,6 +163,34 @@ const QUICK_ACTIONS = {
     { label: "Amelioration Heros",   Icon: Star,        question: "Quel heros devrais-je ameliorer en priorite et comment?" },
     { label: "Phase de Guerre",      Icon: Shield,      question: "Explique la Phase de Guerre et quand je dois attaquer le fourneau ennemi" },
     { label: "Comparer Escouades",   Icon: Zap,         question: "Compare mes puissances d'escouade et recommande laquelle utiliser pour chaque situation - combats de boss, sites de fouille, attaques et defense en phase de guerre." },
+  ],
+};
+
+// ── Goal selector quick-picks (above textarea) ────────────────────
+const GOAL_SELECTOR = {
+  EN: [
+    { label: "Who to upgrade next",   question: "Which hero should I prioritize upgrading next and why, based on my current roster?" },
+    { label: "Is this worth spending", question: "Is it worth spending my resources right now, given my current furnace and drone level?" },
+    { label: "Best team setup",        question: "What is the best team setup for my troop type right now?" },
+    { label: "What to do today",       question: "What should I focus on doing today to maximize my progress in the current season week?" },
+    { label: "Event advice",           question: "What events are available now and what is the best strategy to approach them?" },
+    { label: "Compare options",        question: "I have multiple choices right now - compare them and tell me which is the best option for my profile." },
+  ],
+  RU: [
+    { label: "Кого улучшить",         question: "Какого героя улучшить следующим и почему, исходя из моего текущего состава?" },
+    { label: "Стоит ли тратить",       question: "Стоит ли тратить ресурсы прямо сейчас, учитывая мой уровень печи и дрона?" },
+    { label: "Лучший состав",          question: "Каков лучший состав отряда для моего типа войск прямо сейчас?" },
+    { label: "Что делать сегодня",     question: "На чём сосредоточиться сегодня, чтобы максимально продвинуться на текущей неделе сезона?" },
+    { label: "Советы по событиям",     question: "Какие события доступны сейчас и какова лучшая стратегия для них?" },
+    { label: "Сравнить варианты",      question: "У меня несколько вариантов - сравни их и скажи, какой лучший для моего профиля." },
+  ],
+  FR: [
+    { label: "Qui ameliorer",          question: "Quel heros dois-je prioriser pour amelioration et pourquoi, selon mon effectif actuel?" },
+    { label: "Ca vaut la depense?",    question: "Vaut-il la peine de depenser mes ressources maintenant, vu mon niveau de fourneau et de drone?" },
+    { label: "Meilleure equipe",       question: "Quelle est la meilleure configuration d'equipe pour mon type de troupe en ce moment?" },
+    { label: "Que faire aujourd'hui",  question: "Sur quoi me concentrer aujourd'hui pour maximiser ma progression dans la semaine de saison actuelle?" },
+    { label: "Conseils evenements",    question: "Quels evenements sont disponibles maintenant et quelle est la meilleure strategie?" },
+    { label: "Comparer les options",   question: "J'ai plusieurs choix - compare-les et dis-moi quelle est la meilleure option pour mon profil." },
   ],
 };
 
@@ -593,6 +621,17 @@ const ProfilePanelContent = ({
         </div>
         <div className="h-px bg-[#37474f]/40" />
 
+        {/* Drone level */}
+        {profile.droneLevel != null && (
+          <>
+            <div>
+              <p className="font-heading text-[9px] text-[#37474f] tracking-[0.3em] mb-1" data-testid="sidebar-drone-label">{tr.droneLevel}</p>
+              <span className="font-heading text-sm text-white" data-testid="sidebar-drone-value">{profile.droneLevel}</span>
+            </div>
+            <div className="h-px bg-[#37474f]/40" />
+          </>
+        )}
+
         {/* Hero squads with power */}
         <div>
           <p className="font-heading text-[9px] text-[#37474f] tracking-[0.3em] mb-2">{tr.squads}</p>
@@ -741,6 +780,7 @@ const WarRoom = ({ profile, onEditProfile }) => {
         server: String(localProfile.server),
         troop_type: inferredTroopType,
         furnace_level: Number(localProfile.furnaceLevel),
+        drone_level: localProfile.droneLevel || null,
         heroes: localProfile.heroes,
         squad_powers: localProfile.squadPowers || [],
         season_week: effectiveWeek,
@@ -793,6 +833,34 @@ const WarRoom = ({ profile, onEditProfile }) => {
               <Zap size={12} color="#4fc3f7" strokeWidth={1.5} />
               <label className="font-heading text-[10px] text-[#4fc3f7] tracking-[0.3em]">{tr.askAdvisor}</label>
             </div>
+
+            {/* Goal selector — horizontal scroll strip */}
+            {!isLoading && (() => {
+              const goals = GOAL_SELECTOR[language] || GOAL_SELECTOR.EN;
+              return (
+                <div
+                  className="flex gap-1.5 overflow-x-auto pb-1 mb-3 -mx-1 px-1"
+                  data-testid="goal-selector-row"
+                  style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+                >
+                  {goals.map(({ label, question: gq }) => (
+                    <button
+                      key={label}
+                      type="button"
+                      data-testid={`goal-${label.toLowerCase().replace(/[\s'?]+/g, "-")}`}
+                      onClick={() => handleQuickAction(gq)}
+                      className="flex-shrink-0 px-3 py-1.5 font-heading text-[9px] tracking-[0.12em] border border-[#4fc3f7]/25 hover:border-[#4fc3f7]/60 hover:text-[#4fc3f7] transition-all duration-150 whitespace-nowrap"
+                      style={{
+                        background: "rgba(79,195,247,0.05)",
+                        color: "#6b8fa3",
+                      }}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              );
+            })()}
 
             {imagePreview && (
               <div className="relative mb-3 border border-[#4fc3f7]/30 inline-block">
