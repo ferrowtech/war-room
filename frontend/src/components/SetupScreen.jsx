@@ -40,6 +40,9 @@ const SETUP_T = {
     furnaceLevel: "FURNACE LEVEL",
     droneLevel: "DRONE LEVEL",
     dronePlaceholder: "e.g. 75",
+    hqLevel: "HQ LEVEL",
+    hqPlaceholder: "e.g. 25",
+    troopType: "TROOP TYPE",
     none: "- None -",
     enterWarRoom: "ENTER WAR ROOM",
     saveProfile: "SAVE PROFILE",
@@ -56,6 +59,9 @@ const SETUP_T = {
     furnaceLevel: "УРОВЕНЬ ПЕЧИ",
     droneLevel: "УРОВЕНЬ ДРОНА",
     dronePlaceholder: "напр. 75",
+    hqLevel: "УРОВЕНЬ ШТАБА",
+    hqPlaceholder: "напр. 25",
+    troopType: "ТИП ВОЙСК",
     none: "- Пусто -",
     enterWarRoom: "ВОЙТИ В КОМАНДНЫЙ ЦЕНТР",
     saveProfile: "СОХРАНИТЬ ПРОФИЛЬ",
@@ -72,6 +78,9 @@ const SETUP_T = {
     furnaceLevel: "NIVEAU DU FOURNEAU",
     droneLevel: "NIVEAU DU DRONE",
     dronePlaceholder: "ex. 75",
+    hqLevel: "NIVEAU QG",
+    hqPlaceholder: "ex. 25",
+    troopType: "TYPE DE TROUPE",
     none: "- Aucun -",
     enterWarRoom: "ENTRER DANS LA SALLE DE GUERRE",
     saveProfile: "SAUVEGARDER LE PROFIL",
@@ -130,8 +139,10 @@ const SetupLanguageSelector = ({ lang, onSetLang }) => {
   );
 };
 
-// ── Single squad section (heroes + dedup) ─────────────────────────
-const SquadSection = ({ squadCfg, lang, squadIdx, heroes, usedHeroSet, onHero, onHeroStars, T }) => {
+// ── Single squad section (heroes + dedup + troop type) ────────────
+const TROOP_TYPES = ["Tank", "Aircraft", "Missile"];
+
+const SquadSection = ({ squadCfg, lang, heroes, usedHeroSet, onHero, onHeroStars, T, squadType, onSquadType }) => {
   const { en, ru, fr, start } = squadCfg;
   const label = lang === "RU" ? ru : lang === "FR" ? fr : en;
   return (
@@ -141,6 +152,27 @@ const SquadSection = ({ squadCfg, lang, squadIdx, heroes, usedHeroSet, onHero, o
         <span className="font-heading text-[10px] text-[#4fc3f7] tracking-[0.25em] whitespace-nowrap">{label}</span>
         <div className="h-px flex-1 bg-[#4fc3f7]/20" />
       </div>
+
+      {/* Troop type selector */}
+      <div className="flex items-center gap-1.5 mb-3">
+        <span className="font-heading text-[9px] text-[#37474f] tracking-[0.2em] flex-shrink-0">{T.troopType}:</span>
+        {TROOP_TYPES.map((t) => (
+          <button
+            key={t}
+            type="button"
+            onClick={() => onSquadType(squadType === t ? null : t)}
+            className="font-heading text-[9px] px-2.5 py-1 border transition-colors tracking-widest"
+            style={{
+              borderColor: squadType === t ? "#4fc3f7" : "rgba(55,71,79,0.5)",
+              background:  squadType === t ? "rgba(79,195,247,0.12)" : "transparent",
+              color:        squadType === t ? "#4fc3f7" : "#546e7a",
+            }}
+          >
+            {t.toUpperCase()}
+          </button>
+        ))}
+      </div>
+
       <div className="space-y-2">
         {[0, 1, 2, 3, 4].map((offset) => {
           const i = start + offset;
@@ -212,6 +244,11 @@ const SetupScreen = ({ onComplete, initialProfile = null }) => {
     initialProfile ? [initialProfile.furnaceLevel] : [5]
   );
   const [droneLevel, setDroneLevel] = useState(initialProfile?.droneLevel ?? "");
+  const [hqLevel,    setHqLevel]    = useState(initialProfile?.hqLevel    ?? "");
+  const [squadTypes, setSquadTypes] = useState(() => {
+    const saved = initialProfile?.squadTypes;
+    return Array.isArray(saved) ? saved : [null, null, null];
+  });
   const [showSecondary, setShowSecondary] = useState(() => {
     // Auto-expand if editing and secondary squads have heroes
     if (!initialProfile?.heroes) return false;
@@ -253,6 +290,8 @@ const SetupScreen = ({ onComplete, initialProfile = null }) => {
       server,
       furnaceLevel: furnaceLevel[0],
       droneLevel: droneLevel !== "" ? parseInt(droneLevel, 10) : null,
+      hqLevel:    hqLevel    !== "" ? parseInt(hqLevel,    10) : null,
+      squadTypes,
       heroes: formattedHeroes,
       squadPowers: initialProfile?.squadPowers || [null, null, null],
       seasonWeek: initialProfile?.seasonWeek,
@@ -346,7 +385,7 @@ const SetupScreen = ({ onComplete, initialProfile = null }) => {
                 className="relative flex w-full touch-none select-none items-center"
                 value={furnaceLevel}
                 onValueChange={setFurnaceLevel}
-                min={1} max={20} step={1}
+                min={1} max={30} step={1}
               >
                 <SliderPrimitive.Track className="relative h-1 w-full grow overflow-hidden bg-[#37474f]/60">
                   <SliderPrimitive.Range className="absolute h-full bg-[#4fc3f7]" />
@@ -355,24 +394,41 @@ const SetupScreen = ({ onComplete, initialProfile = null }) => {
               </SliderPrimitive.Root>
               <div className="flex justify-between mt-1">
                 <span className="text-[10px] text-[#37474f] font-heading">1</span>
-                <span className="text-[10px] text-[#37474f] font-heading">20</span>
+                <span className="text-[10px] text-[#37474f] font-heading">30</span>
               </div>
             </div>
 
-            {/* Drone Level */}
-            <div>
-              <label className="block font-heading text-xs text-[#4fc3f7] tracking-[0.25em] mb-2">
-                {T.droneLevel}
-              </label>
-              <input
-                data-testid="setup-drone-level-input"
-                type="number"
-                value={droneLevel}
-                onChange={(e) => setDroneLevel(e.target.value)}
-                placeholder={T.dronePlaceholder}
-                className="war-input w-full px-3 py-2.5 text-sm"
-                min="1"
-              />
+            {/* Drone Level + HQ Level — side by side */}
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block font-heading text-xs text-[#4fc3f7] tracking-[0.25em] mb-2">
+                  {T.droneLevel}
+                </label>
+                <input
+                  data-testid="setup-drone-level-input"
+                  type="number"
+                  value={droneLevel}
+                  onChange={(e) => setDroneLevel(e.target.value)}
+                  placeholder={T.dronePlaceholder}
+                  className="war-input w-full px-3 py-2.5 text-sm"
+                  min="1"
+                />
+              </div>
+              <div>
+                <label className="block font-heading text-xs text-[#4fc3f7]/70 tracking-[0.25em] mb-2">
+                  {T.hqLevel} <span className="text-[#37474f] text-[9px] normal-case tracking-normal">(opt)</span>
+                </label>
+                <input
+                  data-testid="setup-hq-level-input"
+                  type="number"
+                  value={hqLevel}
+                  onChange={(e) => setHqLevel(e.target.value)}
+                  placeholder={T.hqPlaceholder}
+                  className="war-input w-full px-3 py-2.5 text-sm"
+                  min="1"
+                  max="30"
+                />
+              </div>
             </div>
 
             {/* Squad 1 — always visible */}
@@ -380,12 +436,13 @@ const SetupScreen = ({ onComplete, initialProfile = null }) => {
               <SquadSection
                 squadCfg={SQUAD_CONFIG[0]}
                 lang={lang}
-                squadIdx={0}
                 heroes={heroes}
                 usedHeroSet={usedHeroSet}
                 onHero={handleHero}
                 onHeroStars={handleHeroStars}
                 T={T}
+                squadType={squadTypes[0]}
+                onSquadType={(t) => setSquadTypes((prev) => { const n = [...prev]; n[0] = t; return n; })}
               />
             </div>
 
@@ -422,12 +479,13 @@ const SetupScreen = ({ onComplete, initialProfile = null }) => {
                       key={cfg.start}
                       squadCfg={cfg}
                       lang={lang}
-                      squadIdx={idx + 1}
                       heroes={heroes}
                       usedHeroSet={usedHeroSet}
                       onHero={handleHero}
                       onHeroStars={handleHeroStars}
                       T={T}
+                      squadType={squadTypes[idx + 1]}
+                      onSquadType={(t) => setSquadTypes((prev) => { const n = [...prev]; n[idx + 1] = t; return n; })}
                     />
                   ))}
                 </div>
