@@ -318,6 +318,23 @@ const useTypewriter = (text, speed = 18) => {
   return { displayed, typing };
 };
 
+// ── Markdown error boundary (catches ReactMarkdown render failures) ──
+class MarkdownErrorBoundary extends React.Component {
+  constructor(props) { super(props); this.state = { hasError: false }; }
+  static getDerivedStateFromError() { return { hasError: true }; }
+  componentDidCatch(err) { console.error("[WAR ROOM] ReactMarkdown render error:", err.message); }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <pre className="whitespace-pre-wrap font-report text-[#b3e5fc] text-sm leading-relaxed">
+          {this.props.fallback}
+        </pre>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 // ── Intelligence Report ───────────────────────────────────────────
 const IntelligenceReport = ({ text, isLatest = false, tr }) => {
   const { displayed, typing } = useTypewriter(isLatest ? text : null);
@@ -345,13 +362,15 @@ const IntelligenceReport = ({ text, isLatest = false, tr }) => {
         {typing ? (
           <>{shownText}<span className="typewriter-cursor" /></>
         ) : (
-          <ReactMarkdown className="markdown-report" components={{
-            h2: ({ children }) => <strong className="block text-[#4fc3f7] font-heading text-xs tracking-widest mt-3 mb-1">{children}</strong>,
-            h3: ({ children }) => <strong className="block text-[#b3e5fc] font-heading text-xs tracking-widest mt-2 mb-1">{children}</strong>,
-            strong: ({ children }) => <strong className="text-white">{children}</strong>,
-            li: ({ children }) => <li className="ml-4 list-disc text-[#b3e5fc]">{children}</li>,
-            p: ({ children }) => <p className="mb-2">{children}</p>,
-          }}>{shownText}</ReactMarkdown>
+          <MarkdownErrorBoundary fallback={shownText}>
+            <ReactMarkdown className="markdown-report" components={{
+              h2: ({ children }) => <strong className="block text-[#4fc3f7] font-heading text-xs tracking-widest mt-3 mb-1">{children}</strong>,
+              h3: ({ children }) => <strong className="block text-[#b3e5fc] font-heading text-xs tracking-widest mt-2 mb-1">{children}</strong>,
+              strong: ({ children }) => <strong className="text-white">{children}</strong>,
+              li: ({ children }) => <li className="ml-4 list-disc text-[#b3e5fc]">{children}</li>,
+              p: ({ children }) => <p className="mb-2">{children}</p>,
+            }}>{shownText}</ReactMarkdown>
+          </MarkdownErrorBoundary>
         )}
       </div>
     </div>
@@ -383,12 +402,14 @@ const HistoryItem = ({ item }) => {
       </div>
       {expanded && (
         <div className="px-3 pb-3 pt-1 border-t border-[#37474f]/30">
-          <ReactMarkdown className="markdown-report" components={{
-            h2: ({ children }) => <strong className="block text-[#4fc3f7] font-heading text-xs tracking-widest mt-2 mb-1">{children}</strong>,
-            strong: ({ children }) => <strong className="text-white">{children}</strong>,
-            li: ({ children }) => <li className="ml-3 list-disc text-[#b3e5fc]/80 text-xs">{children}</li>,
-            p: ({ children }) => <p className="mb-1.5 text-xs text-[#b3e5fc]/80">{children}</p>,
-          }}>{item.response}</ReactMarkdown>
+          <MarkdownErrorBoundary fallback={item.response}>
+            <ReactMarkdown className="markdown-report" components={{
+              h2: ({ children }) => <strong className="block text-[#4fc3f7] font-heading text-xs tracking-widest mt-2 mb-1">{children}</strong>,
+              strong: ({ children }) => <strong className="text-white">{children}</strong>,
+              li: ({ children }) => <li className="ml-3 list-disc text-[#b3e5fc]/80 text-xs">{children}</li>,
+              p: ({ children }) => <p className="mb-1.5 text-xs text-[#b3e5fc]/80">{children}</p>,
+            }}>{item.response}</ReactMarkdown>
+          </MarkdownErrorBoundary>
         </div>
       )}
     </div>
@@ -726,6 +747,8 @@ const WarRoom = ({ profile, onEditProfile }) => {
   const [detectingWeek, setDetectingWeek] = useState(false);
   const reportRef   = useRef(null);
   const fileInputRef = useRef(null);
+  const isMounted    = useRef(true);
+  useEffect(() => { return () => { isMounted.current = false; }; }, []);
 
   const detectSeasonWeek = useCallback(async () => {
     if (!localProfile?.server) return;
@@ -769,7 +792,8 @@ const WarRoom = ({ profile, onEditProfile }) => {
   const handleSubmit = async (overrideQ) => {
     const q = typeof overrideQ === "string" ? overrideQ.trim() : question.trim();
     if (!q || isLoading) return;
-    setError(""); setIsLoading(true);
+    if (isMounted.current) { setError(""); setIsLoading(true); }
+    let rawResponse = null;
     try {
       const effectiveWeek = localProfile.seasonWeek || getSeasonWeekFromDate(localProfile?.seasonStartDate);
       const payload = {
@@ -785,14 +809,25 @@ const WarRoom = ({ profile, onEditProfile }) => {
         ...(uploadedImage ? { image_base64: uploadedImage } : {}),
       };
       const res = await axios.post(BRIEF_URL, payload);
-      setResponse(res.data.response);
-      const newHistory = saveToHistory(q, res.data.response);
-      setHistory(newHistory); setQuestion(""); clearImage();
-      setTimeout(() => reportRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
+      console.log("[WAR ROOM] Raw response data:", JSON.stringify(res.data).slice(0, 200));
+      rawResponse = res.data?.response ?? "";
+      console.log("[WAR ROOM] Response text length:", rawResponse.length, "chars");
+      if (!rawResponse) console.warn("[WAR ROOM] Response is empty — res.data:", res.data);
+      if (isMounted.current) {
+        const newHistory = saveToHistory(q, rawResponse);
+        setHistory(newHistory);
+        setQuestion("");
+        clearImage();
+        setTimeout(() => reportRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
+      }
     } catch (err) {
-      setError(err.response?.data?.detail || tr.transmissionFailed);
+      console.error("[WAR ROOM] handleSubmit error:", err);
+      if (isMounted.current) setError(err.response?.data?.detail || tr.transmissionFailed);
     } finally {
-      setIsLoading(false);
+      if (isMounted.current) {
+        setIsLoading(false);
+        if (rawResponse !== null) setResponse(rawResponse);
+      }
     }
   };
 
