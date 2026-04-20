@@ -1,6 +1,7 @@
 {
   "wanted_monsters": {
     "description": "Each Wanted Monster grants +50% damage to the matching troop type on its scheduled days. Always prioritise attacking on your bonus days.",
+    "attacks_per_day": "Max 5 solo attacks per day. IMPORTANT: This limit is ONLY for Wanted Monsters. Code Boss has a separate limit of 3 attacks per day — see code_boss.json.",
     "schedule": {
       "Frenzied Butcher": {
         "days": ["Monday", "Thursday"],
@@ -30,5 +31,6 @@
     "Bear":    { "weakness": "Tank",     "location": "Dig Sites" },
     "Gorilla": { "weakness": "Missile",  "location": "Dig Sites" },
     "Mammoth": { "weakness": "Aircraft", "location": "Dig Sites" }
-  }
+  },
+  "code_boss_reminder": "Code Boss (Code 87 / Code 39 / Code 64) has a DIFFERENT attack limit: max 3 attacks per day, NOT 5. Full Code Boss details are in code_boss.json."
 }
