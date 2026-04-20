@@ -169,19 +169,6 @@ function inferTroopTypeFromHeroes(heroes = []) {
 function buildSystemPrompt({ server, squad_types = [], troop_type, furnace_level, drone_level, hq_level, virus_resistance, heroes = [], season_week, squad_powers = [], kbStr, language }) {
   const parsedHeroes = parseHeroes(heroes);
 
-  // Heroes block — annotate each hero against their squad's declared troop type
-  const heroLines = parsedHeroes.map((p, idx) => {
-    if (p.stars === null) {
-      return `  - ${p.name}: star level could not be read (check profile)`;
-    }
-    const statusParts = [];
-    if (p.stars >= 4) statusParts.push("Super Sensory UNLOCKED");
-    if (p.stars >= 5) statusParts.push("Exclusive Weapon UNLOCKED");
-    if (p.stars < 4) {
-      statusParts.push(`needs ${SHARDS_TO_NEXT[p.stars] || 0} shards to reach 4\u2605 Super Sensory`);
-    }
-  const parsedHeroes = parseHeroes(heroes);
-
   // Pre-count off-type heroes per squad for 4+1 meta detection
   // Only flag a mismatch when 2+ heroes in the squad are off-type
   const offTypeCountPerSquad = [0, 1, 2].map((squadIdx) => {
@@ -210,9 +197,9 @@ function buildSystemPrompt({ server, squad_types = [], troop_type, furnace_level
     const typeNote = heroType
       ? heroType !== squadTypeForSlot
         ? offTypeCount >= 2
-          ? ` [${heroType} hero - MISMATCH (${offTypeCount} off-type heroes in squad ${squadIdx + 1})]`
-          : ` [${heroType} hero - off-type but likely intentional 4+1 meta, do NOT flag as error]`
-        : ` [${heroType} hero - matches squad type]`
+          ? ` [${heroType} hero - MISMATCH: ${offTypeCount} off-type heroes in squad ${squadIdx + 1}]`
+          : ""
+        : ` [${heroType} - matches squad type]`
       : "";
     return `  - ${p.name}: ${p.stars}\u2605 \u2014 ${statusParts.join("; ")}${typeNote}`;
   });
@@ -266,7 +253,7 @@ HQ Level: ${hq_level != null ? hq_level : "not set"}
 Virus Resistance: ${virus_resistance != null ? virus_resistance : "not set"}
 Today: ${today}
 ${weekLine}
-4+1 META NOTE: Player may use 1 off-type hero in their lineup (4+1 meta). The squad type declared by the player is always correct. Do not override it based on hero roster analysis. Only flag a mismatch if 2 or more heroes in a squad are off-type.
+Note: player may intentionally use 1 off-type hero in a squad (4+1 meta). The declared squad type is always correct. Do not suggest this is an error.
 
 HERO ROSTER - EXACT CURRENT STAR LEVELS (THIS IS GROUND TRUTH):
 ${heroesBlock}
@@ -513,14 +500,14 @@ exports.handler = async (event) => {
   const hq_level         = body.hq_level         || null;
   const virus_resistance = body.virus_resistance != null ? Number(body.virus_resistance) : null;
   const squad_powers = Array.isArray(body.squad_powers) ? body.squad_powers : [];
-  // Per-squad troop types — fall back to hero inference for squad 1
-  const squad_types_raw = Array.isArray(body.squad_types) ? body.squad_types : [];
-  const squad_types = [
-    squad_types_raw[0] || inferTroopTypeFromHeroes(Array.isArray(heroes) ? heroes.slice(0, 5) : []),
-    squad_types_raw[1] || null,
-    squad_types_raw[2] || null,
-  ];
-  const troop_type = squad_types[0]; // Squad 1 type = primary for boss/beast logic
+  // squad_types from frontend is source of truth; inferTroopTypeFromHeroes is fallback ONLY
+  // when squad_types is completely absent from the payload (legacy clients).
+  const squad_types_present = Array.isArray(body.squad_types);
+  const squad_types_raw = squad_types_present ? body.squad_types : [];
+  const squad_types = squad_types_present
+    ? [squad_types_raw[0] || null, squad_types_raw[1] || null, squad_types_raw[2] || null]
+    : [inferTroopTypeFromHeroes(Array.isArray(heroes) ? heroes.slice(0, 5) : []), null, null];
+  const troop_type = squad_types[0] || "Tank"; // Squad 1 type = primary for boss/beast logic
 
   if (!question) {
     return { statusCode: 400, headers: CORS, body: JSON.stringify({ error: "question is required" }) };
