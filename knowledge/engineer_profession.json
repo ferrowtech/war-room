@@ -1,0 +1,341 @@
+{
+  "engineer_profession_skills": {
+    "source": "Last War: Survival community guide - Season 2",
+    "tier_legend": {
+      "S+": "Best for Season 2",
+      "S": "Great to use",
+      "A": "Useful but upgrade towards end of season",
+      "B": "Not required, based on personal preference",
+      "R": "Required (prerequisite)"
+    },
+    "skills": [
+      {
+        "prof_level": 1,
+        "name": "Rapid Production",
+        "tier": "B",
+        "recommended_upgrade": "3/5",
+        "notes": ""
+      },
+      {
+        "prof_level": 1,
+        "name": "Outstanding Contribution",
+        "tier": "S",
+        "recommended_upgrade": "1/1",
+        "notes": ""
+      },
+      {
+        "prof_level": 1,
+        "name": "Combat Experience",
+        "tier": "S+",
+        "recommended_upgrade": "3/3",
+        "notes": ""
+      },
+      {
+        "prof_level": 5,
+        "name": "Extra Meal",
+        "tier": "A",
+        "recommended_upgrade": "1/1",
+        "notes": "Use if you don't get as much stamina as you would like though."
+      },
+      {
+        "prof_level": 5,
+        "name": "Siege Mastery",
+        "tier": "A",
+        "recommended_upgrade": "0/1",
+        "notes": "Engineer is meant to level up - come back as there are more important skills to have."
+      },
+      {
+        "prof_level": 10,
+        "name": "Build For Free",
+        "tier": "S",
+        "recommended_upgrade": "5/5",
+        "notes": ""
+      },
+      {
+        "prof_level": 10,
+        "name": "Research For Free",
+        "tier": "S",
+        "recommended_upgrade": "5/5",
+        "notes": ""
+      },
+      {
+        "prof_level": 10,
+        "name": "Building Inspiration 1",
+        "tier": "S+",
+        "recommended_upgrade": "3/3",
+        "notes": "Top priority of the 3 since building those titanium alloy factories."
+      },
+      {
+        "prof_level": 15,
+        "name": "Build Now",
+        "tier": "S",
+        "recommended_upgrade": "4/5",
+        "notes": "Minimum is 4."
+      },
+      {
+        "prof_level": 15,
+        "name": "Research Now",
+        "tier": "S",
+        "recommended_upgrade": "4/5",
+        "notes": "Minimum is 4."
+      },
+      {
+        "prof_level": 15,
+        "name": "Winter Wonderland",
+        "tier": "R",
+        "recommended_upgrade": "1/1",
+        "notes": "Required as a prerequisite."
+      },
+      {
+        "prof_level": 20,
+        "name": "Rally Rush",
+        "tier": "B",
+        "recommended_upgrade": "0/5",
+        "notes": ""
+      },
+      {
+        "prof_level": 20,
+        "name": "Siege Banner",
+        "tier": "A",
+        "recommended_upgrade": "1/1",
+        "notes": "Helpful for alliance fighting - only get if you want to help support."
+      },
+      {
+        "prof_level": 25,
+        "name": "Siege Inspiration",
+        "tier": "S+",
+        "recommended_upgrade": "3/3",
+        "notes": ""
+      },
+      {
+        "prof_level": 25,
+        "name": "Friendly Aid",
+        "tier": "B",
+        "recommended_upgrade": "0/5",
+        "notes": ""
+      },
+      {
+        "prof_level": 25,
+        "name": "Double Exchange",
+        "tier": "R",
+        "recommended_upgrade": "1/3",
+        "notes": "Good initially but useless later on."
+      },
+      {
+        "prof_level": 30,
+        "name": "Cooperative Construction",
+        "tier": "S",
+        "recommended_upgrade": "2/2",
+        "notes": ""
+      },
+      {
+        "prof_level": 30,
+        "name": "Cooperative Research",
+        "tier": "S",
+        "recommended_upgrade": "2/2",
+        "notes": ""
+      },
+      {
+        "prof_level": 30,
+        "name": "Firebomb",
+        "tier": "A",
+        "recommended_upgrade": "3/3",
+        "notes": "Start with 1 or 2. Very helpful for alliance and members."
+      },
+      {
+        "prof_level": 35,
+        "name": "Resource-Saving",
+        "tier": "B",
+        "recommended_upgrade": "0/5",
+        "notes": "ROI is minimum."
+      },
+      {
+        "prof_level": 35,
+        "name": "Recycling",
+        "tier": "S",
+        "recommended_upgrade": "4/5",
+        "notes": "Helps a lot with resource costs."
+      },
+      {
+        "prof_level": 35,
+        "name": "Professional Insights",
+        "tier": "S+",
+        "recommended_upgrade": "5/5",
+        "notes": ""
+      },
+      {
+        "prof_level": 40,
+        "name": "Medical Aid",
+        "tier": "B",
+        "recommended_upgrade": "0/5",
+        "notes": ""
+      },
+      {
+        "prof_level": 40,
+        "name": "Buddy Shield",
+        "tier": "A",
+        "recommended_upgrade": "0/5",
+        "notes": ""
+      },
+      {
+        "prof_level": 40,
+        "name": "Intense Overdrive",
+        "tier": "S",
+        "recommended_upgrade": "2/3",
+        "notes": ""
+      },
+      {
+        "prof_level": 45,
+        "name": "Drone Supply",
+        "tier": "B",
+        "recommended_upgrade": "0/5",
+        "notes": ""
+      },
+      {
+        "prof_level": 45,
+        "name": "Fearless Defense",
+        "tier": "B",
+        "recommended_upgrade": "0/5",
+        "notes": "Good for buster. Get additional points, but only a small amount."
+      },
+      {
+        "prof_level": 45,
+        "name": "Gather for Warmth",
+        "tier": "B",
+        "recommended_upgrade": "0/1",
+        "notes": "Can use recon planes and save the point."
+      },
+      {
+        "prof_level": 50,
+        "name": "Random Visitors",
+        "tier": "B",
+        "recommended_upgrade": "0/1",
+        "notes": "Cooldown is unknown but the level of survivor is random. May get blue or green, which are useless."
+      },
+      {
+        "prof_level": 50,
+        "name": "Durability Mine",
+        "tier": "B",
+        "recommended_upgrade": "0/5",
+        "notes": "Good for buster."
+      },
+      {
+        "prof_level": 55,
+        "name": "One More",
+        "tier": "S+",
+        "recommended_upgrade": "5/5",
+        "notes": "Do One More before Support Boost."
+      },
+      {
+        "prof_level": 55,
+        "name": "Support Boost",
+        "tier": "S+",
+        "recommended_upgrade": "5/5",
+        "notes": "Out of One More and Support Boost, do One More first."
+      },
+      {
+        "prof_level": 55,
+        "name": "Frostbomb",
+        "tier": "B",
+        "recommended_upgrade": "0/3",
+        "notes": "Can just turn off furnace to lower temperature."
+      },
+      {
+        "prof_level": 60,
+        "name": "Efficient Gathering",
+        "tier": "A",
+        "recommended_upgrade": "3/5",
+        "notes": "Useful but don't need it full."
+      },
+      {
+        "prof_level": 60,
+        "name": "First Aid Expert",
+        "tier": "B",
+        "recommended_upgrade": "0/5",
+        "notes": "Barely noticeable."
+      },
+      {
+        "prof_level": 60,
+        "name": "Front Mine",
+        "tier": "B",
+        "recommended_upgrade": "0/5",
+        "notes": ""
+      },
+      {
+        "prof_level": 65,
+        "name": "Battlefield Cleanup",
+        "tier": "S",
+        "recommended_upgrade": "3/5",
+        "notes": "Gain more from killing monsters."
+      },
+      {
+        "prof_level": 65,
+        "name": "Master Builder",
+        "tier": "S+",
+        "recommended_upgrade": "5/5",
+        "notes": ""
+      },
+      {
+        "prof_level": 70,
+        "name": "Instant Gathering",
+        "tier": "S",
+        "recommended_upgrade": "5/5",
+        "notes": "Useful for when porting base but want extra resources. Help with gathering day in AR."
+      },
+      {
+        "prof_level": 70,
+        "name": "Monster Tracking",
+        "tier": "A",
+        "recommended_upgrade": "2/5",
+        "notes": "For attacking zombies and DE."
+      }
+    ],
+    "priority_summary": {
+      "must_upgrade_first": [
+        "Combat Experience (lv1) - S+, 3/3",
+        "Building Inspiration 1 (lv10) - S+, 3/3 — top priority for titanium alloy factories",
+        "Build For Free (lv10) - S, 5/5",
+        "Research For Free (lv10) - S, 5/5",
+        "Siege Inspiration (lv25) - S+, 3/3",
+        "Professional Insights (lv35) - S+, 5/5",
+        "One More (lv55) - S+, 5/5 — do this before Support Boost",
+        "Support Boost (lv55) - S+, 5/5",
+        "Master Builder (lv65) - S+, 5/5"
+      ],
+      "strong_secondary": [
+        "Outstanding Contribution (lv1) - S, 1/1",
+        "Build Now (lv15) - S, minimum 4/5",
+        "Research Now (lv15) - S, minimum 4/5",
+        "Cooperative Construction (lv30) - S, 2/2",
+        "Cooperative Research (lv30) - S, 2/2",
+        "Recycling (lv35) - S, 4/5",
+        "Intense Overdrive (lv40) - S, 2/3",
+        "Battlefield Cleanup (lv65) - S, 3/5",
+        "Instant Gathering (lv70) - S, 5/5"
+      ],
+      "upgrade_end_of_season": [
+        "Extra Meal (lv5) - A",
+        "Siege Banner (lv20) - A, only if supporting alliance",
+        "Firebomb (lv30) - A, start with 1-2",
+        "Buddy Shield (lv40) - A",
+        "Efficient Gathering (lv60) - A, 3/5 is enough",
+        "Monster Tracking (lv70) - A, 2/5"
+      ],
+      "skip": [
+        "Siege Mastery (lv5) - A, come back later",
+        "Rally Rush (lv20) - B",
+        "Friendly Aid (lv25) - B",
+        "Resource-Saving (lv35) - B, ROI minimum",
+        "Medical Aid (lv40) - B",
+        "Drone Supply (lv45) - B",
+        "Fearless Defense (lv45) - B",
+        "Gather for Warmth (lv45) - B",
+        "Random Visitors (lv50) - B, random and unreliable",
+        "Durability Mine (lv50) - B",
+        "Frostbomb (lv55) - B",
+        "First Aid Expert (lv60) - B",
+        "Front Mine (lv60) - B"
+      ]
+    }
+  }
+}
