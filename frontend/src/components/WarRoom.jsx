@@ -752,6 +752,7 @@ const WarRoom = ({ profile, onEditProfile }) => {
   const fileInputRef       = useRef(null);
   const isMounted          = useRef(true);
   const weekDetectionRan   = useRef(false);
+  const chatContainerRef   = useRef(null);
   useEffect(() => { return () => { isMounted.current = false; }; }, []);
 
   const detectSeasonWeek = useCallback(async () => {
@@ -838,7 +839,11 @@ const WarRoom = ({ profile, onEditProfile }) => {
     }
   };
 
-  const handleQuickAction = (q) => { setQuestion(q); handleSubmit(q); };
+  const handleQuickAction = (q) => {
+    setQuestion(q);
+    if (chatContainerRef.current) chatContainerRef.current.scrollTo({ top: 0, behavior: "smooth" });
+    handleSubmit(q);
+  };
   const handleKeyDown = (e) => { if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) handleSubmit(); };
 
   return (
@@ -859,7 +864,7 @@ const WarRoom = ({ profile, onEditProfile }) => {
           language={language}
         />
 
-        <div className="flex-1 flex flex-col overflow-y-auto p-4 pb-16 gap-4">
+        <div ref={chatContainerRef} className="flex-1 flex flex-col overflow-y-auto p-4 pb-16 gap-4">
           {/* Input section */}
           <div className="hud-panel p-4 relative" data-testid="intelligence-request-card">
             <div className="scan-line-card" />
