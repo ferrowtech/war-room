@@ -37,10 +37,10 @@ const inferTroopType = (heroes = []) => {
   return Object.keys(counts).find((k) => counts[k] === max) || "Tank";
 };
 
-// ── Server timezone — all Last War servers use UTC-2 (fixed) ─────
-const SERVER_UTC_OFFSET = -2;
+// ── Server timezone — all Last War servers use UTC-3 (fixed) ─────
+const SERVER_UTC_OFFSET = -3;
 
-// Returns current server time as HH:MM (UTC-2, no locale dependency)
+// Returns current server time as HH:MM (UTC-3, no locale dependency)
 const getServerTime = () => {
   const now = new Date();
   const serverMs = now.getTime() + now.getTimezoneOffset() * 60000 + SERVER_UTC_OFFSET * 3600000;
@@ -48,7 +48,7 @@ const getServerTime = () => {
   return `${String(d.getUTCHours()).padStart(2, "0")}:${String(d.getUTCMinutes()).padStart(2, "0")}`;
 };
 
-// Returns time until next Wednesday/Saturday 12:00 server time (UTC-2)
+// Returns time until next Wednesday/Saturday 12:00 server time (UTC-3)
 const getWarCountdown = () => {
   const now = new Date();
   const serverNowMs = now.getTime() + now.getTimezoneOffset() * 60000 + SERVER_UTC_OFFSET * 3600000;
@@ -498,7 +498,7 @@ const SeasonTracker = ({ seasonWeek, isDetecting, onRefresh, tr, language }) => 
   );
 };
 
-// ── War Phase Countdown (UTC-2 fixed) ─────────────────────────────
+// ── War Phase Countdown (UTC-3 fixed) ─────────────────────────────
 const WarCountdownWidget = ({ tr, language }) => {
   const serverTimeStr  = getServerTime();
   const { dayName, countdown } = getWarCountdown();
@@ -531,9 +531,6 @@ const WarCountdownWidget = ({ tr, language }) => {
           {tr.inTime} {countdown}
         </p>
       </div>
-      <p className="font-heading text-[8px] text-[#37474f] tracking-wide mt-1.5">
-        {tr.timezoneHint}
-      </p>
     </div>
   );
 };
