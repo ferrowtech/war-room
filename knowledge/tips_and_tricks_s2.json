@@ -1,3 +1,92 @@
 {
-  "_note": "Placeholder - content to be provided. This file will contain tips and tricks specific to Season 2 Polar Storm."
+  "tips_and_tricks_s2": {
+    "source": "Fan Work ULG - Season 2 community guides",
+    "preparation": [
+      "Unlock Victory Tower (Lv.3) to gain +5°C on your base, plus Recon Aircraft (+4°C Lv.2)",
+      "The Frozen Castle base skin provides temperature bonuses",
+      "Give 10 likes per day on bases during the season to receive speedups",
+      "Boost HQ production right after Season 1 to offset temperature drop at start of Season 2",
+      "Send trucks just before season begins (0:09 server time) - they will auto-complete route when Season 2 map loads, securing 3 free truck deliveries at very start"
+    ],
+    "combat_optimization": [
+      "Hit a Doomwalker every day - ideally level 190 for the best First Blood score",
+      "Before fighting a Wanted Boss, heat your base as high as safely possible — maximum safe temperature is just below 50°C. At 50°C the base starts burning (5 minute countdown). Do NOT overheat.",
+      "If buying Season Battle Pass, get it on Day 1 to level up Alloy Factories ASAP and generate a large alloy lead"
+    ],
+    "alloy_factory_strategy": {
+      "weekly_pass_warning": "Do NOT upgrade the gifted Alloy Factory first - do it LAST. It is far more efficient to:",
+      "steps": [
+        "1. Upgrade your FIRST Alloy Factory to Lv.15",
+        "2. Then unlock the SECOND to Lv.15",
+        "3. Do the same to reach a third, fourth and fifth factory",
+        "4. This strategy gives a massive economic advantage - then group the level increases above 15"
+      ],
+      "note": "Each factory unlocks the next when it reaches level 15. The gifted Weekly Pass factory should be upgraded last as it has lower costs."
+    },
+    "temperature_survival": [
+      "During daily blizzards, stay above -20°C",
+      "Some Saturdays: Cold Wave drops the map to -50°C / -60°C for 4 hours",
+      "Keep at least 300,000 Coal stored safely for these events (5,000-10,000 on Day 1)",
+      "Enable Auto Mode or Auto-Overdrive during blizzards",
+      "Always place your HQ near the Alliance Furnace (zone bonus)",
+      "If in a cold zone, move your HQ near a heated city or active furnace"
+    ],
+    "violet_and_heroes": {
+      "violet_strategy": [
+        "Target Honor Wall 60 for Violet (or 160 for optimal)",
+        "Accumulate 500k Skill Medals, invest everything into Violet to promote her to UR",
+        "You'll get her fragments refunded (1.6k) and all medals returned - perfect to aim for Thursday MVP"
+      ],
+      "free_unlocks": ["McGregor", "Williams"],
+      "weapon_fragment_chests_available": ["Kimberly", "DVA", "Tesla"]
+    },
+    "wanted_boss_tips": {
+      "score_bonus": "Heat your base before attacking Wanted Boss for a score bonus. Maximum safe temperature is just below 50°C — at exactly 50°C the base starts burning with a 5-minute countdown. Never heat to 70°C, that is not achievable without triggering the fire mechanic.",
+      "temperature_warning": "Base burns at ≥50°C. A 5-minute fire countdown starts at 50°C. Keep temperature at 49°C or below during boss attacks to stay safe.",
+      "timing": "Attack AFTER Hero Advancement phase of Arms Race for maximum power",
+      "war_fever": "Use War Fever before every boss attack for +1% power boost",
+      "max_attacks": "5 solo attacks per day maximum",
+      "ranking": "Rankings based on highest single-attack damage per day"
+    },
+    "skills_season_2": {
+      "source": "Fan Work ULG - Skills Season 2 guide",
+      "total_points": 17,
+      "priority_skills": [
+        {"level": 1, "priority": "EXCELLENT", "target_points": 3, "description": "EXF upgrade skill"},
+        {"level": 10, "priority": "EXCELLENT", "target_points": 3, "description": "EXF building skill"},
+        {"level": 15, "priority": "GOOD", "target_points": 1, "description": "Seasonal building skill"},
+        {"level": 25, "priority": "GOOD", "target_points": 1, "description": "x2 resource skill"},
+        {"level": 30, "priority": "EXCELLENT", "target_points": 3, "description": "Combat skill"},
+        {"level": 35, "priority": "GOOD", "target_points": 1, "description": "Resistance skill"},
+        {"level": 40, "priority": "GOOD", "target_points": 1, "description": "Upgrade skill"},
+        {"level": 45, "priority": "EXCELLENT", "target_points": 1, "description": "Furnace/heat skill"},
+        {"level": 55, "priority": "EXCELLENT", "target_points": 3, "description": "Cold/ice skill"},
+        {"level": 60, "priority": "GOOD", "target_points": 0, "description": "Seasonal end skill"}
+      ],
+      "advice": "Focus EXCELLENT priority skills first. Level 1 and 10 EXF skills are top priority with 3 points each."
+    },
+    "season_2_overview": {
+      "objective": "Push toward center of Polar Region, keep bases heated, strengthen troop resistance, produce maximum Rare Soil before season ends",
+      "key_mechanics": {
+        "polar_cities": "Cities equipped with heating systems disabled by Boreas. Reclaim to reactivate Furnaces and increase temperature.",
+        "rare_soil": "Captured cities generate Rare Soil - the key seasonal resource. Final alliance ranking based on total amount produced.",
+        "alliance_furnace": "After controlling outskirts, advance Alliance Furnace deeper into Polar Region"
+      },
+      "temperature_states": {
+        "on_fire": "≥50°C - Base starts burning, 5-minute countdown begins. Loses durability. Can be extinguished manually or by allies. Maximum safe temperature is 49°C.",
+        "frozen": "≤-20°C - Relocation and rallies disabled, units frozen",
+        "break_the_ice": "Required to attack or capture a frozen base. Consumes Stamina, grants Profession EXP.",
+        "warm_up": "Warm up allied bases. Done via Recon Aircraft, consumes Coal.",
+        "frost_and_snow": "Below 0°C = ground frozen. Above 0°C = melting reveals hidden resources.",
+        "blizzard": "Sudden temperature drop. Occurs at intervals with varying intensity."
+      },
+      "seasonal_resources": {
+        "coal": "Core resource mined from Dig Sites. Used to build and fuel Furnaces.",
+        "titanium_alloy": "Produced in Titanium Alloy Factory. Used to upgrade Furnaces.",
+        "high_heat_furnace": "Seasonal structure increasing temperature and virus resistance. Overload mode = more heat but higher consumption.",
+        "alliance_furnace": "Heats the Alliance area. Can enter Overload mode. Dismantled after season."
+      },
+      "end_of_season": "All seasonal structures are dismantled and remaining resources converted into Profession EXP."
+    }
+  }
 }
