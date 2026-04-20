@@ -180,11 +180,38 @@ function buildSystemPrompt({ server, squad_types = [], troop_type, furnace_level
     if (p.stars < 4) {
       statusParts.push(`needs ${SHARDS_TO_NEXT[p.stars] || 0} shards to reach 4\u2605 Super Sensory`);
     }
-    const heroType = HERO_TYPES[p.name];
-    const squadTypeForSlot = squad_types[Math.floor(idx / 5)] || troop_type;
+  const parsedHeroes = parseHeroes(heroes);
+
+  // Pre-count off-type heroes per squad for 4+1 meta detection
+  // Only flag a mismatch when 2+ heroes in the squad are off-type
+  const offTypeCountPerSquad = [0, 1, 2].map((squadIdx) => {
+    const squadTypeForThisSquad = squad_types[squadIdx] || troop_type;
+    return parsedHeroes.slice(squadIdx * 5, squadIdx * 5 + 5).filter((p) => {
+      const ht = HERO_TYPES[p.name];
+      return ht && ht !== squadTypeForThisSquad;
+    }).length;
+  });
+
+  // Heroes block - annotate each hero against their squad's declared troop type
+  const heroLines = parsedHeroes.map((p, idx) => {
+    if (p.stars === null) {
+      return `  - ${p.name}: star level could not be read (check profile)`;
+    }
+    const statusParts = [];
+    if (p.stars >= 4) statusParts.push("Super Sensory UNLOCKED");
+    if (p.stars >= 5) statusParts.push("Exclusive Weapon UNLOCKED");
+    if (p.stars < 4) {
+      statusParts.push(`needs ${SHARDS_TO_NEXT[p.stars] || 0} shards to reach 4\u2605 Super Sensory`);
+    }
+    const squadIdx        = Math.floor(idx / 5);
+    const heroType        = HERO_TYPES[p.name];
+    const squadTypeForSlot = squad_types[squadIdx] || troop_type;
+    const offTypeCount    = offTypeCountPerSquad[squadIdx];
     const typeNote = heroType
       ? heroType !== squadTypeForSlot
-        ? ` [${heroType} hero - NOT ${squadTypeForSlot}, do NOT recommend for ${squadTypeForSlot} lineup]`
+        ? offTypeCount >= 2
+          ? ` [${heroType} hero - MISMATCH (${offTypeCount} off-type heroes in squad ${squadIdx + 1})]`
+          : ` [${heroType} hero - off-type but likely intentional 4+1 meta, do NOT flag as error]`
         : ` [${heroType} hero - matches squad type]`
       : "";
     return `  - ${p.name}: ${p.stars}\u2605 \u2014 ${statusParts.join("; ")}${typeNote}`;
@@ -238,6 +265,7 @@ Drone Level: ${drone_level != null ? drone_level : "not set"}
 HQ Level: ${hq_level != null ? hq_level : "not set"}
 Today: ${today}
 ${weekLine}
+4+1 META NOTE: Player may use 1 off-type hero in their lineup (4+1 meta). The squad type declared by the player is always correct. Do not override it based on hero roster analysis. Only flag a mismatch if 2 or more heroes in a squad are off-type.
 
 HERO ROSTER - EXACT CURRENT STAR LEVELS (THIS IS GROUND TRUTH):
 ${heroesBlock}
@@ -311,6 +339,24 @@ ${language === "RU"
   : language === "FR"
   ? "LANGUAGE DIRECTIVE: You MUST respond entirely in French (Francais). Do not write any English in your response - every word must be in French."
   : "LANGUAGE DIRECTIVE: Respond in English."}
+
+${language === "RU" ? `RUSSIAN IN-GAME TERMINOLOGY (use these official terms, not English):
+- Cold Wave = Волна холода
+- Blizzard = Метель
+- Auto Mode = Авторежим
+- Overload = Режим перегрузки
+- War Fever = Боевая лихорадка
+- Arms Race = Гонка вооружений
+- Hero Advancement = Улучшение героев
+- Dig Site / Dig Sites = Место раскопок / Места раскопок
+- Doom Walker = Скиталец судьбы
+- Wanted Monster = Разыскиваемый монстр
+- Alliance Furnace = Альянсовая печь
+- High-Heat Furnace = Высокотемпературная печь
+- Rare Soil = Редкий грунт
+- Recon Aircraft = Самолёт-разведчик
+- Virus Resistance = Вирусная устойчивость
+KEEP IN ENGLISH (do not translate): hero names (Murphy, Kimberly, DVA, Carlie, etc.), boss names (Frenzied Butcher, Frankenstein, Mutant Bulldog), and any term with no confirmed Russian translation.` : ""}
 
 INSTRUCTIONS: Be direct, specific, and tactical. Reference the player's Squad 1 type (${troop_type}), furnace level (${furnace_level}), and actual hero stars from the profile above. Recommend the correct beast type for their troop. Keep answers under 200 words. Format with clear sections when helpful.
 
