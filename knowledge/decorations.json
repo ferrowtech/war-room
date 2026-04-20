@@ -1,0 +1,100 @@
+{
+  "decorations": {
+    "source": "Last War: Survival community guide by peacewarden #1619 & iapetos #192",
+    "updated": "January 2026",
+    "general_strategy": "Use Universal Decor Components to get all S- and A-tier decorations to Level 3, then push S-tier to Level 4.",
+    "tiers": {
+      "S_tier": {
+        "bonus_type": "Damage Reduction",
+        "priority": 1,
+        "note": "Highest priority. Push to Level 4 after all S and A-tier reach Level 3.",
+        "decorations": [
+          "Win in 2025",
+          "Win in 2026",
+          "Torch Relay",
+          "Rock the End",
+          "Joyful Bunny"
+        ]
+      },
+      "A_plus_tier": {
+        "bonus_type": "Skill Damage and March Size",
+        "priority": 2,
+        "note": "Very strong. Skill Damage and March Size are both high-value competitive stats.",
+        "decorations": [
+          "Easter Egg-sassin",
+          "Lovely Bears",
+          "Fabulous Phonograph",
+          "Win in 2024",
+          "Turkey Swashbuckler",
+          "Cornucopia",
+          "God of Judgement"
+        ]
+      },
+      "A_tier": {
+        "bonus_type": "Crit. Damage",
+        "priority": 3,
+        "note": "Good value. Crit Damage scales well in PvP.",
+        "decorations": [
+          "Rosy Cabriolet",
+          "Golden Marshal",
+          "Colorful Christmas T.",
+          "Happy Turkey",
+          "Jack-o' Carriage",
+          "Cheese Manor",
+          "Jack-o' Zombie",
+          "Tower of Victory",
+          "Year of the Dragon"
+        ]
+      },
+      "B_tier": {
+        "bonus_type": "Hero Stat Boost",
+        "priority": 4,
+        "note": "Decent but lower priority than S/A tiers.",
+        "decorations": [
+          "Pumpkin Panic",
+          "Warrior's Monument",
+          "Throne of Blood",
+          "Golden Missile Vehicle",
+          "Ferris Wheel",
+          "Bell Tower"
+        ]
+      },
+      "C_tier": {
+        "bonus_type": "Hero Stat Boost (lower)",
+        "priority": 5,
+        "note": "Low priority. Only invest after higher tiers are maxed.",
+        "decorations": [
+          "Gold Bomber",
+          "Gold Tank"
+        ]
+      },
+      "Economy": {
+        "bonus_type": "Resource / Economy",
+        "priority": 6,
+        "note": "Economy decorations provide resource bonuses. Lower combat value but useful for farming players.",
+        "decorations": [
+          "Lucky Cat",
+          "Golden Mobile Squad",
+          "Eternal Pyramid",
+          "Military Monument",
+          "Neon Sign",
+          "Libertas",
+          "Eifelle Tower"
+        ]
+      }
+    },
+    "upgrade_priority_summary": [
+      "1. Get ALL S-tier and A-tier decorations to Level 3 first",
+      "2. Then push S-tier decorations to Level 4",
+      "3. B-tier and C-tier only after S and A are maxed",
+      "4. Economy tier is optional — only if you prioritise resource production over combat"
+    ],
+    "strategic_notes": [
+      "Damage Reduction (S-tier) is the most impactful decoration bonus for survivability in PvP",
+      "Skill Damage + March Size (A+ tier) is very strong for offensive squads",
+      "Crit Damage (A-tier) scales well but is less consistent than Damage Reduction",
+      "Do not waste Universal Decor Components on B/C tier decorations while S/A tiers are below Level 3",
+      "Win in 2025 and Win in 2026 are limited-time decorations — if a player has them, they should be prioritised immediately"
+    ]
+  }
+}
