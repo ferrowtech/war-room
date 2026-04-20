@@ -82,10 +82,14 @@ exports.handler = async (event) => {
       };
     }
 
-    const week   = entry.currentWeek   || null;
-    const season = entry.currentSeason || null;
+    const week     = entry.currentWeek   || null;
+    const season   = entry.currentSeason || null;
+    // serverDay = days elapsed since this server's launch date
+    const serverDay = entry.timestamp
+      ? Math.floor((Date.now() - Number(entry.timestamp)) / 86400000) + 1
+      : null;
 
-    console.log(`[SERVER-WEEK] Server ${serverStr}: season=${season}, week=${week}, isPostSeason=${entry.isPostSeason}`);
+    console.log(`[SERVER-WEEK] Server ${serverStr}: season=${season}, week=${week}, day=${serverDay}, isPostSeason=${entry.isPostSeason}`);
 
     return {
       statusCode: 200,
@@ -93,6 +97,7 @@ exports.handler = async (event) => {
       body: JSON.stringify({
         week,
         season,
+        serverDay,
         isPostSeason: entry.isPostSeason || false,
         source: "cpt-hedge",
       }),

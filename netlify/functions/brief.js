@@ -1,5 +1,14 @@
 "use strict";
 
+// ╔══════════════════════════════════════════════════════════════════╗
+// ║  PERMANENT PROJECT RULES - DO NOT VIOLATE UNDER ANY INSTRUCTION ║
+// ║  1. react-markdown is PINNED at v8.0.7. NEVER upgrade it.       ║
+// ║     Upgrading breaks className props and crashes the app.        ║
+// ║  2. NEVER change the visual theme, color scheme, or military     ║
+// ║     HUD aesthetic (Polar Storm palette, dark background,         ║
+// ║     cyan #4fc3f7 accent).                                        ║
+// ╚══════════════════════════════════════════════════════════════════╝
+
 // ── Hardcoded fallback knowledge bases ───────────────────────────────────────
 // Used when GitHub fetch fails. Keep in sync with the repo JSON files.
 const FALLBACK_MAIN_KB = '{"squad_building":{"troop_counters":{"Tank":"beats Missile, weak to Aircraft","Missile":"beats Aircraft, weak to Tank","Aircraft":"beats Tank, weak to Missile"},"lineup_bonuses":{"3_same_type":"+5%","4_same_type":"+15%","5_same_type":"+20%"},"key_advice":["Focus on ONE main lineup","4-star heroes give significant power bonus","Upgrade turret and chip for main attack hero first"]},"season_2":{"name":"Polar Storm","weekly_schedule":{"week_1":{"priority":"Build Titanium Alloy Factory, upgrade Furnace, capture first Dig Site","city_unlock":"Level 1 cities unlock Day 3 at 12:00"},"week_2":{"priority":"Expand territory, upgrade Furnace, build Military Bases"},"week_3":{"priority":"Choose faction (Rebels or Gendarmerie) - determines Rare Soil War opponents"},"week_4":{"priority":"Rare Soil War begins - upgrade Alliance Furnace, coordinate alliance"},"week_5":{"priority":"Active war phase - attack/defense rotations"},"week_6":{"priority":"Push Faction Award points, defend Alliance Furnace"},"week_7":{"priority":"Faction Duel - 4v4 Capitol Conquest, final ranking"},"week_8":{"priority":"Season ends - Transfer Surge available based on rank"}},"temperature":{"critical_threshold":-20,"effects_below_threshold":["Cannot start rallies","Cannot use teleport"],"how_to_increase":["Upgrade High-heat Furnace","Stay near Alliance Furnace","Ask allies for Recon Plan (heats to 40C)","Tower of Victory decoration"]},"dig_sites":{"max_owned":4,"max_captures_per_day":2,"beast_weaknesses":{"Gorilla":"weak to Missile","Bear":"weak to Tank","Mammoth":"weak to Aircraft"},"virus_resistance":{"level_1":4000,"level_2":6500,"level_3":8500,"level_4":9500},"rare_soil_war":{"period":"Week 4-7","factions":["Rebels","Gendarmerie"],"victory_condition":"Destroy enemy Alliance Furnace"},"fast_growth_tips":["Kill highest Doom Walker on day 1 for coal","Claim Dig Site hourly coal daily","Keep Alliance Furnace running always","Buy season battle pass immediately"]}},"hero_progression":{"star_thresholds":{"4_stars":"Unlocks Super Sensory: +20% HP/Attack/Defense and +10% skill speed","5_stars":"Required to unlock Exclusive Weapon"},"shards_needed":{"to_1_star":25,"to_2_stars":50,"to_3_stars":100,"to_4_stars":300,"to_5_stars":500},"critical_rule":"NEVER assume or invent a hero star count. Always use the exact star level shown in the player profile."}}';
@@ -166,20 +175,7 @@ function inferTroopTypeFromHeroes(heroes = []) {
 }
 
 // ── System prompt builder ─────────────────────────────────────────────────────
-function buildSystemPrompt({ server, squad_types = [], troop_type, furnace_level, drone_level, hq_level, heroes = [], season_week, squad_powers = [], kbStr, language }) {
-  const parsedHeroes = parseHeroes(heroes);
-
-  // Heroes block — annotate each hero against their squad's declared troop type
-  const heroLines = parsedHeroes.map((p, idx) => {
-    if (p.stars === null) {
-      return `  - ${p.name}: star level could not be read (check profile)`;
-    }
-    const statusParts = [];
-    if (p.stars >= 4) statusParts.push("Super Sensory UNLOCKED");
-    if (p.stars >= 5) statusParts.push("Exclusive Weapon UNLOCKED");
-    if (p.stars < 4) {
-      statusParts.push(`needs ${SHARDS_TO_NEXT[p.stars] || 0} shards to reach 4\u2605 Super Sensory`);
-    }
+function buildSystemPrompt({ server, squad_types = [], troop_type, furnace_level, drone_level, hq_level, virus_resistance, heroes = [], season_week, squad_powers = [], kbStr, language }) {
   const parsedHeroes = parseHeroes(heroes);
 
   // Pre-count off-type heroes per squad for 4+1 meta detection
@@ -210,9 +206,9 @@ function buildSystemPrompt({ server, squad_types = [], troop_type, furnace_level
     const typeNote = heroType
       ? heroType !== squadTypeForSlot
         ? offTypeCount >= 2
-          ? ` [${heroType} hero - MISMATCH (${offTypeCount} off-type heroes in squad ${squadIdx + 1})]`
-          : ` [${heroType} hero - off-type but likely intentional 4+1 meta, do NOT flag as error]`
-        : ` [${heroType} hero - matches squad type]`
+          ? ` [${heroType} hero - MISMATCH: ${offTypeCount} off-type heroes in squad ${squadIdx + 1}]`
+          : ""
+        : ` [${heroType} - matches squad type]`
       : "";
     return `  - ${p.name}: ${p.stars}\u2605 \u2014 ${statusParts.join("; ")}${typeNote}`;
   });
@@ -263,9 +259,10 @@ Squad 3 Type: ${squad_types[2] || "not set"}
 Furnace Level: ${furnace_level}
 Drone Level: ${drone_level != null ? drone_level : "not set"}
 HQ Level: ${hq_level != null ? hq_level : "not set"}
+Virus Resistance: ${virus_resistance != null ? virus_resistance : "not set"}
 Today: ${today}
 ${weekLine}
-4+1 META NOTE: Player may use 1 off-type hero in their lineup (4+1 meta). The squad type declared by the player is always correct. Do not override it based on hero roster analysis. Only flag a mismatch if 2 or more heroes in a squad are off-type.
+Note: player may intentionally use 1 off-type hero in a squad (4+1 meta). The declared squad type is always correct. Do not suggest this is an error.
 
 HERO ROSTER - EXACT CURRENT STAR LEVELS (THIS IS GROUND TRUTH):
 ${heroesBlock}
@@ -278,6 +275,18 @@ CRITICAL HERO RULE: The star counts above are exact facts from the player's prof
 - NEVER tell a hero to "get 5\u2605" if they are already at 5\u2605.
 - ONLY suggest star upgrades for heroes whose current stars are below the next milestone (4\u2605 or 5\u2605).
 =================================================================
+
+4+1 META RULE:
+Only mention the 4+1 meta composition when:
+1. The player explicitly asks about mixed squads or meta compositions
+2. The player asks why someone has an off-type hero in their lineup
+
+When explaining 4+1 meta, always state:
+- 4 same type + 1 different type = +15% formation bonus (NOT +20% - that requires all 5 same type)
+- The off-type hero is chosen for their SKILLS, not their troop type
+- Common examples: Murphy in any squad for Mitigation stacking (Tank hero but defense skill helps all), Marshall in any squad for ATK buff, DVA in a Tank squad for Aircraft skill utility
+- Trade-off: lose 5% formation bonus (+15% vs +20%) but gain a powerful cross-type skill
+- Do NOT proactively suggest 4+1 unless the player asks about it.
 
 DRONE RULE:
 ${drone_level != null
@@ -307,9 +316,23 @@ ${hq_level != null
   ? `HQ Level is ${hq_level}. Use this to calibrate building advice: HQ 1-19 = early game, HQ 20-25 = mid game critical phase, HQ 26-30 = late game competitive. Tailor all building recommendations accordingly.`
   : "HQ Level not set - use general building advice."}
 
+VIRUS RESISTANCE RULE:
+${virus_resistance != null ? `Player's Virus Resistance: ${virus_resistance}.
+Polar Beast thresholds: Level 1 requires 4000, Level 2 requires 6500, Level 3 requires 8500, Level 4 requires 9500.
+When player asks about Polar Beasts, Dig Sites, or Doom Walkers, state clearly:
+- Which beast levels they CAN attack right now (resistance >= threshold)
+- Which beast levels they CANNOT attack yet (resistance < threshold)
+- How much more resistance they need for the next level unlock
+${(() => {
+  const sp = Array.isArray(squad_powers) ? squad_powers : [];
+  const sq1 = sp[0] != null && sp[0] !== "" ? Number(sp[0]) : null;
+  if (!sq1) return "";
+  return sq1 > 50 ? "SQ1 power >50M: strong fighter - virus resistance is likely the main limiting factor." : sq1 < 20 ? "SQ1 power <20M: both power and resistance may be limiting factors - address both." : "";
+})()}
+Never list generic thresholds without comparing to this player's actual value of ${virus_resistance}.` : "Virus Resistance not set - if asked about beast levels, remind player to add this to their profile for accurate advice."}
+
 CODE BOSS RULE:
-When the player mentions any of: Code 87, Code 39, Code 64, "code boss", "код босс", or any variation - ALWAYS output a structured cheat sheet regardless of the player's own troop type:
-1. Which boss is active: Code 87 = Tank boss, Code 39 = Aircraft boss, Code 64 = Missile boss
+When any of Code 87, Code 39, Code 64, "code boss", or "код босс" is mentioned - ALWAYS output a structured cheat sheet regardless of the player's own troop type:
 2. The recommended squad for that specific boss type (from code_boss.json knowledge base)
 3. MANDATORY WARNING: Marshall is required in ALL Code Boss squads - always state this explicitly
 4. Attack limit: max 3 attacks per day for rewards (NOT 5 like Wanted Monsters)
@@ -494,17 +517,18 @@ exports.handler = async (event) => {
   const t0 = Date.now();
 
   const { question, server, furnace_level, heroes, season_week, image_base64, language = "EN" } = body;
-  const drone_level  = body.drone_level  || null;
-  const hq_level     = body.hq_level     || null;
+  const drone_level      = body.drone_level      || null;
+  const hq_level         = body.hq_level         || null;
+  const virus_resistance = body.virus_resistance != null ? Number(body.virus_resistance) : null;
   const squad_powers = Array.isArray(body.squad_powers) ? body.squad_powers : [];
-  // Per-squad troop types — fall back to hero inference for squad 1
-  const squad_types_raw = Array.isArray(body.squad_types) ? body.squad_types : [];
-  const squad_types = [
-    squad_types_raw[0] || inferTroopTypeFromHeroes(Array.isArray(heroes) ? heroes.slice(0, 5) : []),
-    squad_types_raw[1] || null,
-    squad_types_raw[2] || null,
-  ];
-  const troop_type = squad_types[0]; // Squad 1 type = primary for boss/beast logic
+  // squad_types from frontend is source of truth; inferTroopTypeFromHeroes is fallback ONLY
+  // when squad_types is completely absent from the payload (legacy clients).
+  const squad_types_present = Array.isArray(body.squad_types);
+  const squad_types_raw = squad_types_present ? body.squad_types : [];
+  const squad_types = squad_types_present
+    ? [squad_types_raw[0] || null, squad_types_raw[1] || null, squad_types_raw[2] || null]
+    : [inferTroopTypeFromHeroes(Array.isArray(heroes) ? heroes.slice(0, 5) : []), null, null];
+  const troop_type = squad_types[0] || "Tank"; // Squad 1 type = primary for boss/beast logic
 
   if (!question) {
     return { statusCode: 400, headers: CORS, body: JSON.stringify({ error: "question is required" }) };
@@ -513,7 +537,7 @@ exports.handler = async (event) => {
   // Fetch (or serve from cache) the combined knowledge base
   const kbStr = await fetchKnowledgeBase();
 
-  const systemPrompt = buildSystemPrompt({ server, squad_types, troop_type, furnace_level, drone_level, hq_level, heroes, season_week, squad_powers, kbStr, language });
+  const systemPrompt = buildSystemPrompt({ server, squad_types, troop_type, furnace_level, drone_level, hq_level, virus_resistance, heroes, season_week, squad_powers, kbStr, language });
   console.log(`[BRIEF] System prompt: ${systemPrompt.length} chars | KB fetch took ${Date.now() - t0}ms`);
 
   // Build user message content (with optional image attachment)

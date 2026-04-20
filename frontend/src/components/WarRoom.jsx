@@ -803,6 +803,7 @@ const WarRoom = ({ profile, onEditProfile }) => {
         furnace_level: Number(localProfile.furnaceLevel),
         drone_level: localProfile.droneLevel || null,
         hq_level: localProfile.hqLevel || null,
+        virus_resistance: localProfile.virusResistance || null,
         squad_types: localProfile.squadTypes || [null, null, null],
         heroes: localProfile.heroes,
         squad_powers: localProfile.squadPowers || [],
@@ -854,7 +855,7 @@ const WarRoom = ({ profile, onEditProfile }) => {
           language={language}
         />
 
-        <div className="flex-1 flex flex-col overflow-y-auto p-4 gap-4">
+        <div className="flex-1 flex flex-col overflow-y-auto p-4 pb-16 gap-4">
           {/* Input section */}
           <div className="hud-panel p-4 relative" data-testid="intelligence-request-card">
             <div className="scan-line-card" />

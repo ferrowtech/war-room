@@ -1,6 +1,10 @@
 # WAR ROOM — PRD & Memory
 
-## Original Problem Statement
+## PERMANENT PROJECT RULES (apply to every change, forever)
+1. **react-markdown is PINNED at v8.0.7** - NEVER upgrade it. Upgrading breaks `className` props and crashes the app.
+2. **NEVER change the visual theme, color scheme, or military HUD aesthetic** - Polar Storm palette, dark background (#0a0e1a), cyan accent (#4fc3f7).
+
+
 Build a web app called "WAR ROOM" — an AI tactical advisor for the "Last War: Survival" game.
 - Dark military HUD aesthetic
 - Commander Setup screen (Server number, Squad/Hero configuration)
@@ -126,6 +130,20 @@ Build a web app called "WAR ROOM" — an AI tactical advisor for the "Last War: 
 - **WarRoom FR translations**: TRANSLATIONS['FR'] was already done; added QUICK_ACTIONS['FR'] (7 actions), WEEKLY_SCHEDULE['FR'] (8 weeks), DAY_NAMES_FR for War Countdown widget
 - **brief.js**: FR language directive - instructs Claude to respond entirely in French; Notion logs "French" for FR users
 - **Page title**: Changed from "WAR ROOM | Last War Tactical Advisor" to "Last War: Survival - AI Game Assistant" with OG meta tags
+
+### Phase 12 — Header Unification + 4+1 Meta Rule (Feb 2026)
+- **SetupScreen header** replaced: snowflake+swords emojis removed, now shows Last War logo + "WAR ROOM" text matching WarRoom TopBar exactly (same font size, same text-shadow, same logo img)
+- **brief.js syntax error fixed**: removed abandoned outer `.map()` callback from previous agent that caused `SyntaxError: missing ) after argument list`
+- **4+1 META RULE** added to system prompt: only triggered when player explicitly asks about mixed squads; clarifies +15% (not +20%) bonus, off-type hero chosen for skills, common examples (Murphy, Marshall, DVA)
+- **Permanent project rules** added as comment block at top of `brief.js` and in PRD.md
+
+
+- **Daily Checklist tab** added as bottom nav "DAILY OPS" alongside "INTEL" (WarRoom)
+- **10 daily tasks** with localStorage persistence (`warroom_checklist` key) and UTC-2 auto-reset at midnight
+- **Today's weekly tasks** — day-specific task shown (e.g. Monday = Drone Parts, Wednesday = Valor Badge CRITICAL)
+- **Progress bar** updates in real-time as tasks are checked; CLEAR ALL button resets all
+- Full EN/RU/FR localization for all task labels, notes, and UI strings
+- Bottom nav with active tab indicator (cyan underline); WarRoom has `pb-16` to prevent nav overlap
 
 ### P2 — Content (User to provide)
 - Populate `temperature_advanced.json`

@@ -1,6 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import * as SliderPrimitive from "@radix-ui/react-slider";
 import { ChevronDown } from "lucide-react";
+
+const SERVER_WEEK_URL = `${process.env.REACT_APP_BACKEND_URL}/.netlify/functions/server-week`;
 
 // ── Hero roster grouped by troop type ─────────────────────────────
 const HEROES_BY_TYPE = [
@@ -42,6 +44,8 @@ const SETUP_T = {
     dronePlaceholder: "e.g. 75",
     hqLevel: "HQ LEVEL",
     hqPlaceholder: "e.g. 25",
+    virusResistance: "VIRUS RESISTANCE",
+    virusPlaceholder: "e.g. 8500",
     troopType: "TROOP TYPE",
     none: "- None -",
     enterWarRoom: "ENTER WAR ROOM",
@@ -50,6 +54,9 @@ const SETUP_T = {
     errorServer: "SERVER NUMBER is required.",
     secondarySquads: "ADD SECONDARY SQUADS (OPTIONAL)",
     secondarySquadsHint: "improves advice accuracy",
+    detecting: "Detecting season...",
+    autoDetected: "Auto-detected",
+    serverNotFound: "Server not found - enter week manually",
   },
   RU: {
     commanderSetup: "НАСТРОЙКА КОМАНДИРА",
@@ -61,6 +68,8 @@ const SETUP_T = {
     dronePlaceholder: "напр. 75",
     hqLevel: "УРОВЕНЬ ШТАБА",
     hqPlaceholder: "напр. 25",
+    virusResistance: "ВИРУСНАЯ УСТОЙЧИВОСТЬ",
+    virusPlaceholder: "напр. 8500",
     troopType: "ТИП ВОЙСК",
     none: "- Пусто -",
     enterWarRoom: "ВОЙТИ В КОМАНДНЫЙ ЦЕНТР",
@@ -69,6 +78,9 @@ const SETUP_T = {
     errorServer: "НОМЕР СЕРВЕРА обязателен.",
     secondarySquads: "ДОПОЛНИТЕЛЬНЫЕ ОТРЯДЫ (необязательно)",
     secondarySquadsHint: "улучшает точность советов",
+    detecting: "Определяем сезон...",
+    autoDetected: "Определено автоматически",
+    serverNotFound: "Сервер не найден - введите неделю вручную",
   },
   FR: {
     commanderSetup: "CONFIGURATION DU COMMANDANT",
@@ -80,6 +92,8 @@ const SETUP_T = {
     dronePlaceholder: "ex. 75",
     hqLevel: "NIVEAU QG",
     hqPlaceholder: "ex. 25",
+    virusResistance: "RESISTANCE VIRALE",
+    virusPlaceholder: "ex. 8500",
     troopType: "TYPE DE TROUPE",
     none: "- Aucun -",
     enterWarRoom: "ENTRER DANS LA SALLE DE GUERRE",
@@ -88,6 +102,9 @@ const SETUP_T = {
     errorServer: "NUMERO DE SERVEUR requis.",
     secondarySquads: "AJOUTER ESCOUADES SECONDAIRES (OPTIONNEL)",
     secondarySquadsHint: "ameliore la precision des conseils",
+    detecting: "Detection du saison...",
+    autoDetected: "Auto-detecte",
+    serverNotFound: "Serveur non trouve - entrez la semaine manuellement",
   },
 };
 
@@ -243,8 +260,9 @@ const SetupScreen = ({ onComplete, initialProfile = null }) => {
   const [furnaceLevel, setFurnaceLevel] = useState(
     initialProfile ? [initialProfile.furnaceLevel] : [5]
   );
-  const [droneLevel, setDroneLevel] = useState(initialProfile?.droneLevel ?? "");
-  const [hqLevel,    setHqLevel]    = useState(initialProfile?.hqLevel    ?? "");
+  const [droneLevel,       setDroneLevel]       = useState(initialProfile?.droneLevel       ?? "");
+  const [hqLevel,          setHqLevel]          = useState(initialProfile?.hqLevel          ?? "");
+  const [virusResistance,  setVirusResistance]  = useState(initialProfile?.virusResistance  ?? "");
   const [squadTypes, setSquadTypes] = useState(() => {
     const saved = initialProfile?.squadTypes;
     return Array.isArray(saved) ? saved : [null, null, null];
@@ -263,6 +281,34 @@ const SetupScreen = ({ onComplete, initialProfile = null }) => {
     return slots;
   });
   const [error, setError] = useState("");
+
+  // Season week auto-detection state
+  const [weekData,      setWeekData]      = useState(
+    initialProfile?.seasonWeek
+      ? { week: initialProfile.seasonWeek, season: initialProfile.currentSeason, serverDay: null, autoDetected: false }
+      : null
+  );
+  const [weekDetecting, setWeekDetecting] = useState(false);
+  const [weekManual,    setWeekManual]    = useState(initialProfile?.seasonWeek ? String(initialProfile.seasonWeek) : "");
+
+  const handleServerBlur = useCallback(async (num) => {
+    if (!num || !String(num).trim()) return;
+    setWeekDetecting(true);
+    try {
+      const res  = await fetch(`${SERVER_WEEK_URL}?server=${String(num).trim()}`);
+      const data = await res.json();
+      if (data.week != null && data.week > 0) {
+        setWeekData({ week: data.week, season: data.season, serverDay: data.serverDay, autoDetected: true });
+        setWeekManual(String(data.week));
+      } else {
+        setWeekData({ week: null, season: null, serverDay: null, autoDetected: false, notFound: true });
+      }
+    } catch {
+      setWeekData({ week: null, season: null, serverDay: null, autoDetected: false, notFound: true });
+    } finally {
+      setWeekDetecting(false);
+    }
+  }, []);
 
   const handleHero = (index, name) => {
     const updated = [...heroes];
@@ -289,13 +335,14 @@ const SetupScreen = ({ onComplete, initialProfile = null }) => {
     onComplete({
       server,
       furnaceLevel: furnaceLevel[0],
-      droneLevel: droneLevel !== "" ? parseInt(droneLevel, 10) : null,
-      hqLevel:    hqLevel    !== "" ? parseInt(hqLevel,    10) : null,
+      droneLevel:       droneLevel       !== "" ? parseInt(droneLevel,       10) : null,
+      hqLevel:          hqLevel          !== "" ? parseInt(hqLevel,          10) : null,
+      virusResistance:  virusResistance  !== "" ? parseInt(virusResistance,  10) : null,
       squadTypes,
       heroes: formattedHeroes,
       squadPowers: initialProfile?.squadPowers || [null, null, null],
-      seasonWeek: initialProfile?.seasonWeek,
-      currentSeason: initialProfile?.currentSeason,
+      seasonWeek: weekData?.week || (weekManual !== "" ? parseInt(weekManual, 10) : initialProfile?.seasonWeek) || null,
+      currentSeason: weekData?.season || initialProfile?.currentSeason || null,
     });
   };
 
@@ -324,15 +371,20 @@ const SetupScreen = ({ onComplete, initialProfile = null }) => {
       <div className="relative z-10 w-full max-w-md">
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="flex items-center justify-center gap-3 mb-2">
-            <span className="text-[#4fc3f7] text-2xl">❄️</span>
+          <div className="flex items-center justify-center gap-2 mb-2">
+            <img
+              src="https://www.lastwar.com/en/img/logo.png"
+              alt="Last War"
+              style={{ height: "28px" }}
+              className="object-contain"
+              onError={(e) => { e.target.style.display = "none"; }}
+            />
             <h1
-              className="font-heading text-4xl sm:text-5xl text-white tracking-[0.15em]"
-              style={{ textShadow: "0 0 20px rgba(79,195,247,0.6)" }}
+              className="font-heading text-xl text-white tracking-[0.2em]"
+              style={{ textShadow: "0 0 15px rgba(79,195,247,0.5)" }}
             >
               WAR ROOM
             </h1>
-            <span className="text-[#4fc3f7] text-2xl">⚔️</span>
           </div>
           <div className="flex items-center gap-2 justify-center">
             <div className="h-px flex-1 bg-[#4fc3f7]/30" />
@@ -360,10 +412,58 @@ const SetupScreen = ({ onComplete, initialProfile = null }) => {
                 type="number"
                 value={server}
                 onChange={(e) => setServer(e.target.value)}
+                onBlur={(e) => handleServerBlur(e.target.value)}
                 placeholder={T.serverPlaceholder}
                 className="war-input w-full px-3 py-2.5 text-sm"
                 min="1"
               />
+
+              {/* Season week auto-detect row */}
+              <div className="mt-2 min-h-[28px]">
+                {weekDetecting && (
+                  <p className="font-heading text-[9px] text-[#37474f] tracking-widest animate-pulse">
+                    {T.detecting}
+                  </p>
+                )}
+                {!weekDetecting && weekData?.autoDetected && (
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="font-heading text-[9px] text-[#4fc3f7]/80 tracking-widest">
+                      S{weekData.season} WK{weekData.week}{weekData.serverDay ? ` DAY ${weekData.serverDay}` : ""}
+                    </span>
+                    <span
+                      className="font-heading text-[8px] px-1.5 py-0.5 tracking-widest"
+                      style={{ background: "rgba(79,195,247,0.08)", border: "1px solid rgba(79,195,247,0.25)", color: "#4fc3f7" }}
+                    >
+                      {T.autoDetected}
+                    </span>
+                    <input
+                      data-testid="setup-season-week-input"
+                      type="number"
+                      value={weekManual}
+                      onChange={(e) => setWeekManual(e.target.value)}
+                      className="war-input px-2 py-1 text-xs w-16 text-center"
+                      min="1"
+                      max="8"
+                      title="Override season week"
+                    />
+                  </div>
+                )}
+                {!weekDetecting && weekData?.notFound && (
+                  <div className="flex items-center gap-2">
+                    <p className="font-heading text-[9px] text-[#37474f] tracking-widest">{T.serverNotFound}</p>
+                    <input
+                      data-testid="setup-season-week-input"
+                      type="number"
+                      value={weekManual}
+                      onChange={(e) => setWeekManual(e.target.value)}
+                      placeholder="1-8"
+                      className="war-input px-2 py-1 text-xs w-16 text-center"
+                      min="1"
+                      max="8"
+                    />
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Furnace Level */}
@@ -429,6 +529,22 @@ const SetupScreen = ({ onComplete, initialProfile = null }) => {
                   max="35"
                 />
               </div>
+            </div>
+
+            {/* Virus Resistance */}
+            <div>
+              <label className="block font-heading text-xs text-[#4fc3f7]/70 tracking-[0.25em] mb-2">
+                {T.virusResistance} <span className="text-[#37474f] text-[9px] normal-case tracking-normal">(opt)</span>
+              </label>
+              <input
+                data-testid="setup-virus-resistance-input"
+                type="number"
+                value={virusResistance}
+                onChange={(e) => setVirusResistance(e.target.value)}
+                placeholder={T.virusPlaceholder}
+                className="war-input w-full px-3 py-2.5 text-sm"
+                min="0"
+              />
             </div>
 
             {/* Squad 1 — always visible */}
