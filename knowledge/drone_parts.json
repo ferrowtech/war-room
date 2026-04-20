@@ -1,0 +1,58 @@
+{
+  "drone_parts": {
+    "source": "Last War: Survival community data",
+    "note": "Parts required to reach each drone level. After level 150, every single level requires parts. Drone level has no upper cap — players can exceed level 230.",
+    "levels": {
+      "L5": 5,
+      "L10": 10,
+      "L15": 20,
+      "L20": 30,
+      "L25": 40,
+      "L30": 50,
+      "L35": 60,
+      "L40": 80,
+      "L45": 100,
+      "L50": 120,
+      "L55": 140,
+      "L60": 160,
+      "L65": 180,
+      "L70": 200,
+      "L75": 250,
+      "L80": 300,
+      "L85": 350,
+      "L90": 400,
+      "L95": 450,
+      "L100": 500,
+      "L105": 600,
+      "L110": 700,
+      "L115": 800,
+      "L120": 1000,
+      "L125": 1500,
+      "L130": 2000,
+      "L135": 3000,
+      "L140": 4000,
+      "L145": 5000,
+      "L150": 5000
+    },
+    "post_150_cost_per_level": {
+      "L151_to_L160": 500,
+      "L161_to_L170": 600,
+      "L171_to_L180": 700,
+      "L181_to_L190": 800,
+      "L191_to_L200": 900,
+      "L201_to_L210": 1000,
+      "L211_to_L220": 1100,
+      "L221_to_L230": 1200,
+      "L231_plus": 1300
+    },
+    "strategic_notes": [
+      "Drone level is one of the highest-impact power drivers in the game — prioritise parts farming",
+      "Parts are scarce in early game — avoid wasting them on non-drone upgrades",
+      "After L150, cost per level increases every 10 levels — plan resources accordingly",
+      "Higher drone level = passive stat boosts to entire squad, not just one hero",
+      "Drone upgrades provide better return on investment than most hero upgrades at mid/late game",
+      "Always check current drone level before advising on upgrade priority"
+    ],
+    "how_to_use_for_advice": "When a player provides their current drone level, use this table to calculate parts needed to reach the next milestone level (every 5 levels up to 150, then every level after). Advise whether they should prioritise drone parts farming based on their current level gap."
+  }
+}
