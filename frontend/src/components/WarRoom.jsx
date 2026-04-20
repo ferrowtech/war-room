@@ -37,21 +37,21 @@ const inferTroopType = (heroes = []) => {
   return Object.keys(counts).find((k) => counts[k] === max) || "Tank";
 };
 
-// ── Server timezone — all Last War servers use UTC-3 (fixed) ─────
-const SERVER_UTC_OFFSET = -3;
+// ── Server timezone — all Last War servers use UTC-2 (fixed) ─────
+const SERVER_UTC_OFFSET = -2;
 
-// Returns current server time as HH:MM (UTC-3, no locale dependency)
+// Returns current server time as HH:MM — now.getTime() is already UTC, apply offset once only
 const getServerTime = () => {
   const now = new Date();
-  const serverMs = now.getTime() + now.getTimezoneOffset() * 60000 + SERVER_UTC_OFFSET * 3600000;
+  const serverMs = now.getTime() + SERVER_UTC_OFFSET * 3600000;
   const d = new Date(serverMs);
   return `${String(d.getUTCHours()).padStart(2, "0")}:${String(d.getUTCMinutes()).padStart(2, "0")}`;
 };
 
-// Returns time until next Wednesday/Saturday 12:00 server time (UTC-3)
+// Returns time until next Wednesday/Saturday 12:00 server time (UTC-2)
 const getWarCountdown = () => {
   const now = new Date();
-  const serverNowMs = now.getTime() + now.getTimezoneOffset() * 60000 + SERVER_UTC_OFFSET * 3600000;
+  const serverNowMs = now.getTime() + SERVER_UTC_OFFSET * 3600000;
   const warDayNums  = [3, 6]; // Wednesday=3, Saturday=6
   const DAY_NAMES   = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
 
