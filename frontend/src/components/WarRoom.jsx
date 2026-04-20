@@ -83,7 +83,7 @@ const TRANSLATIONS = {
     attach: "SCAN SCREEN", getBriefing: "GET BRIEFING", transmitting: "TRANSMITTING",
     intelReport: "INTELLIGENCE REPORT", copyBriefing: "COPY BRIEFING", copied: "COPIED",
     editProfile: "EDIT PROFILE", commander: "FIELD STATUS", server: "SERVER",
-    furnaceLevel: "FURNACE LEVEL", squads: "SQUADS",
+    furnaceLevel: "FURNACE LEVEL", droneLevel: "DRONE LEVEL", squads: "SQUADS",
     sq1: "SQ1 PRIMARY", sq2: "SQ2 SECONDARY", sq3: "SQ3 SUPPORT",
     polarStorm: "POLAR STORM", week: "WEEK", autoLabel: "AUTO",
     refresh: "REFRESH", detecting: "DETECTING...", weekNotFound: "Week not detected",
@@ -102,7 +102,7 @@ const TRANSLATIONS = {
     attach: "СКАНИРОВАТЬ ЭКРАН", getBriefing: "ПОЛУЧИТЬ БРИФИНГ", transmitting: "ПЕРЕДАЧА...",
     intelReport: "ОПЕРАТИВНАЯ СВОДКА", copyBriefing: "КОПИРОВАТЬ", copied: "СКОПИРОВАНО",
     editProfile: "ПРОФИЛЬ", commander: "БОЕВОЙ СТАТУС", server: "СЕРВЕР",
-    furnaceLevel: "УРОВЕНЬ ПЕЧИ", squads: "ОТРЯДЫ",
+    furnaceLevel: "УРОВЕНЬ ПЕЧИ", droneLevel: "УРОВЕНЬ ДРОНА", squads: "ОТРЯДЫ",
     sq1: "ОТР.1 ОСНОВНОЙ", sq2: "ОТР.2 ВТОРИЧНЫЙ", sq3: "ОТР.3 ПОДДЕРЖКА",
     polarStorm: "ПОЛЯРНЫЙ ШТОРМ", week: "НЕДЕЛЯ", autoLabel: "АВТО",
     refresh: "ОБНОВИТЬ", detecting: "ОПРЕДЕЛЯЮ...", weekNotFound: "Неделя не определена",
@@ -121,7 +121,7 @@ const TRANSLATIONS = {
     attach: "SCANNER L'ÉCRAN", getBriefing: "OBTENIR LE BRIEFING", transmitting: "TRANSMISSION...",
     intelReport: "RAPPORT DE RENSEIGNEMENT", copyBriefing: "COPIER", copied: "COPIÉ",
     editProfile: "MODIFIER LE PROFIL", commander: "STATUT TERRAIN", server: "SERVEUR",
-    furnaceLevel: "NIVEAU DU FOURNEAU", squads: "ESCOUADES",
+    furnaceLevel: "NIVEAU DU FOURNEAU", droneLevel: "NIVEAU DU DRONE", squads: "ESCOUADES",
     sq1: "ESC.1 PRINCIPALE", sq2: "ESC.2 SECONDAIRE", sq3: "ESC.3 SOUTIEN",
     polarStorm: "TEMPÊTE POLAIRE", week: "SEMAINE", autoLabel: "AUTO",
     refresh: "ACTUALISER", detecting: "DÉTECTION...", weekNotFound: "Semaine non détectée",
@@ -620,6 +620,17 @@ const ProfilePanelContent = ({
           </div>
         </div>
         <div className="h-px bg-[#37474f]/40" />
+
+        {/* Drone level */}
+        {profile.droneLevel != null && (
+          <>
+            <div>
+              <p className="font-heading text-[9px] text-[#37474f] tracking-[0.3em] mb-1" data-testid="sidebar-drone-label">{tr.droneLevel}</p>
+              <span className="font-heading text-sm text-white" data-testid="sidebar-drone-value">{profile.droneLevel}</span>
+            </div>
+            <div className="h-px bg-[#37474f]/40" />
+          </>
+        )}
 
         {/* Hero squads with power */}
         <div>
