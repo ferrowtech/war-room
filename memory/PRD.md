@@ -127,6 +127,14 @@ Build a web app called "WAR ROOM" — an AI tactical advisor for the "Last War: 
 - **brief.js**: FR language directive - instructs Claude to respond entirely in French; Notion logs "French" for FR users
 - **Page title**: Changed from "WAR ROOM | Last War Tactical Advisor" to "Last War: Survival - AI Game Assistant" with OG meta tags
 
+### Phase 11 — Daily Checklist (Feb 2026)
+- **Daily Checklist tab** added as bottom nav "DAILY OPS" alongside "INTEL" (WarRoom)
+- **10 daily tasks** with localStorage persistence (`warroom_checklist` key) and UTC-2 auto-reset at midnight
+- **Today's weekly tasks** — day-specific task shown (e.g. Monday = Drone Parts, Wednesday = Valor Badge CRITICAL)
+- **Progress bar** updates in real-time as tasks are checked; CLEAR ALL button resets all
+- Full EN/RU/FR localization for all task labels, notes, and UI strings
+- Bottom nav with active tab indicator (cyan underline); WarRoom has `pb-16` to prevent nav overlap
+
 ### P2 — Content (User to provide)
 - Populate `temperature_advanced.json`
 - Populate `tips_and_tricks_s2.json`
