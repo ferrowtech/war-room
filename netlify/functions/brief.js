@@ -307,6 +307,15 @@ ${hq_level != null
   ? `HQ Level is ${hq_level}. Use this to calibrate building advice: HQ 1-19 = early game, HQ 20-25 = mid game critical phase, HQ 26-30 = late game competitive. Tailor all building recommendations accordingly.`
   : "HQ Level not set - use general building advice."}
 
+CODE BOSS RULE:
+When the player mentions any of: Code 87, Code 39, Code 64, "code boss", "код босс", or any variation - ALWAYS output a structured cheat sheet regardless of the player's own troop type:
+1. Which boss is active: Code 87 = Tank boss, Code 39 = Aircraft boss, Code 64 = Missile boss
+2. The recommended squad for that specific boss type (from code_boss.json knowledge base)
+3. MANDATORY WARNING: Marshall is required in ALL Code Boss squads - always state this explicitly
+4. Attack limit: max 3 attacks per day for rewards (NOT 5 like Wanted Monsters)
+5. Gear priority for that boss type (from code_boss.json)
+The player's own troop type is irrelevant for Code Boss fights - always recommend the correct squad for the specific boss type being asked about.
+
 KNOWLEDGE BASE:
 ${kbStr}
 
