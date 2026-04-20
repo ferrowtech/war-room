@@ -1,0 +1,70 @@
+{
+  "skill_chips": {
+    "source": "Last War: Survival - Skill Chips Quick Start Guide by #1210 Aethernis",
+    "tldr": "On day 82 after server launch, players unlock the Combat Boost and Drone Skill Chip Systems. Skill chips increase DEF, HP and Attack of your squad. The higher the tier level, the higher the bonus. Get full Gold Skill Chips ASAP and use purple chips to level up in Combat Boost.",
+    "unlock": {
+      "day": 82,
+      "unlocks": ["Combat Boost System", "Drone Skill Chip System"]
+    },
+    "key_components": {
+      "skill_chip_chests": {
+        "description": "Contain skill chips and materials",
+        "sources": ["Stores", "Special Events", "Purchasing packages"]
+      },
+      "skill_chips": {
+        "description": "Provide specific battle effects — increase DEF, HP and Attack",
+        "note": "Higher tier = higher bonus"
+      },
+      "crafting": {
+        "legendary_chip": {
+          "materials_required": 800,
+          "material_type": "Premium Chip Materials",
+          "result": "1 Legendary Skill Chip"
+        },
+        "epic_chip": {
+          "materials_required": 400,
+          "material_type": "Basic Chip Materials",
+          "result": "1 Epic Skill Chip"
+        },
+        "crafting_location": "Chip Lab"
+      },
+      "drone_combat_boost_exp_cards": {
+        "description": "Used to level up Combat Boost"
+      }
+    },
+    "skill_chip_presets": {
+      "description": "Placeholders for skill chips deployed in battle. Up to 4 presets unlock as you progress through Combat Boost stages.",
+      "slots": ["Slot 1: Initial Move", "Slot 2: Attack", "Slot 3: Interference", "Slot 4: Defense"],
+      "rules": [
+        "Only one preset can be assigned to a squad at a time",
+        "One preset cannot be assigned to multiple squads simultaneously"
+      ]
+    },
+    "combat_boost_system": {
+      "description": "Levels up to enhance drone attributes and skill chip effects",
+      "milestones": {
+        "level_10": "Preset 1 unlocked",
+        "level_150": "Preset 2 + Skill Chip bonus level 1",
+        "level_300": "Preset 3 + Skill Chip bonus level 2",
+        "level_450": "Preset 4 + Skill Chip bonus level 3",
+        "level_600": "Skill Chip bonus level 4",
+        "level_750": "Skill Chip bonus level 5"
+      },
+      "leveling_resource": "Drone Combat Boost EXP Cards"
+    },
+    "strategic_priority": [
+      "Get full Gold (Legendary) Skill Chips as fast as possible — this is the top priority",
+      "Use purple (Epic) chips to level up Combat Boost rather than equipping them",
+      "Farm Premium Chip Materials to craft Legendary chips in Chip Lab",
+      "Push Combat Boost to level 150 quickly to unlock Preset 2 and first chip bonus",
+      "Each Combat Boost milestone significantly increases squad power — treat it like drone leveling in importance",
+      "Chip system unlocks on day 82 — prepare materials in advance if possible"
+    ],
+    "common_mistakes": [
+      "Equipping purple (Epic) chips instead of using them for Combat Boost leveling",
+      "Ignoring Chip Lab crafting — 800 Premium Materials = 1 Legendary chip is very achievable",
+      "Not assigning a preset to your main squad — presets must be manually assigned",
+      "Using the same preset across multiple squads is not possible — plan accordingly"
+    ]
+  }
+}
