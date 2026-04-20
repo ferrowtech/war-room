@@ -94,7 +94,17 @@
       "Skill Damage + March Size (A+ tier) is very strong for offensive squads",
       "Crit Damage (A-tier) scales well but is less consistent than Damage Reduction",
       "Do not waste Universal Decor Components on B/C tier decorations while S/A tiers are below Level 3",
-      "Win in 2025 and Win in 2026 are limited-time decorations — if a player has them, they should be prioritised immediately"
-    ]
+      "Win in 2025 and Win in 2026 are limited-time decorations — if a player has them, they should be prioritised immediately",
+      "Rock the End is especially valuable long-term — it is an S6 decoration, making it useful well beyond current season"
+    ],
+    "decoration_chest_advice": {
+      "context": "When players receive Decoration choice chests, always follow the tier list priority",
+      "recommended_picks": [
+        "Use chests to unlock as many different S-tier decorations as possible",
+        "Example: 1 chest for Torch Relay + 1 chest for Rock the End",
+        "Do not use multiple chests on the same decoration when other S-tier slots are still locked"
+      ],
+      "rock_the_end_note": "Rock the End is an S6 decoration — prioritise it when choosing from chests as it provides long-term value across multiple seasons"
+    }
   }
 }
