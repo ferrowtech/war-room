@@ -318,11 +318,14 @@ const useTypewriter = (text, speed = 18) => {
   return { displayed, typing };
 };
 
+// ── Dev-only logging flag ─────────────────────────────────────────
+const isDev = process.env.NODE_ENV === "development";
+
 // ── Markdown error boundary (catches ReactMarkdown render failures) ──
 class MarkdownErrorBoundary extends React.Component {
   constructor(props) { super(props); this.state = { hasError: false }; }
   static getDerivedStateFromError() { return { hasError: true }; }
-  componentDidCatch(err) { console.error("[WAR ROOM] ReactMarkdown render error:", err.message); }
+  componentDidCatch(err) { if (isDev) console.error("[WAR ROOM] ReactMarkdown render error:", err.message); }
   render() {
     if (this.state.hasError) {
       return (
@@ -666,7 +669,7 @@ const ProfilePanelContent = ({
                     const m = hero.match(/^(.+?) \((\d)★\)$/);
                     const name = m ? m[1] : hero, stars = m ? parseInt(m[2]) : 0;
                     return (
-                      <div key={i} className="flex items-center gap-1.5">
+                      <div key={name} className="flex items-center gap-1.5">
                         <span className="font-heading text-xs text-[#b3e5fc]">{name}</span>
                         {stars > 0 && (
                           <span className="text-xs leading-none">
@@ -745,9 +748,10 @@ const WarRoom = ({ profile, onEditProfile }) => {
   const [history,       setHistory]       = useState(loadHistory);
   const [showHistory,   setShowHistory]   = useState(false);
   const [detectingWeek, setDetectingWeek] = useState(false);
-  const reportRef   = useRef(null);
-  const fileInputRef = useRef(null);
-  const isMounted    = useRef(true);
+  const reportRef          = useRef(null);
+  const fileInputRef       = useRef(null);
+  const isMounted          = useRef(true);
+  const weekDetectionRan   = useRef(false);
   useEffect(() => { return () => { isMounted.current = false; }; }, []);
 
   const detectSeasonWeek = useCallback(async () => {
@@ -764,18 +768,18 @@ const WarRoom = ({ profile, onEditProfile }) => {
         });
       }
     } catch (e) {
-      console.warn("[WAR ROOM] Season week detection failed:", e.message);
+      if (isDev) console.warn("[WAR ROOM] Season week detection failed:", e.message);
     } finally {
       setDetectingWeek(false);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [localProfile?.server]);
 
   useEffect(() => {
+    if (weekDetectionRan.current) return;
+    weekDetectionRan.current = true;
     const effectiveWeek = localProfile?.seasonWeek || getSeasonWeekFromDate(localProfile?.seasonStartDate);
     if (!effectiveWeek) detectSeasonWeek();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [localProfile?.seasonWeek, localProfile?.seasonStartDate, detectSeasonWeek]);
 
   const handleImageUpload = useCallback(async (e) => {
     const file = e.target.files[0];
@@ -812,10 +816,10 @@ const WarRoom = ({ profile, onEditProfile }) => {
         ...(uploadedImage ? { image_base64: uploadedImage } : {}),
       };
       const res = await axios.post(BRIEF_URL, payload);
-      console.log("[WAR ROOM] Raw response data:", JSON.stringify(res.data).slice(0, 200));
+      if (isDev) console.log("[WAR ROOM] Raw response data:", JSON.stringify(res.data).slice(0, 200));
       rawResponse = res.data?.response ?? "";
-      console.log("[WAR ROOM] Response text length:", rawResponse.length, "chars");
-      if (!rawResponse) console.warn("[WAR ROOM] Response is empty — res.data:", res.data);
+      if (isDev) console.log("[WAR ROOM] Response text length:", rawResponse.length, "chars");
+      if (isDev && !rawResponse) console.warn("[WAR ROOM] Response is empty - res.data:", res.data);
       if (isMounted.current) {
         const newHistory = saveToHistory(q, rawResponse);
         setHistory(newHistory);
@@ -824,7 +828,7 @@ const WarRoom = ({ profile, onEditProfile }) => {
         setTimeout(() => reportRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
       }
     } catch (err) {
-      console.error("[WAR ROOM] handleSubmit error:", err);
+      if (isDev) console.error("[WAR ROOM] handleSubmit error:", err);
       if (isMounted.current) setError(err.response?.data?.detail || tr.transmissionFailed);
     } finally {
       if (isMounted.current) {
