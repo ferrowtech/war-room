@@ -1,51 +1,73 @@
 {
   "code_boss": {
-    "source": "President's letter - server 1768 - 2026-04-19",
-    "description": "Code Boss is a special boss event in Season 2. Three separate bosses appear (Missiles, Tank, Air type). Use S1 squad only. 3 attacks per boss = 9 total attacks per event day.",
-    "attacks_per_boss": 3,
-    "total_attacks_per_day": 9,
-    "note": "Hit ONLY with your S1 squad throughout the entire event.",
-    "pre_battle_checklist": [
-      "Scout another player first to activate the scouting buff",
-      "Equip boss-specific drone chip set directly from your base (not default set)",
-      "Equip Mushroom Skin if you have it - provides +5% Code Boss damage",
-      "Ask alliance teammates to warm your base to 70°C for damage bonus",
-      "Switch to correct equipment set for boss type",
-      "Collect rewards after each boss is defeated"
-    ],
-    "meta_formations": {
-      "note": "Marshall and Mason in squad often outperform a full mono-type formation bonus - do not underestimate support heroes. If your Air or Missile squad is weak, keep Kim/Stetman/Mason in the back and put 2 strong attackers in front instead.",
-      "Missiles_Boss": {
-        "front_row": ["Tesla", "Swift"],
-        "back_row": ["Adam", "Fiona", "Marshall"],
-        "troop_advantage": "Missile"
+    "source": "Last War: Survival community guide - Code Boss Coordination",
+    "note": "Code Boss events occur 3 times during Season 2. Each boss has a troop type that deals 50% more damage. Marshall is mandatory in all squads — no buffs = no real damage. Max 3 attacks per day for rewards.",
+    "bosses": {
+      "Code_87": {
+        "name": "Code 87",
+        "type": "Tank Boss",
+        "damage_bonus": "+50% damage from Tank squads",
+        "recommended_squad": {
+          "front_row": ["Marshall", "DVA"],
+          "back_row": ["Kimberly", "Stateman", "Mason"]
+        },
+        "gear_priority": [
+          "Cannons go to Kimberly first",
+          "Then gear Stateman, followed by Mason",
+          "DVA only gets cannon gear if surplus remains",
+          "Marshall must have full defense gear"
+        ],
+        "notes": [
+          "DVA can be replaced by your best DPS hero",
+          "Mason's 'Zombie Cleaner' skill should be level 20"
+        ]
       },
-      "Tank_Boss": {
-        "front_row": ["Kimberly", "Stetmann"],
-        "back_row": ["Tesla", "Mason", "Marshall"],
-        "troop_advantage": "Tank"
+      "Code_39": {
+        "name": "Code 39",
+        "type": "Aircraft Boss",
+        "damage_bonus": "+50% damage from Aircraft squads",
+        "recommended_squad": {
+          "front_row": ["Marshall", "Kimberly"],
+          "back_row": ["DVA", "Morrison", "Skyler"]
+        },
+        "gear_priority": [
+          "DVA gets the best attack gear",
+          "Then Morrison, followed by Skyler",
+          "Marshall stays frontline with defense gear"
+        ],
+        "notes": [
+          "Test: swap Skyler/Kimberly if needed",
+          "If Skyler/Morrison are unavailable or weak, Stateman/Mason is a solid substitute"
+        ]
       },
-      "Air_Boss": {
-        "front_row": ["DVA", "Morrison"],
-        "back_row": ["Kimberly", "Schuyler", "Marshall"],
-        "troop_advantage": "Aircraft"
+      "Code_64": {
+        "name": "Code 64",
+        "type": "Missile Boss",
+        "damage_bonus": "+50% damage from Missile squads",
+        "recommended_squad": {
+          "front_row": ["Tesla", "Swift"],
+          "back_row": ["Fiona", "Adam", "Marshall"]
+        },
+        "no_missile_squad_alternative": {
+          "note": "If you don't have a Missile squad, use your top 4 damage dealers",
+          "suggested_heroes": ["DVA", "Kimberly", "Stateman", "Mason", "Skyler"],
+          "mandatory": "Marshall is mandatory in all Code Boss squads — no buffs = no real damage"
+        }
       }
     },
-    "variant_strategy": {
-      "when_to_use": "When your Air or Missile squad is significantly weaker than your Tank squad",
-      "approach": "Keep Kim + Stetman + Mason in back row for universal damage support, place your 2 strongest available attackers in front regardless of type",
-      "reasoning": "Hybrid support cores can outperform a full mono-type formation in practice"
-    },
-    "damage_boosters": [
-      "Mushroom Skin base skin: +5% Code Boss damage",
-      "Base temperature at 70°C: damage bonus from heat",
-      "Scouting buff: scout any player before attacking",
-      "Correct drone chip set equipped for boss type",
-      "War Fever activation before attack"
+    "universal_rules": [
+      "Marshall is mandatory in ALL Code Boss squads — his buffs are essential for damage output",
+      "Always match your troop type to the boss type for +50% damage bonus",
+      "Max 3 attacks per day for rewards (not 5 like Wanted Monsters)",
+      "Use War Fever before every attack for additional power boost",
+      "Attack AFTER Hero Advancement phase of Arms Race for maximum power",
+      "3 Code Boss events occur during Season 2"
     ],
-    "season_2_schedule": {
-      "occurrences": 3,
-      "note": "3 Code Boss events during Season 2. Final event occurs during ULTIME FIGHT week alongside Arms Race and SVS content."
+    "gear_strategy": {
+      "principle": "Concentrate best gear on your primary damage dealer, not spread evenly",
+      "tank_boss": "Kimberly gets cannons first",
+      "aircraft_boss": "DVA gets best attack gear first",
+      "missile_boss": "Follow squad DPS order: Tesla/Swift prioritised"
     }
   }
 }
