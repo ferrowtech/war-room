@@ -803,6 +803,7 @@ const WarRoom = ({ profile, onEditProfile }) => {
         furnace_level: Number(localProfile.furnaceLevel),
         drone_level: localProfile.droneLevel || null,
         hq_level: localProfile.hqLevel || null,
+        squad_types: localProfile.squadTypes || [null, null, null],
         heroes: localProfile.heroes,
         squad_powers: localProfile.squadPowers || [],
         season_week: effectiveWeek,

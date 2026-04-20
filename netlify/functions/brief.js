@@ -166,11 +166,11 @@ function inferTroopTypeFromHeroes(heroes = []) {
 }
 
 // ── System prompt builder ─────────────────────────────────────────────────────
-function buildSystemPrompt({ server, troop_type, furnace_level, drone_level, hq_level, heroes = [], season_week, squad_powers = [], kbStr, language }) {
+function buildSystemPrompt({ server, squad_types = [], troop_type, furnace_level, drone_level, hq_level, heroes = [], season_week, squad_powers = [], kbStr, language }) {
   const parsedHeroes = parseHeroes(heroes);
 
-  // Heroes block — one line per hero with exact star status + troop type label
-  const heroLines = parsedHeroes.map((p) => {
+  // Heroes block — annotate each hero against their squad's declared troop type
+  const heroLines = parsedHeroes.map((p, idx) => {
     if (p.stars === null) {
       return `  - ${p.name}: star level could not be read (check profile)`;
     }
@@ -181,10 +181,11 @@ function buildSystemPrompt({ server, troop_type, furnace_level, drone_level, hq_
       statusParts.push(`needs ${SHARDS_TO_NEXT[p.stars] || 0} shards to reach 4\u2605 Super Sensory`);
     }
     const heroType = HERO_TYPES[p.name];
+    const squadTypeForSlot = squad_types[Math.floor(idx / 5)] || troop_type;
     const typeNote = heroType
-      ? heroType !== troop_type
-        ? ` [${heroType} hero \u2014 NOT ${troop_type}, do NOT recommend for ${troop_type} lineup]`
-        : ` [${heroType} hero \u2014 matches player troop type]`
+      ? heroType !== squadTypeForSlot
+        ? ` [${heroType} hero - NOT ${squadTypeForSlot}, do NOT recommend for ${squadTypeForSlot} lineup]`
+        : ` [${heroType} hero - matches squad type]`
       : "";
     return `  - ${p.name}: ${p.stars}\u2605 \u2014 ${statusParts.join("; ")}${typeNote}`;
   });
@@ -221,28 +222,24 @@ function buildSystemPrompt({ server, troop_type, furnace_level, drone_level, hq_
       : `Today (${today}): ${activeBossToday} is active (not your bonus boss). Your next bonus days: ${wantedMonster.days}.`
     : `Today (${today}) is Sunday \u2014 no Wanted Monster is active today.`;
 
-  const squadPowerLine = (() => {
-    const sp = Array.isArray(squad_powers) ? squad_powers : [];
-    if (sp.every((v) => !v)) return "";
-    const fmt = (v) => (v != null && v !== "" ? `${v}M` : "not set");
-    return `Squad Power Levels: SQ1=${fmt(sp[0])}, SQ2=${fmt(sp[1])}, SQ3=${fmt(sp[2])}`;
-  })();
+  const squadPowerLine = (() => { return ""; })(); // Kept for compat; replaced by SQUAD POWER RULE in prompt
 
   return `You are WAR ROOM, a tactical AI advisor for Last War: Survival game.
 
 =================================================================
-COMMANDER PROFILE \u2014 VERIFIED FACTS \u2014 DO NOT CONTRADICT THESE
+COMMANDER PROFILE - VERIFIED FACTS - DO NOT CONTRADICT THESE
 =================================================================
 Server: ${server}
-Primary Troop Type: ${troop_type}
+Squad 1 Type (Primary): ${squad_types[0] || "Unknown"}
+Squad 2 Type: ${squad_types[1] || "not set"}
+Squad 3 Type: ${squad_types[2] || "not set"}
 Furnace Level: ${furnace_level}
 Drone Level: ${drone_level != null ? drone_level : "not set"}
 HQ Level: ${hq_level != null ? hq_level : "not set"}
 Today: ${today}
 ${weekLine}
-${squadPowerLine}
 
-HERO ROSTER \u2014 EXACT CURRENT STAR LEVELS (THIS IS GROUND TRUTH):
+HERO ROSTER - EXACT CURRENT STAR LEVELS (THIS IS GROUND TRUTH):
 ${heroesBlock}
 
 EXPLICIT UPGRADE PROHIBITIONS (based on verified hero data above):
@@ -254,21 +251,50 @@ CRITICAL HERO RULE: The star counts above are exact facts from the player's prof
 - ONLY suggest star upgrades for heroes whose current stars are below the next milestone (4\u2605 or 5\u2605).
 =================================================================
 
+DRONE RULE:
+${drone_level != null
+  ? drone_level < 100
+    ? `Drone Level is ${drone_level}. This is below 100 - drone upgrades MUST be mentioned as a TOP PRIORITY in this response. Reference drone_parts knowledge base for parts cost to next milestone.`
+    : drone_level < 150
+    ? `Drone Level is ${drone_level}. Recommend pushing to 150 for Combat Boost Preset 2 unlock. Reference drone_parts knowledge base for parts cost to next milestone.`
+    : `Drone Level is ${drone_level}. Drone is well-developed - no urgent push needed unless approaching next milestone.`
+  : "Drone Level not set - skip drone upgrade advice."}
+
+SQUAD POWER RULE:
+${(() => {
+  const sp = Array.isArray(squad_powers) ? squad_powers : [];
+  const sq1 = sp[0] != null && sp[0] !== "" ? Number(sp[0]) : null;
+  const sq2 = sp[1] != null && sp[1] !== "" ? Number(sp[1]) : null;
+  const sq3 = sp[2] != null && sp[2] !== "" ? Number(sp[2]) : null;
+  if (sq1 === null) return "Squad power data not provided - skip squad power gap analysis.";
+  const fmt = (v) => (v != null ? `${v}M` : "not set");
+  const gaps = [];
+  if (sq2 != null && sq2 < sq1 * 0.5) gaps.push(`SQ2 (${sq2}M) is less than 50% of SQ1 (${sq1}M)`);
+  if (sq3 != null && sq3 < sq1 * 0.5) gaps.push(`SQ3 (${sq3}M) is less than 50% of SQ1 (${sq1}M)`);
+  return `Squad Powers: SQ1=${fmt(sq1)}, SQ2=${fmt(sq2)}, SQ3=${fmt(sq3)}.\n${gaps.length > 0 ? `GAP DETECTED: ${gaps.join(" and ")}. Flag this gap and recommend focusing secondary squad development.` : "Squad powers are reasonably balanced."}`;
+})()}
+
+HQ RULE:
+${hq_level != null
+  ? `HQ Level is ${hq_level}. Use this to calibrate building advice: HQ 1-19 = early game, HQ 20-25 = mid game critical phase, HQ 26-30 = late game competitive. Tailor all building recommendations accordingly.`
+  : "HQ Level not set - use general building advice."}
+
 KNOWLEDGE BASE:
 ${kbStr}
 
-BOSS SCHEDULE FOR THIS PLAYER (${troop_type}) \u2014 ALWAYS REFERENCE IN BOSS-RELATED ANSWERS:
+BOSS SCHEDULE FOR THIS PLAYER (${troop_type}) - ALWAYS REFERENCE IN BOSS-RELATED ANSWERS:
 - ${bossStatusToday}
-- Your Wanted Monster (${troop_type} bonus): ${wantedMonster.name} on ${wantedMonster.days} \u2014 +50% damage
-- Polar Beast target: ${beastTarget} (weak to ${troop_type}) \u2014 always attack ${beastTarget} Dig Sites
+- Your Wanted Monster (${troop_type} bonus): ${wantedMonster.name} on ${wantedMonster.days} - +50% damage
+- Polar Beast target: ${beastTarget} (weak to ${troop_type}) - always attack ${beastTarget} Dig Sites
 - Doom Walker: kill the highest-level one available each day for a coal bonus (Season 2)
 Rule: Whenever boss strategy, farming, or event schedules are mentioned, Claude MUST state today's active boss status and the player's Wanted Monster days (${wantedMonster.days}).
 
-BEAST TARGETING (CRITICAL \u2014 never get these wrong):
-- Bear is weak to Tank   \u2192 Tank players ALWAYS attack BEAR dig sites
-- Gorilla is weak to Missile \u2192 Missile players ALWAYS attack GORILLA dig sites
-- Mammoth is weak to Aircraft \u2192 Aircraft players ALWAYS attack MAMMOTH dig sites
-This player uses ${troop_type} \u2192 they MUST target: ${beastTarget} dig sites ONLY.
+BEAST TARGETING (CRITICAL - never get these wrong):
+- Bear is weak to Tank   - Tank players ALWAYS attack BEAR dig sites
+- Gorilla is weak to Missile - Missile players ALWAYS attack GORILLA dig sites
+- Mammoth is weak to Aircraft - Aircraft players ALWAYS attack MAMMOTH dig sites
+This player's Squad 1 uses ${troop_type} - they MUST target: ${beastTarget} dig sites ONLY.
+If Squads 2/3 have different types, their optimal beast targets differ accordingly.
 
 GENERAL HERO MILESTONES (apply only to heroes NOT yet at these levels):
 - 4\u2605 unlocks Super Sensory: +20% HP/Attack/Defense, +10% skill speed
@@ -277,7 +303,7 @@ GENERAL HERO MILESTONES (apply only to heroes NOT yet at these levels):
 
 SCREENSHOT / IMAGE ANALYSIS RULES:
 - Formation screenshots show very small vehicle icons that are NOT reliably distinguishable by visual appearance alone. DO NOT guess or infer troop types from vehicle visuals in any screenshot.
-- This player's troop type is ${troop_type} (from their profile). When analysing a formation screenshot, assume ALL heroes and troops shown belong to the ${troop_type} type unless the user explicitly states otherwise in their message.
+- This player's Squad 1 troop type is ${troop_type} (from their profile). When analysing a formation screenshot, assume all heroes and troops shown belong to the ${troop_type} type unless the user explicitly states otherwise.
 - If troop type cannot be confirmed from the image and the user has not specified it, default to the profile value (${troop_type}).
 
 ${language === "RU"
@@ -286,9 +312,9 @@ ${language === "RU"
   ? "LANGUAGE DIRECTIVE: You MUST respond entirely in French (Francais). Do not write any English in your response - every word must be in French."
   : "LANGUAGE DIRECTIVE: Respond in English."}
 
-INSTRUCTIONS: Be direct, specific, and tactical. Reference the player's troop type (${troop_type}), furnace level (${furnace_level}), and actual hero stars from the profile above. Recommend the correct beast type for their troop. Keep answers under 200 words. Format with clear sections when helpful.
+INSTRUCTIONS: Be direct, specific, and tactical. Reference the player's Squad 1 type (${troop_type}), furnace level (${furnace_level}), and actual hero stars from the profile above. Recommend the correct beast type for their troop. Keep answers under 200 words. Format with clear sections when helpful.
 
-IMPORTANT: Never use em dashes (—) in your response. Use hyphens (-) only.`;
+IMPORTANT: Never use em dashes (-) in your response. Use hyphens (-) only.`;
 }
 
 // ── Query category auto-detection ────────────────────────────────────────────
@@ -416,8 +442,14 @@ exports.handler = async (event) => {
   const drone_level  = body.drone_level  || null;
   const hq_level     = body.hq_level     || null;
   const squad_powers = Array.isArray(body.squad_powers) ? body.squad_powers : [];
-  // Infer primary troop type from Squad 1 heroes when client does not send it
-  const troop_type = body.troop_type || inferTroopTypeFromHeroes(heroes);
+  // Per-squad troop types — fall back to hero inference for squad 1
+  const squad_types_raw = Array.isArray(body.squad_types) ? body.squad_types : [];
+  const squad_types = [
+    squad_types_raw[0] || inferTroopTypeFromHeroes(Array.isArray(heroes) ? heroes.slice(0, 5) : []),
+    squad_types_raw[1] || null,
+    squad_types_raw[2] || null,
+  ];
+  const troop_type = squad_types[0]; // Squad 1 type = primary for boss/beast logic
 
   if (!question) {
     return { statusCode: 400, headers: CORS, body: JSON.stringify({ error: "question is required" }) };
@@ -426,7 +458,7 @@ exports.handler = async (event) => {
   // Fetch (or serve from cache) the combined knowledge base
   const kbStr = await fetchKnowledgeBase();
 
-  const systemPrompt = buildSystemPrompt({ server, troop_type, furnace_level, drone_level, hq_level, heroes, season_week, squad_powers, kbStr, language });
+  const systemPrompt = buildSystemPrompt({ server, squad_types, troop_type, furnace_level, drone_level, hq_level, heroes, season_week, squad_powers, kbStr, language });
   console.log(`[BRIEF] System prompt: ${systemPrompt.length} chars | KB fetch took ${Date.now() - t0}ms`);
 
   // Build user message content (with optional image attachment)
