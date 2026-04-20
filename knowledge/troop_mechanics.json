@@ -1,0 +1,58 @@
+{
+  "troop_mechanics": {
+    "source": "Last War: Survival in-game mechanics",
+    "troop_type_counter": {
+      "description": "Rock-paper-scissors counter system between troop types. Each type takes -20% damage from its counter.",
+      "counters": {
+        "Tank": {
+          "resists": "Missile Vehicle",
+          "effect": "Tanks receive -20% damage from Missile Vehicles",
+          "weak_against": "Aircraft"
+        },
+        "Missile_Vehicle": {
+          "resists": "Aircraft",
+          "effect": "Missile Vehicles receive -20% damage from Aircraft",
+          "weak_against": "Tank"
+        },
+        "Aircraft": {
+          "resists": "Tank",
+          "effect": "Aircraft receive -20% damage from Tanks",
+          "weak_against": "Missile Vehicle"
+        }
+      },
+      "counter_cycle": "Tank beats Missile Vehicle → Missile Vehicle beats Aircraft → Aircraft beats Tank",
+      "strategic_note": "Always scout enemy troop type before attacking. A 20% damage reduction is a significant disadvantage in close matchups."
+    },
+    "formation_bonuses": {
+      "description": "Deploying heroes of the same troop type grants stat bonuses to HP, Attack and Defense.",
+      "bonuses": {
+        "3_same_type": {
+          "condition": "Deploy 3 heroes of the same type",
+          "boost": "+5% HP, Attack and Defense"
+        },
+        "3_plus_2_mixed": {
+          "condition": "Deploy 3 heroes of one type and 2 of another",
+          "boost": "+10% HP, Attack and Defense"
+        },
+        "4_same_type": {
+          "condition": "Deploy 4 heroes of the same type",
+          "boost": "+15% HP, Attack and Defense"
+        },
+        "5_same_type": {
+          "condition": "Deploy 5 heroes of the same type (full mono)",
+          "boost": "+20% HP, Attack and Defense",
+          "note": "Maximum bonus. This is the target formation for competitive play."
+        }
+      },
+      "priority_order": "Always aim for 5 same type (+20%) as the primary goal. If not possible, 3+2 mixed (+10%) is better than 4 same (+15%) only when the 2 off-type heroes are significantly stronger.",
+      "strategic_note": "The +20% formation bonus applies to ALL heroes in the squad, making it one of the highest-impact optimisations available. Never sacrifice this bonus without a very strong reason."
+    },
+    "combined_advice": [
+      "Full mono-type squad (5 same) = +20% stats AND no counter disadvantage if type is chosen correctly",
+      "Scout enemy before attack — if they run Tank, use Aircraft for counter advantage + formation bonus",
+      "The counter system (-20% damage taken) stacks with formation bonuses, making type advantage matchups very one-sided",
+      "For PvP: always consider both formation bonus AND type counter before committing to an attack",
+      "For boss fights: troop type counter still applies — check boss type and match accordingly"
+    ]
+  }
+}
