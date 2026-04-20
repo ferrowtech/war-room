@@ -152,6 +152,8 @@ const SquadSection = ({ squadCfg, lang, squadIdx, heroes, usedHeroSet, onHero, o
                 onChange={(e) => onHero(i, e.target.value)}
                 className="war-input flex-1 min-w-0 px-3 py-2 text-sm appearance-none cursor-pointer"
                 style={{ background: "rgba(10,14,26,0.95)" }}
+                translate="no"
+                lang="en"
               >
                 <option value="None" style={{ background: "#0d1220" }}>{T.none}</option>
                 {HEROES_BY_TYPE.map(({ type, list }) => {
@@ -160,9 +162,9 @@ const SquadSection = ({ squadCfg, lang, squadIdx, heroes, usedHeroSet, onHero, o
                   );
                   if (available.length === 0) return null;
                   return (
-                    <optgroup key={type} label={`- ${type} -`} style={{ color: "#4fc3f7", background: "#0d1220" }}>
+                    <optgroup key={type} label={`- ${type} -`} style={{ color: "#4fc3f7", background: "#0d1220" }} translate="no">
                       {available.map((hero) => (
-                        <option key={hero} value={hero} style={{ background: "#0d1220", color: "#fff" }}>
+                        <option key={hero} value={hero} style={{ background: "#0d1220", color: "#fff" }} translate="no">
                           {hero}
                         </option>
                       ))}
