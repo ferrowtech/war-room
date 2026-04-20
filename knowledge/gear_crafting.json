@@ -1,0 +1,102 @@
+{
+  "gear_crafting": {
+    "source": "Last War: Survival - Gear Crafting Guide. Leveling strategy credits: SHADOWSTRIKE1 on Reddit",
+    "core_rules": [
+      "Only care about UR gear — do not invest in lower rarity gear",
+      "Always level gear in 10 level increments",
+      "Always buy Blueprints whenever you can",
+      "Gear is crafted in the Gear Factory"
+    ],
+    "upgrade_costs": {
+      "level_0_to_10": {
+        "gold": "3.2M",
+        "ore": "20.8k"
+      },
+      "level_10_to_20": {
+        "gold": "5.9M",
+        "ore": "38.8k"
+      },
+      "level_20_to_30": {
+        "gold": "8.8M",
+        "ore": "58.8k"
+      },
+      "level_30_to_40": {
+        "gold": "11.2M",
+        "ore": "76.2k"
+      },
+      "level_40_to_1star": {
+        "gold": "93.6M",
+        "ore": "62.5k",
+        "ceramic": 750,
+        "blueprints": 5
+      },
+      "1star_to_2star": {
+        "gold": "121.6M",
+        "ore": "81.0k",
+        "ceramic": 975,
+        "blueprints": 10
+      },
+      "2star_to_3star": {
+        "gold": "150M",
+        "ore": "100k",
+        "ceramic": 1200,
+        "blueprints": 15
+      },
+      "3star_to_4star": {
+        "gold": "178M",
+        "ore": "118.5k",
+        "ceramic": 1425,
+        "blueprints": 20
+      },
+      "4star_to_5star": {
+        "gold": "206M",
+        "ore": "138k",
+        "ceramic": 1650,
+        "mythic_blueprints": 10
+      }
+    },
+    "leveling_strategy_tank_squad": {
+      "credits": "SHADOWSTRIKE1 on Reddit",
+      "squad_focus": "Tank",
+      "priority_order": [
+        "ALL gear to level 10 upon creation",
+        "Kim/Stetmann gun to 40",
+        "Williams/Murphy radar to 40",
+        "Kim/Stet data chip to 40",
+        "Williams/Murphy armor to 20",
+        "Kim/Stet gun to 1-star",
+        "Marshall gun to 20",
+        "Kim/Stet data chip to 1-star",
+        "Marshall data chip to 20",
+        "Kim/Stet/Marshall radar to 20",
+        "Williams/Murphy armor to 40",
+        "Kim/Stet gun to 4-star",
+        "Kim/Stet/Marshall radar to 40",
+        "Kim/Stet/Marshall armor to 40",
+        "Williams/Murphy radar to 5-star",
+        "Kim/Stet data chip to 4-star",
+        "Williams/Murphy data chip to 40",
+        "Williams/Murphy gun to 40",
+        "ALL gear to 1-star",
+        "Williams/Murphy armor to 4-star",
+        "Kim/Stet/Marshall radar to 4-star"
+      ],
+      "notes": [
+        "Kim = Kimberly, Stet = Stetmann",
+        "Attack heroes (Kim/Stet) get gun and data chip priority",
+        "Defense heroes (Williams/Murphy) get radar and armor priority",
+        "Marshall gets gun and data chip for support/buff role",
+        "Always level to the next 10-level milestone, never stop mid-increment"
+      ]
+    },
+    "strategic_notes": [
+      "UR gear only — never waste resources on Epic or lower rarity",
+      "Blueprints are the key bottleneck — buy every time they appear in any store",
+      "Ceramic and Ore are the main crafting materials — farm consistently",
+      "Gold costs scale heavily at star levels — prepare reserves before pushing to 1-star+",
+      "Mythic Blueprints are rare — required only for 4-star to 5-star upgrade",
+      "Concentrate gear upgrades on main squad heroes first, never spread across benched heroes",
+      "Attack heroes should have gun and chip prioritised; Defense heroes should have radar and armor prioritised"
+    ]
+  }
+}
