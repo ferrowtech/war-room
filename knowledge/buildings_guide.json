@@ -1,0 +1,264 @@
+{
+  "buildings_guide": {
+    "source": "https://cpt-hedge.com/buildings/",
+    "note": "Key building thresholds and unlocks for Season 2. Max level for all buildings is 35. Levels 31-35 require Age of Oil event (post Season 2) and Base Expansion research in Oil tech tree.",
+    "max_level": 35,
+    "advanced_levels_note": "Levels 31-35 require Age of Oil event + Base Expansion research in Oil tech tree. Introduces Oil as a new resource.",
+
+    "core_buildings": {
+      "Headquarters": {
+        "priority": "CRITICAL - upgrade first at every HQ level",
+        "function": "Defines your level. Unlocks all other buildings. Increases hero level cap.",
+        "key_thresholds": {
+          "HQ_1_19": "Early game - fast progression",
+          "HQ_20_25": "Mid game critical phase - resource grind begins",
+          "HQ_26_30": "Late game competitive",
+          "HQ_27": "Unlocks Armament Institute (T11 troops research)",
+          "HQ_31_35": "Requires Age of Oil event"
+        }
+      },
+      "Tech_Center": {
+        "priority": "CRITICAL - always keep pace with HQ",
+        "function": "Unlocks research trees. Special Forces tree unlocks T10 troops.",
+        "key_thresholds": {
+          "lv20": "Unlocks Special Forces research tree (T10 troops)"
+        }
+      },
+      "Barracks": {
+        "priority": "HIGH - required for troop progression",
+        "function": "Trains troops. Higher levels unlock higher tier troops and increase training cap.",
+        "key_thresholds": {
+          "lv1": "T1 troops",
+          "lv2": "T2 troops",
+          "lv6": "T3 troops",
+          "lv10": "T4 troops",
+          "lv14": "T5 troops",
+          "lv17": "T6 troops",
+          "lv20": "T7 troops",
+          "lv24": "T8 troops",
+          "lv27": "T9 troops",
+          "lv30": "T10 troops"
+        },
+        "training_cap_at_30": 570
+      },
+      "Wall": {
+        "priority": "HIGH - required for HQ upgrades, reduces casualties",
+        "function": "Reduces fire damage to base. Reduces troop casualty rate when breached.",
+        "key_thresholds": {
+          "general": "Keep pace with HQ - often a requirement for HQ upgrades"
+        }
+      },
+      "Tank_Center": {
+        "priority": "HIGH for Tank players - max out",
+        "function": "Increases Tank hero stats (HP, Attack, Defense) and march size.",
+        "key_thresholds": {
+          "each_level": "+500 HP, +23.8 Attack, +4.7 Defense per level (approx)"
+        }
+      },
+      "Air_Center": {
+        "priority": "HIGH for Aircraft players - max out",
+        "function": "Increases Aircraft hero stats and march size.",
+        "key_thresholds": {
+          "each_level": "+500 HP, +23.8 Attack, +4.7 Defense per level (approx)"
+        }
+      },
+      "Missile_Center": {
+        "priority": "HIGH for Missile players - max out",
+        "function": "Increases Missile hero stats and march size.",
+        "key_thresholds": {
+          "general": "Max out for your troop type - same stat structure as Tank/Air Center"
+        }
+      },
+      "Drill_Ground": {
+        "priority": "HIGH - houses stationed troops",
+        "function": "Increases number of troops that can be stationed.",
+        "key_thresholds": {
+          "general": "Keep upgraded - more stationed troops = better defense"
+        }
+      },
+      "Hospital": {
+        "priority": "HIGH - prevents troop loss",
+        "function": "Injured troops go here instead of being lost. Higher levels = more capacity.",
+        "key_thresholds": {
+          "general": "Upgrade when HQ requires it. More capacity = fewer permanent losses in PvP."
+        }
+      },
+      "Emergency_Center": {
+        "priority": "MEDIUM - secondary hospital",
+        "function": "Additional hospital capacity for overflow troops.",
+        "key_thresholds": {
+          "general": "Upgrade after main Hospital. Provides extra safety net."
+        }
+      },
+      "Chip_Lab": {
+        "priority": "HIGH - critical for skill chip system (unlocks day 82)",
+        "function": "Crafts drone skill chips. Higher levels unlock legendary chips.",
+        "key_thresholds": {
+          "lv15": "Unlocks initial legendary chip set",
+          "lv20": "Unlocks all remaining legendary chips"
+        }
+      },
+      "Gear_Factory": {
+        "priority": "HIGH - required for hero gear",
+        "function": "Crafts and upgrades hero gear. Higher levels unlock better gear.",
+        "key_thresholds": {
+          "general": "Keep at lv20 minimum. Blueprints are the bottleneck, not factory level."
+        }
+      },
+      "Alliance_Center": {
+        "priority": "MEDIUM - upgrade when HQ requires",
+        "function": "Required to join alliances. Higher levels increase alliance helps received.",
+        "key_thresholds": {
+          "lv1_to_lv20": "Helps received scales from 5 to 14",
+          "lv30": "20 helps received"
+        }
+      },
+      "Alert_Tower": {
+        "priority": "MEDIUM - scout intelligence",
+        "function": "Defines scout report detail and anti-scout probability.",
+        "key_thresholds": {
+          "lv5": "100% anti-scout probability",
+          "lv10": "Reveals Squad Power in enemy scout",
+          "lv11": "Reveals Gear Details",
+          "lv12": "Reveals Skill Details",
+          "lv19": "Reveals Drone Power",
+          "lv20": "Reveals Drone Level",
+          "lv25": "Reveals Exclusive Weapon Level"
+        }
+      },
+      "Squad": {
+        "priority": "HIGH - increases march speed",
+        "function": "Allows hero squads. Higher levels increase march speed.",
+        "key_thresholds": {
+          "general": "Up to 3 squads available. Keep Squad 1 highest level."
+        }
+      },
+      "Builders_Hut": {
+        "priority": "HIGH - reduces build times",
+        "function": "Increases free speedup time on building upgrades.",
+        "key_thresholds": {
+          "lv10": "5 min free speedup",
+          "lv20": "15 min free speedup",
+          "lv30": "30 min free speedup",
+          "lv35": "40 min free speedup"
+        }
+      },
+      "Tavern": {
+        "priority": "MEDIUM",
+        "function": "Hero and survivor recruitment. Higher levels reduce free recruitment cooldown.",
+        "key_thresholds": {
+          "general": "Keep at lv20 minimum for hero recruitment efficiency."
+        }
+      },
+      "Training_Base": {
+        "priority": "LOW - provides hero EXP passively",
+        "function": "Generates hero EXP over time.",
+        "key_thresholds": {
+          "general": "Low priority - events give better hero EXP."
+        }
+      },
+      "Component_Factory": {
+        "priority": "MEDIUM - drone components",
+        "function": "Produces drone components for drone equipment upgrades.",
+        "key_thresholds": {
+          "general": "Keep upgraded alongside drone level progression."
+        }
+      },
+      "Drone_Parts_Workshop": {
+        "priority": "HIGH - drone parts are critical",
+        "function": "Produces drone parts. Higher levels increase production rate.",
+        "key_thresholds": {
+          "general": "Drone parts are scarce - keep this building upgraded."
+        }
+      },
+      "Smelter": {
+        "priority": "MEDIUM - produces ore for gear",
+        "function": "Generates ore for hero gear upgrades.",
+        "key_thresholds": {
+          "general": "Ore is the main gear crafting material - keep upgraded."
+        }
+      },
+      "Material_Workshop": {
+        "priority": "LOW",
+        "function": "Produces screws for gear factory.",
+        "key_thresholds": {
+          "general": "Low ROI - not a priority building."
+        }
+      },
+      "Armament_Institute": {
+        "priority": "HIGH when available",
+        "function": "Researches 4 Armaments to unlock T11 troops.",
+        "key_thresholds": {
+          "unlocks_at": "HQ level 27",
+          "lv1": "Enables T11 troop research"
+        }
+      },
+      "Recon_Plane": {
+        "priority": "MEDIUM",
+        "function": "Scouts other players. Higher levels increase plane speed.",
+        "key_thresholds": {
+          "general": "In Season 2: Recon Aircraft also heats allied bases (+4C at lv2)."
+        }
+      },
+      "Farmland": { "priority": "LOW", "function": "Food production. Events give better food." },
+      "Gold_Mine": { "priority": "LOW", "function": "Gold production. Events give better gold." },
+      "Iron_Mine": { "priority": "LOW", "function": "Iron production. Events give better iron." },
+      "Food_Warehouse": { "priority": "LOW", "function": "Protects food from being stolen." },
+      "Iron_Warehouse": { "priority": "LOW", "function": "Protects iron from being stolen." },
+      "Coin_Vault": { "priority": "LOW", "function": "Protects coins from being stolen." }
+    },
+
+    "season_2_buildings": {
+      "High_Heat_Furnace": {
+        "priority": "CRITICAL in Season 2",
+        "function": "Heats base. Increases virus resistance. At lv30 unlocks 3 military buildings.",
+        "max_level": 30,
+        "key_thresholds": {
+          "lv1": "Basic heating - essential from Day 1",
+          "lv30": "Unlocks Tank Base, Air Force Base, Missile Base S2 (up to +15% damage bonus at lv30)"
+        },
+        "upgrade_resource": "Titanium Alloy"
+      },
+      "Titanium_Alloy_Factory": {
+        "priority": "CRITICAL in Season 2 - build on Day 1",
+        "function": "Produces Titanium Alloy from Coal. Used to upgrade High-Heat Furnace.",
+        "max_level": 30,
+        "key_thresholds": {
+          "lv15": "Unlocks next factory (up to 4 total, 5th via Weekly Pass)",
+          "each_level": "+720 titanium alloy per hour"
+        },
+        "upgrade_order": "Upgrade Factory 1 to lv15, then unlock Factory 2, repeat. Upgrade gifted Weekly Pass factory LAST."
+      },
+      "Tank_Base_S2": {
+        "priority": "HIGH for Tank players",
+        "function": "Additional stats to Tank heroes. Extension of Tank Center.",
+        "unlocks_at": "High-Heat Furnace lv30"
+      },
+      "Air_Force_Base_S2": {
+        "priority": "HIGH for Aircraft players",
+        "function": "Additional stats to Aircraft heroes. Extension of Air Center.",
+        "unlocks_at": "High-Heat Furnace lv30"
+      },
+      "Missile_Base_S2": {
+        "priority": "HIGH for Missile players",
+        "function": "Additional stats to Missile heroes. Extension of Missile Center.",
+        "unlocks_at": "High-Heat Furnace lv30"
+      }
+    },
+
+    "building_priority_tiers": {
+      "CRITICAL": ["Headquarters", "Tech_Center", "Wall", "High_Heat_Furnace (S2)", "Titanium_Alloy_Factory (S2)"],
+      "HIGH": ["Tank_Center / Air_Center / Missile_Center (your type)", "Barracks", "Drill_Ground", "Hospital", "Chip_Lab", "Gear_Factory", "Builders_Hut", "Squad", "Drone_Parts_Workshop", "Armament_Institute (when available)"],
+      "MEDIUM": ["Alliance_Center", "Alert_Tower", "Emergency_Center", "Tavern", "Component_Factory", "Smelter", "Recon_Plane"],
+      "LOW": ["Training_Base", "Material_Workshop", "Farmland", "Gold_Mine", "Iron_Mine", "Food_Warehouse", "Iron_Warehouse", "Coin_Vault"]
+    },
+
+    "hq_level_context": {
+      "HQ_1_19": "Early game - upgrade everything to keep pace with HQ. Focus on Tech Center.",
+      "HQ_20_25": "Mid game critical phase - unlock Special Forces (T10), focus military centers and barracks.",
+      "HQ_26_30": "Late game competitive - push toward T10/T11, max military centers, push Chip Lab to lv20.",
+      "HQ_27_plus": "Armament Institute unlocks - prioritize to access T11 troops research.",
+      "HQ_31_35": "Requires Age of Oil event post-Season 2. Oil becomes a new resource."
+    }
+  }
+}
