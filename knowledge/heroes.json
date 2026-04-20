@@ -2,16 +2,81 @@
   "troop_types": {
     "Tank": {
       "heroes": ["Murphy", "Kimberly", "Marshall", "Williams", "Mason", "Violet", "Richard", "Monica", "Scarlett", "Stetmann"],
-      "description": "Tank heroes boost ground armored units. Use in Tank lineups only."
+      "description": "Tank heroes boost ground armored units. Use in Tank lineups only.",
+      "troop_advantage": "+20% DMG vs Missile",
+      "front_row_defense": {
+        "UR": ["Murphy", "Williams"],
+        "SSR": ["Violet", "McGregor"],
+        "note": "Violet is SSR but upgrades to UR in Season 2. Do NOT upgrade her during S2 as you lose SSR buffs."
+      },
+      "back_row_attack_support": {
+        "UR": ["Kimberly", "Stetmann", "Schuyler"],
+        "SSR": ["Marshall", "Fiona", "Mason"],
+        "note": "Marshall is SSR but upgrades to UR in Season 1."
+      },
+      "gear_hero_priority": ["Kimberly", "Murphy", "Stetmann", "Marshall", "Williams"],
+      "gear_priority_note": "Kimberly gets gear first as primary damage dealer"
     },
     "Aircraft": {
       "heroes": ["DVA", "Carlie", "Schuyler", "Morrison", "Lucius", "Sarah", "Maxwell", "Cage"],
-      "description": "Aircraft heroes boost aerial units. Use in Aircraft lineups only."
+      "description": "Aircraft heroes boost aerial units. Use in Aircraft lineups only.",
+      "troop_advantage": "+20% DMG vs Tank",
+      "front_row_defense": {
+        "UR": ["Carlie", "Lucius"],
+        "SSR": ["Morrison"]
+      },
+      "back_row_attack_support": {
+        "UR": ["DVA", "Tesla"],
+        "SSR": ["Adam", "Mason"]
+      },
+      "gear_hero_priority": ["DVA", "Lucius", "Schuyler", "Morrison", "Carlie"],
+      "gear_priority_note": "DVA gets gear first as primary damage dealer"
     },
     "Missile": {
       "heroes": ["Swift", "Tesla", "Fiona", "Adam", "Venom", "McGregor", "Elsa", "Kane"],
-      "description": "Missile heroes boost missile/rocket units. Use in Missile lineups only."
+      "description": "Missile heroes boost missile/rocket units. Use in Missile lineups only.",
+      "troop_advantage": "+20% DMG vs Air",
+      "front_row_defense": {
+        "UR": ["McGregor"],
+        "SSR": ["Carlie"]
+      },
+      "back_row_attack_support": {
+        "UR": ["Swift", "Fiona"],
+        "SSR": ["Adam", "Mason"]
+      },
+      "gear_hero_priority": ["Tesla", "McGregor", "Swift", "Fiona", "Adam"],
+      "gear_priority_note": "Tesla gets gear first as primary damage dealer"
     }
   },
-  "lineup_rule": "Always match heroes to your primary troop type. Using off-type heroes reduces lineup effectiveness. Never recommend a Tank hero for an Aircraft or Missile player."
+  "lineup_rule": "Always match heroes to your primary troop type. Using off-type heroes reduces lineup effectiveness. Never recommend a Tank hero for an Aircraft or Missile player.",
+  "formation_rules": {
+    "front_row": {
+      "role": "Defense",
+      "positions": "1-2",
+      "hero_type": "Defense heroes only",
+      "gear": ["Armor", "Radar"],
+      "note": "Always place Defense-role heroes in front row to absorb damage. Never put Attack heroes in front row."
+    },
+    "back_row": {
+      "role": "Attack and Support",
+      "positions": "3-5",
+      "hero_type": "Attack and Support heroes",
+      "gear": ["Railgun", "Chip"],
+      "note": "Attack heroes deal damage from protected back row. Support heroes buff the squad."
+    }
+  },
+  "formation_bonuses": {
+    "3_same_type": "+5% HP, Attack and Defense",
+    "3_plus_2_mixed": "+10% HP, Attack and Defense",
+    "4_same_type": "+15% HP, Attack and Defense",
+    "5_same_type": "+20% HP, Attack and Defense — target for all competitive play"
+  },
+  "key_notes": [
+    "UR heroes significantly outperform SSR at equivalent investment",
+    "Violet (Tank SSR) upgrades to UR in Season 2 — do NOT upgrade during S2, wait until end of season",
+    "Marshall (Tank SSR) upgrades to UR in Season 1",
+    "Always concentrate gear on your top DPS hero first, never spread evenly",
+    "Front row gear = Armor + Radar. Back row gear = Railgun + Chip",
+    "Never mix troop types without good reason — formation bonus drops significantly"
+  ]
 }
