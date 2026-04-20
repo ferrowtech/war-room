@@ -1,0 +1,101 @@
+{
+  "alliance_duel_schedule": {
+    "source": "Last War: Survival - Alliance Duel Schedule by KIMORX (#931)",
+    "description": "Alliance Duel (VS) runs weekly. Each day has specific reward categories available. Plan your activities around the day's rewards to maximise value.",
+    "schedule": {
+      "Monday": {
+        "day": 1,
+        "rewards": [
+          "Radar Task",
+          "Stamina",
+          "Hero XP",
+          "Drone Data",
+          "Drone Part",
+          "Gather Gold",
+          "Gather Iron",
+          "Gather Food",
+          "Chip Chest (from day 85)"
+        ],
+        "focus": "Drone farming day — prioritise Drone Data and Drone Parts. Good day for gathering resources."
+      },
+      "Tuesday": {
+        "day": 2,
+        "rewards": [
+          "Building Power",
+          "Building Speed",
+          "Generic Speed",
+          "UR Truck",
+          "Legend Task",
+          "Survivor Recruit"
+        ],
+        "focus": "Building day — use speedups and complete building tasks. UR Truck is high value."
+      },
+      "Wednesday": {
+        "day": 3,
+        "rewards": [
+          "Radar Task",
+          "Tech Power",
+          "Tech Speed",
+          "Generic Speed",
+          "Valor Badge",
+          "Drone Chest"
+        ],
+        "focus": "Research and tech day. Valor Badge is key for Versus Duel research tree — always claim."
+      },
+      "Thursday": {
+        "day": 4,
+        "rewards": [
+          "Hero Recruit",
+          "Hero XP",
+          "Hero Shard",
+          "Skill Medal",
+          "Weapon Shard (from S1)"
+        ],
+        "focus": "Hero day — best day to push hero upgrades and spend Skill Medals. Hero Shards and Skill Medals are top priority."
+      },
+      "Friday": {
+        "day": 5,
+        "rewards": [
+          "Radar Task",
+          "Building Power",
+          "Building Speed",
+          "Tech Power",
+          "Tech Speed",
+          "Train Unit",
+          "Train Speed",
+          "Generic Speed",
+          "Overlord Shard (from S2)",
+          "Overlord GBook (from S2)",
+          "Overlord Certificate (from S2)",
+          "Overlord BBadge (from S2)",
+          "Overlord SBadge (from S2)"
+        ],
+        "focus": "Biggest reward day of the week. Training + Building + Tech all active. Season 2 Overlord rewards available. Maximum activity day."
+      },
+      "Saturday": {
+        "day": 6,
+        "rewards": [
+          "UR Truck",
+          "Legend Task",
+          "Building Speed",
+          "Tech Speed",
+          "Train Speed",
+          "Healing Speed",
+          "Generic Speed",
+          "Unit Killed"
+        ],
+        "focus": "Speed and PvP day. Healing Speed and Unit Killed rewards make this the best day for combat and rallies."
+      }
+    },
+    "strategic_notes": [
+      "Friday is the most valuable day — maximise all activities: building, research, training",
+      "Thursday is the best day for hero investment — push star upgrades and skill medals on this day",
+      "Wednesday Valor Badge is critical for Versus Duel research tree — never skip",
+      "Monday Drone Parts and Data are essential for drone progression — always complete drone tasks",
+      "Saturday Unit Killed reward makes it ideal for boss attacks, rallies and PvP",
+      "Chip Chest unlocks from day 85 on Mondays — important for skill chip system after unlock",
+      "Season 2 Overlord rewards on Friday are exclusive to S2 — prioritise on that day",
+      "Weapon Shards on Thursday only available from Season 1 onwards"
+    ]
+  }
+}
