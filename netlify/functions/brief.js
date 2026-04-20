@@ -290,10 +290,30 @@ INSTRUCTIONS: Be direct, specific, and tactical. Reference the player's troop ty
 IMPORTANT: Never use em dashes (—) in your response. Use hyphens (-) only.`;
 }
 
+// ── Query category auto-detection ────────────────────────────────────────────
+function detectQueryCategory(question) {
+  const q = (question || "").toLowerCase();
+  if (/daily briefing|briefing for today|ежедневный брифинг|briefing quotidien/i.test(q))
+    return "Daily Briefing";
+  if (/\bhero\b|\bupgrade\b|\bstar\b|\bshard\b|level up|\bгерой\b|\bулучш|\bheroi\b|\bamelior/i.test(q))
+    return "Hero Upgrade";
+  if (/\bboss\b|\bbutcher\b|\bfrankenstein\b|\bbulldog\b|\bwanted\b|\bбосс\b|\bboss\b/i.test(q))
+    return "Boss Attack";
+  if (/\bteam\b|\bsquad\b|\bformation\b|\blineup\b|\bотряд\b|\bсостав\b|\bescouade\b|\bequipe\b/i.test(q))
+    return "Team Setup";
+  if (/\bspend\b|\bbuy\b|\bworth\b|\bcurrency\b|\bpurchase\b|\bтратить\b|\bкупить\b|\bstoji\b|\bdepense\b/i.test(q))
+    return "Spend Advice";
+  if (/\bwar\b|\bphase\b|\bfurnace attack\b|\brally\b|\bвойна\b|\bфаза\b|\bfourneau\b|\bguerre\b/i.test(q))
+    return "War Phase";
+  if (/\bevent\b|\barms race\b|\bduel\b|\balliance\b|\bсобытие\b|\bдуэль\b|\bevenement\b|\bduelo\b/i.test(q))
+    return "Event Advice";
+  return "General";
+}
+
 // ── Notion logging (awaited with 2s timeout) ──────────────────────────────────
-async function logToNotion({ question, answer, server, troop_type, season_week, furnace_level, heroes, image_base64, language, client_ip }) {
+async function logToNotion({ question, answer, server, season_week, furnace_level, drone_level, heroes, image_base64, language }) {
   const token = process.env.NOTION_TOKEN;
-  const dbId  = process.env.NOTION_DATABASE_ID || "a52c8cc8-cf7a-4f17-b90c-3b0d9f7e98a6";
+  const dbId  = process.env.NOTION_DATABASE_ID || "c5d645e5984147c0b257b13d651c6400";
 
   if (!token) {
     console.warn("[NOTION] Skipped — NOTION_TOKEN env var not set");
@@ -305,40 +325,48 @@ async function logToNotion({ question, answer, server, troop_type, season_week, 
     ? heroes.filter((h) => h && h.toLowerCase() !== "none").join(", ")
     : String(heroes || "");
 
+  const langName = language === "RU" ? "Russian" : language === "FR" ? "French" : language === "EN" ? "English" : "Unknown";
+  const category = detectQueryCategory(question);
+
   const payload = {
     parent: { database_id: dbId },
     properties: {
       Question:        { title:     [{ text: { content: String(question || "").slice(0, 2000) } }] },
-      Server:          { rich_text: [{ text: { content: String(server || "") } }] },
-      "Troop Type":    { select:    { name: troop_type || "Unknown" } },
-      "Season Week":   { number:    season_week   ? Number(season_week)   : null },
-      "Furnace Level": { number:    furnace_level  ? Number(furnace_level)  : null },
+      Answer:          { rich_text: [{ text: { content: String(answer   || "").slice(0, 2000) } }] },
+      Server:          { rich_text: [{ text: { content: String(server   || "") } }] },
+      "Furnace Level": { number:    furnace_level != null ? Number(furnace_level) : null },
+      "Drone Level":   { number:    drone_level   != null ? Number(drone_level)  : null },
+      "Season Week":   { number:    season_week   != null ? Number(season_week)  : null },
       Heroes:          { rich_text: [{ text: { content: heroesStr.slice(0, 2000) } }] },
       "Has Image":     { checkbox:  Boolean(image_base64) },
       Timestamp:       { date:      { start: new Date().toISOString() } },
-      Answer:          { rich_text: [{ text: { content: String(answer || "").slice(0, 2000) } }] },
-      Language:        { select:    { name: language === "RU" ? "Russian" : language === "FR" ? "French" : "English" } },
-      "IP Address":    { rich_text: [{ text: { content: String(client_ip || "unknown") } }] },
+      Language:        { select:    { name: langName } },
+      "Query Category":{ select:    { name: category } },
+      Tester:          { checkbox:  false },
     },
   };
 
-  const res = await fetch("https://api.notion.com/v1/pages", {
-    method: "POST",
-    headers: {
-      Authorization:    `Bearer ${token}`,
-      "Content-Type":   "application/json",
-      "Notion-Version": "2022-06-28",
-    },
-    body: JSON.stringify(payload),
-  });
+  try {
+    const res = await fetch("https://api.notion.com/v1/pages", {
+      method: "POST",
+      headers: {
+        Authorization:    `Bearer ${token}`,
+        "Content-Type":   "application/json",
+        "Notion-Version": "2022-06-28",
+      },
+      body: JSON.stringify(payload),
+    });
 
-  const body = await res.text();
-  if (res.ok) {
-    console.log(`[NOTION] Entry created OK — page id: ${JSON.parse(body).id}`);
-  } else {
-    console.error(`[NOTION] API error ${res.status} ${res.statusText}`);
-    console.error(`[NOTION] Response body: ${body}`);
-    console.error(`[NOTION] Payload sent: ${JSON.stringify(payload, null, 2)}`);
+    const body = await res.text();
+    if (res.ok) {
+      console.log(`[NOTION] Entry created OK — page id: ${JSON.parse(body).id} | category: ${category}`);
+    } else {
+      console.error(`[NOTION] API error ${res.status} ${res.statusText}`);
+      console.error(`[NOTION] Response body: ${body}`);
+      console.error(`[NOTION] Payload sent: ${JSON.stringify(payload, null, 2)}`);
+    }
+  } catch (err) {
+    console.error(`[NOTION] Fetch threw: ${err.message}`);
   }
 }
 
@@ -442,7 +470,7 @@ exports.handler = async (event) => {
     // The timeout resolves (not rejects) so a slow/failed Notion call never blocks the response.
     const notionTimeout = new Promise((resolve) => setTimeout(resolve, 2000));
     await Promise.race([
-      logToNotion({ question, answer: response, server, troop_type, season_week, furnace_level, heroes, image_base64, language, client_ip: clientIp }),
+      logToNotion({ question, answer: response, server, season_week, furnace_level, drone_level, heroes, image_base64, language }),
       notionTimeout,
     ]).catch((err) => console.error(`[NOTION] Unexpected error: ${err.message}`));
 
