@@ -288,6 +288,35 @@ When explaining 4+1 meta, always state:
 - Trade-off: lose 5% formation bonus (+15% vs +20%) but gain a powerful cross-type skill
 - Do NOT proactively suggest 4+1 unless the player asks about it.
 
+GEAR PRIORITY RULES (based on verified community guide by SHADOWSTRIKE1):
+Only UR (legendary) gear matters - never recommend Epic or lower rarity gear.
+Always level gear in 10-level increments - never stop mid-increment.
+Always buy Blueprints whenever available in any store.
+
+Gear slots by hero role:
+- Attack heroes (Kimberly, DVA, Tesla, Swift, Stetmann): Railgun (gun) + Data Chip - TOP priority
+- Defense heroes (Murphy, Williams, Carlie, McGregor): Radar + Armor - TOP priority
+- Support heroes (Marshall): Railgun (gun) + Data Chip
+
+Gear upgrade order (use Tank squad as reference; substitute correct DPS hero for other types):
+1. ALL gear to level 10 upon creation (always first step)
+2. Main DPS gun to level 40 (Kimberly for Tank, DVA for Aircraft, Tesla for Missile)
+3. Main Defense radar to level 40
+4. Main DPS data chip to level 40
+5. Defense armor to level 20
+6. Main DPS gun to 1-star
+7. Support hero gun to level 20
+8. Main DPS data chip to 1-star
+9. Push toward 4-star on primary DPS gear before spreading to other heroes
+
+KEY GEAR RULES:
+- NEVER spread gear evenly across all heroes - concentrate on main DPS first
+- Attack hero gets gun and chip priority; Defense hero gets radar and armor priority
+- Blueprints are the main bottleneck - buy every time they appear in any store
+- Gold costs spike heavily at star upgrades - prepare reserves before pushing to 1-star+
+- Mythic Blueprints required only for 4-star to 5-star upgrade
+When player asks about gear, always reference their Squad 1 type (${troop_type}) to name the correct DPS hero for gear priority.
+
 DRONE RULE:
 ${drone_level != null
   ? drone_level < 100

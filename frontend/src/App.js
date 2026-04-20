@@ -73,7 +73,9 @@ function App() {
     if (stored) {
       try {
         setProfile(JSON.parse(stored));
-      } catch {}
+      } catch (e) {
+        console.error("[App] Failed to parse stored profile:", e);
+      }
     }
     setLoaded(true);
   }, []);
