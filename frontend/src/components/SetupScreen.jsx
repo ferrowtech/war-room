@@ -350,7 +350,7 @@ const SetupScreen = ({ onComplete, initialProfile = null }) => {
 
   return (
     <div
-      className="war-noise min-h-screen bg-[#0a0e1a] flex items-center justify-center px-4 py-8 relative overflow-hidden"
+      className="war-noise min-h-screen bg-[#0a0e1a] flex flex-col relative overflow-hidden"
       data-testid="setup-screen"
     >
       <div className="scan-line" />
@@ -368,32 +368,38 @@ const SetupScreen = ({ onComplete, initialProfile = null }) => {
         <SetupLanguageSelector lang={lang} onSetLang={setLang} />
       </div>
 
-      <div className="relative z-10 w-full max-w-md">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <div className="flex items-center justify-center gap-2 mb-2">
-            <img
-              src="https://www.lastwar.com/en/img/logo.png"
-              alt="Last War"
-              style={{ height: "28px" }}
-              className="object-contain"
-              onError={(e) => { e.target.style.display = "none"; }}
-            />
-            <h1
-              className="font-heading text-xl text-white tracking-[0.2em]"
-              style={{ textShadow: "0 0 15px rgba(79,195,247,0.5)" }}
-            >
-              WAR ROOM
-            </h1>
-          </div>
-          <div className="flex items-center gap-2 justify-center">
-            <div className="h-px flex-1 bg-[#4fc3f7]/30" />
-            <span className="font-heading text-sm text-[#4fc3f7] tracking-[0.3em]">
-              {isEditing ? T.editProfile : T.commanderSetup}
-            </span>
-            <div className="h-px flex-1 bg-[#4fc3f7]/30" />
-          </div>
+      {/* Full-width top bar — matches WarRoom.jsx TopBar */}
+      <div
+        className="w-full px-4 py-3 border-b border-[#4fc3f7]/20 flex flex-col items-center gap-1 relative z-10 flex-shrink-0"
+        style={{ background: "rgba(10,14,26,0.95)" }}
+      >
+        <div className="flex items-center gap-2">
+          <img
+            src="https://www.lastwar.com/en/img/logo.png"
+            alt="Last War"
+            style={{ height: "28px" }}
+            className="object-contain"
+            onError={(e) => { e.target.style.display = "none"; }}
+          />
+          <h1
+            className="font-heading text-xl text-white tracking-[0.2em]"
+            style={{ textShadow: "0 0 15px rgba(79,195,247,0.5)" }}
+          >
+            WAR ROOM
+          </h1>
         </div>
+        <div className="flex items-center gap-2 w-full">
+          <div className="h-px flex-1 bg-[#4fc3f7]/30" />
+          <span className="font-heading text-sm text-[#4fc3f7] tracking-[0.3em]">
+            {isEditing ? T.editProfile : T.commanderSetup}
+          </span>
+          <div className="h-px flex-1 bg-[#4fc3f7]/30" />
+        </div>
+      </div>
+
+      {/* Form — centered below header */}
+      <div className="flex-1 flex items-center justify-center px-4 py-8">
+      <div className="relative z-10 w-full max-w-md">
 
         <div className="hud-panel hud-corner p-6 relative">
           <div
@@ -626,6 +632,7 @@ const SetupScreen = ({ onComplete, initialProfile = null }) => {
         <p className="text-center text-[10px] text-[#37474f] font-heading tracking-widest mt-4">
           {T.footer}
         </p>
+      </div>
       </div>
     </div>
   );
