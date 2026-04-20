@@ -1,0 +1,41 @@
+{
+  "vs_duel_rankings": {
+    "source": "https://cpt-hedge.com",
+    "overview": "VS Duel lasts 4 weeks. Your wins and losses define your rank among 16 alliances. Depending on rank you can promote to a higher league, stay, or be demoted.",
+    "duration": "4 weeks per cycle",
+    "total_alliances_per_group": 16,
+    "promotion_demotion": {
+      "promotion_zone": "Ranks 1-2 - usually selected for promotion to higher league. Win as many weeks as possible.",
+      "safe_zone": "Ranks 3-11 approximately - 2 or more wins keeps you in same league",
+      "demotion_zone": "Rank 12 and lower - at risk of demotion. A single win does NOT get you out of danger zone.",
+      "note": "Actual promotion/demotion ranges vary and are defined during each VS Duel cycle"
+    },
+    "win_loss_patterns": {
+      "rank_1":  ["Win", "Win", "Win", "Win"],
+      "rank_2":  ["Win", "Win", "Win", "Lose"],
+      "rank_3":  ["Win", "Win", "Lose", "Win"],
+      "rank_4":  ["Win", "Lose", "Win", "Win"],
+      "rank_5":  ["Lose", "Win", "Win", "Win"],
+      "rank_6":  ["Win", "Win", "Lose", "Lose"],
+      "rank_7":  ["Win", "Lose", "Win", "Lose"],
+      "rank_8":  ["Win", "Lose", "Lose", "Win"],
+      "rank_9":  ["Lose", "Win", "Win", "Lose"],
+      "rank_10": ["Lose", "Win", "Lose", "Win"],
+      "rank_11": ["Lose", "Lose", "Win", "Win"],
+      "rank_12": ["Win", "Lose", "Lose", "Lose"],
+      "rank_13": ["Lose", "Win", "Lose", "Lose"],
+      "rank_14": ["Lose", "Lose", "Win", "Lose"],
+      "rank_15": ["Lose", "Lose", "Lose", "Win"],
+      "rank_16": ["Lose", "Lose", "Lose", "Lose"]
+    },
+    "strategic_tips": [
+      "For promotion: aim for rank 1-2 by winning as many weeks as possible",
+      "To stay safe: 2+ wins guaranteed - best patterns are W-L-W-L (rank 7) or L-W-L-W (rank 10)",
+      "These alternating patterns let you save resources on loss weeks while still staying safe",
+      "Demotion risk: rank 12+ - a single win is not enough to escape demotion zone",
+      "Plan your strongest attack weeks when you need wins, conserve on planned loss weeks",
+      "Wednesday Valor Badge from VS Duel is critical for Versus Duel research tree - never skip"
+    ],
+    "daily_rewards_note": "See alliance_duel_schedule.json for full daily reward breakdown by day of week"
+  }
+}

@@ -1,0 +1,81 @@
+{
+  "t11_troops": {
+    "source": "https://cpt-hedge.com",
+    "availability": "Season 4 Off-Season and beyond",
+    "prerequisites": [
+      "HQ level 27 or above",
+      "Season 4 Off-Season must have started",
+      "Build the Armament Institute (no further upgrades needed)",
+      "Complete all 4 Armament Research items in order"
+    ],
+    "how_to_unlock": {
+      "step_1": "Meet prerequisites - HQ 27+, Season 4 Off-Season",
+      "step_2": "Build the Armament Institute - no upgrades required",
+      "step_3": "Complete all 4 Armament Research items - this is the main bottleneck",
+      "step_4": "Pay final Unlock cost to make T11 available in Barracks",
+      "note": "Research must be completed in order: Helmet first, then Body Armor, Accessories, Weapon"
+    },
+    "resources_required": {
+      "Armament_Materials": {
+        "sources": ["Restricted Area Training (Alert Tower)", "VIP Store", "Alliance Store", "Paid packs"],
+        "note": "Required for every research level"
+      },
+      "Armament_Core": {
+        "sources": ["Restricted Area Training (Alert Tower)", "VIP Store", "Alliance Store", "Paid packs"],
+        "note": "Required every 5th research level - low drop probability, main bottleneck"
+      },
+      "Oil": {
+        "sources": ["Oil Wells", "Secret Tasks", "Events", "Paid Packs"],
+        "note": "Required only for the final 99-100% of each research and the Unlock cost"
+      }
+    },
+    "research_costs": {
+      "note": "Research costs increment every 50%. Final 1% (99-100%) requires Oil and Armament Cores.",
+      "Helmet": {
+        "phase_0_to_49": { "materials": "6K", "cores": 10 },
+        "phase_50_to_99": { "materials": "8K", "cores": 15 },
+        "phase_99_to_100": { "cores": 15, "oil": "1.2M" },
+        "total": { "materials": "694K", "cores": 255, "oil": "1.2M" }
+      },
+      "Body_Armor": {
+        "phase_0_to_49": { "materials": "10K", "cores": 20 },
+        "phase_50_to_99": { "materials": "12K", "cores": 25 },
+        "phase_99_to_100": { "cores": 25, "oil": "1.2M" },
+        "total": { "materials": "1.1M", "cores": 455, "oil": "1.2M" }
+      },
+      "Accessories": {
+        "phase_0_to_49": { "materials": "16K", "cores": 30 },
+        "phase_50_to_99": { "materials": "20K", "cores": 40 },
+        "phase_99_to_100": { "cores": 40, "oil": "1.2M" },
+        "total": { "materials": "1.8M", "cores": 710, "oil": "1.2M" }
+      },
+      "Weapon": {
+        "phase_0_to_49": { "materials": "30K", "cores": 40 },
+        "phase_50_to_99": { "materials": "30K", "cores": 40 },
+        "phase_99_to_100": { "cores": 40, "oil": "1.2M" },
+        "note": "Armament Cores required every 3% for this research, and every 2% after reaching 51%",
+        "total": { "materials": "3.0M", "cores": 1680, "oil": "1.2M" }
+      },
+      "Unlock_cost": {
+        "note": "Final one-time cost after completing all 4 research items before T11 becomes available in Barracks",
+        "materials": "120K",
+        "cores": 200,
+        "oil": "1.2M"
+      },
+      "grand_total": {
+        "materials": "6.65M",
+        "cores": 3300,
+        "oil": "6M"
+      }
+    },
+    "troop_power_improvement": {
+      "March_Size": "Improve via research (Mastery tree), military center buildings, decorations",
+      "Unit_Power": "Improve via research (Unit tree), buildings, decorations",
+      "Armament_Institute": "Each research level provides a small boost to Troop Power"
+    },
+    "restricted_area_training": {
+      "description": "Available via Alert Tower. Send troops to fight bosses and earn Armament Materials and Cores passively.",
+      "note": "Your troop power defines how far you can progress in Restricted Area bosses - higher power = better rewards"
+    }
+  }
+}

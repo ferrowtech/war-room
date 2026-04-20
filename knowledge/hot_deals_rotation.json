@@ -1,0 +1,68 @@
+{
+  "hot_deals_rotation": {
+    "source": "https://cpt-hedge.com/guides/hot-deals-events",
+    "note": "Hot Deals event rotation schedule. Season schedule resets at start of each new season. Off-season loops in 4-week cycles until next season starts.",
+    "season_schedule": {
+      "Week_1": ["Hero Exclusive Weapon Battle Pass", "Hero Shard Spin/Roulette", "Custom Weekly Pass", "Energy Loot Quest"],
+      "Week_2": ["Hero Exclusive Weapon Battle Pass", "Bounty Hunter", "Hero Growth Battle Pass", "Decorate Your Dreams", "Moonstone Blessing"],
+      "Week_3": ["Hero Exclusive Weapon Battle Pass", "Hero Shard Spin/Roulette", "Glittering Market", "Overlord Training Battle Pass", "Custom Weekly Pass", "Energy Loot Quest"],
+      "Week_4": ["Hero Exclusive Weapon Battle Pass", "Bullseye Loot + Ammo Bonanza", "Drone Training Pass", "Decorate Your Dreams", "Moonstone Blessing"],
+      "Week_5": ["Total Mobilisation", "Special Training Pass", "Custom Weekly Pass", "Energy Loot Quest"],
+      "Week_6": ["Hero Exclusive Weapon Battle Pass", "Hero Shard Spin/Roulette", "Bounty Hunter", "Hero Growth Battle Pass", "Decorate Your Dreams", "Moonstone Blessing"],
+      "Week_7": ["Hero Exclusive Weapon Battle Pass", "Glittering Market", "Overlord Training Battle Pass", "Custom Weekly Pass", "Energy Loot Quest"],
+      "Week_8": ["Bullseye Loot + Ammo Bonanza", "Drone Training Pass", "Decorate Your Dreams", "Moonstone Blessing"]
+    },
+    "off_season_schedule": {
+      "note": "Loops in 4-week cycles until next season starts. No fixed duration.",
+      "Week_1": ["Total Mobilisation", "Special Training Pass", "Custom Weekly Pass", "Energy Loot Quest"],
+      "Week_2": ["Bounty Hunter", "Hero Growth Battle Pass", "Decorate Your Dreams", "Moonstone Blessing"],
+      "Week_3": ["Glittering Market", "Overlord Training Battle Pass", "Custom Weekly Pass", "Energy Loot Quest"],
+      "Week_4": ["Bullseye Loot + Ammo Bonanza", "Drone Training Pass", "Decorate Your Dreams", "Moonstone Blessing"]
+    },
+    "key_events_guide": {
+      "Hero_Exclusive_Weapon_Battle_Pass": {
+        "availability": "Weeks 1, 2, 3, 4, 6, 7 (Season only)",
+        "note": "Runs Thursday to Thursday - spans 2 weeks. Gives hero-specific exclusive weapon shards.",
+        "tip": "Buy on Day 1 to maximize progression time"
+      },
+      "Hero_Shard_Spin_Roulette": {
+        "availability": "Weeks 1, 3, 6 (Season only)",
+        "note": "Alternates between Spin and Roulette each season. S1/S3 = Roulette, S2/S4 = Spin",
+        "tip": "Prepare 1500 diamonds for key hero spins"
+      },
+      "Glittering_Market": {
+        "availability": "Weeks 3, 7 (Season) / Week 3 (Off-Season)",
+        "tip": "Best event for F2P - get DVA, Swift, Kimberly, Carlie, Tesla for 500 diamonds each (60 coins)"
+      },
+      "Bounty_Hunter": {
+        "availability": "Weeks 2, 6 (Season) / Week 2 (Off-Season)",
+        "note": "Replacement for Summon Supplies event"
+      },
+      "Drone_Training_Pass": {
+        "availability": "Weeks 4, 8 (Season) / Week 4 (Off-Season)",
+        "tip": "Best week to push drone upgrades and spend drone resources"
+      },
+      "Overlord_Training_Battle_Pass": {
+        "availability": "Weeks 3, 7 (Season) / Week 3 (Off-Season)",
+        "note": "Only appears after Overlord added on Day 89 of Season 2"
+      },
+      "Total_Mobilisation": {
+        "availability": "Week 5 (Season) / Week 1 (Off-Season)"
+      },
+      "Bullseye_Loot_Ammo_Bonanza": {
+        "availability": "Weeks 4, 8 (Season) / Week 4 (Off-Season)"
+      },
+      "Black_Market": {
+        "availability": "Off-Season only - after each season ends",
+        "tip": "F2P players can unlock exclusive weapons here instead of paying for battle pass during season"
+      }
+    },
+    "strategic_notes": [
+      "Glittering Market (Week 3/7) is the most important F2P event - plan diamonds in advance",
+      "Hero Exclusive Weapon Battle Pass is worth buying on Day 1 for maximum progression",
+      "Spin/Roulette alternates per season - S2 and S4 use Spin",
+      "Overlord Training Battle Pass only available from Day 89 of Season 2 onwards",
+      "Off-season Black Market lets F2P players unlock exclusive weapons cheaply"
+    ]
+  }
+}
