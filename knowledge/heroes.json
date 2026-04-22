@@ -15,7 +15,72 @@
         "note": "Marshall is SSR but upgrades to UR in Season 1."
       },
       "gear_hero_priority": ["Kimberly", "Murphy", "Stetmann", "Marshall", "Williams"],
-      "gear_priority_note": "Kimberly gets gear first as primary damage dealer"
+      "gear_priority_note": "Kimberly gets gear first as primary damage dealer",
+      "heroes_detailed": {
+        "Murphy": {
+          "rarity": "UR",
+          "role": "Tank Defense",
+          "role_subtype": "Mitigation Tank - shields & damage reduction",
+          "formation_position": "Front Row (Position 1-2)",
+          "gear": ["Armor", "Radar"],
+          "exclusive_weapon": "Ironclad Barrier - adds Mitigation stacks to allies",
+          "synergy_with": ["Williams", "Kimberly", "Marshall"],
+          "synergy_notes": "Pairs well with damage dealers Kimberly/Stetmann. Mitigation stacks protect all Tank heroes."
+        },
+        "Williams": {
+          "rarity": "UR",
+          "role": "Tank Defense",
+          "role_subtype": "Armor Tank - pure defense",
+          "formation_position": "Front Row (Position 1-2)",
+          "gear": ["Armor", "Radar"],
+          "exclusive_weapon": "Not listed",
+          "synergy_with": ["Murphy", "Kimberly", "Marshall"],
+          "synergy_notes": "Best paired with Murphy for dual-front defense. Allows back-row heroes to deal uninterrupted damage."
+        },
+        "Kimberly": {
+          "rarity": "UR",
+          "role": "Tank Attack",
+          "role_subtype": "Burst Damage - high single-target output",
+          "formation_position": "Back Row (Position 3-5)",
+          "gear": ["Railgun", "Chip"],
+          "gear_priority": "FIRST - primary DPS",
+          "exclusive_weapon": "Available - prioritize upgrading",
+          "synergy_with": ["Murphy", "Williams", "Marshall"],
+          "synergy_notes": "Maximizes damage when frontline tanks absorb damage. Pairs with Murphy for Mitigation synergy."
+        },
+        "Stetmann": {
+          "rarity": "UR",
+          "role": "Tank Attack",
+          "role_subtype": "Sustained Damage - consistent AoE",
+          "formation_position": "Back Row (Position 3-5)",
+          "gear": ["Railgun", "Chip"],
+          "exclusive_weapon": "Not listed",
+          "synergy_with": ["Murphy", "Williams", "Kimberly"],
+          "synergy_notes": "AoE works best when enemies are grouped (defense against rallies). Complements Kimberly's burst."
+        },
+        "Marshall": {
+          "rarity": "SSR (upgrades to UR in Season 1)",
+          "role": "Tank Support",
+          "role_subtype": "Buffer / Damage Amplifier",
+          "formation_position": "Back Row (Position 3-5)",
+          "gear": ["Railgun", "Chip"],
+          "exclusive_weapon": "Command Strategy - increases attack of entire squad for 8 seconds",
+          "core_skill": "Command Strategy (Tactics skill) - primary priority for upgrade",
+          "synergy_with": ["Kimberly", "Stetmann", "Tank heroes as primary squad"],
+          "cross_type_note": "Confirmed in Code Boss squads: Marshall appears in Tank, Aircraft, AND Missile Code Boss formations - his attack buff applies across troop types",
+          "kb_source": "code_boss.json - appears in all 3 boss squads",
+          "internet_source": "ldshop.gg/blog - 'Marshall's damage buff benefits everyone'"
+        },
+        "Mason": {
+          "rarity": "SSR",
+          "role": "Tank Support",
+          "role_subtype": "Utility - specialty effects",
+          "formation_position": "Back Row (Position 3-5)",
+          "gear": ["Railgun", "Chip"],
+          "synergy_with": ["Kimberly", "Stetmann"],
+          "synergy_notes": "Works best in boss scenarios (Code Boss, Doom Walker). Not essential for PvP."
+        }
+      }
     },
     "Aircraft": {
       "heroes": ["DVA", "Carlie", "Schuyler", "Morrison", "Lucius", "Sarah", "Maxwell", "Cage"],
@@ -30,7 +95,56 @@
         "SSR": ["Adam", "Mason"]
       },
       "gear_hero_priority": ["DVA", "Lucius", "Schuyler", "Morrison", "Carlie"],
-      "gear_priority_note": "DVA gets gear first as primary damage dealer"
+      "gear_priority_note": "DVA gets gear first as primary damage dealer",
+      "heroes_detailed": {
+        "Carlie": {
+          "rarity": "UR",
+          "role": "Aircraft Defense",
+          "role_subtype": "Sustain Tank - passive damage reduction",
+          "formation_position": "Front Row (Position 1-2)",
+          "gear": ["Armor", "Radar"],
+          "exclusive_weapon": "Pebble Strike - summons pet when fallen (unreliable)",
+          "synergy_with": ["DVA", "Schuyler"],
+          "synergy_notes": "Pebble mechanic only triggers on death - not reliable. Focus on her lv1/lv10 passive effects instead."
+        },
+        "Lucius": {
+          "rarity": "UR",
+          "role": "Aircraft Defense",
+          "role_subtype": "Armor Tank - direct defense",
+          "formation_position": "Front Row (Position 1-2)",
+          "gear": ["Armor", "Radar"],
+          "synergy_with": ["DVA", "Carlie", "Schuyler"],
+          "synergy_notes": "Paired with Carlie for dual-front. Allows DVA to deal consistent back-row damage."
+        },
+        "DVA": {
+          "rarity": "UR",
+          "role": "Aircraft Attack",
+          "role_subtype": "Burst Damage - high single-target output",
+          "formation_position": "Back Row (Position 3-5)",
+          "gear": ["Railgun", "Chip"],
+          "gear_priority": "FIRST - primary DPS for Aircraft",
+          "synergy_with": ["Carlie", "Lucius", "Schuyler"],
+          "synergy_notes": "Maximizes damage when frontline defends. Exclusive Weapon prioritize after Tank lineup."
+        },
+        "Schuyler": {
+          "rarity": "UR",
+          "role": "Aircraft Attack",
+          "role_subtype": "AoE Damage - crowd control",
+          "formation_position": "Back Row (Position 3-5)",
+          "gear": ["Railgun", "Chip"],
+          "synergy_with": ["Carlie", "DVA"],
+          "synergy_notes": "AoE effective in rallies and sieges. Complements DVA's burst."
+        },
+        "Morrison": {
+          "rarity": "SSR",
+          "role": "Aircraft Defense",
+          "role_subtype": "Support Defense - low primary damage",
+          "formation_position": "Front or Back Row (flexible)",
+          "gear": ["Armor or Railgun"],
+          "synergy_with": ["DVA", "Carlie"],
+          "synergy_notes": "Lower priority than Carlie/Lucius. Upgrade AFTER primary Aircraft stack is 4-star+."
+        }
+      }
     },
     "Missile": {
       "heroes": ["Swift", "Tesla", "Fiona", "Adam", "Venom", "McGregor", "Elsa", "Kane"],
@@ -45,7 +159,48 @@
         "SSR": ["Adam", "Mason"]
       },
       "gear_hero_priority": ["Tesla", "McGregor", "Swift", "Fiona", "Adam"],
-      "gear_priority_note": "Tesla gets gear first as primary damage dealer"
+      "gear_priority_note": "Tesla gets gear first as primary damage dealer",
+      "heroes_detailed": {
+        "McGregor": {
+          "rarity": "UR",
+          "role": "Missile Defense",
+          "role_subtype": "Armor Tank - pure defense",
+          "formation_position": "Front Row (Position 1-2)",
+          "gear": ["Armor", "Radar"],
+          "synergy_with": ["Tesla", "Swift", "Fiona"],
+          "synergy_notes": "Only UR Missile defense. Pairs with Tesla for Missile squad depth."
+        },
+        "Tesla": {
+          "rarity": "UR",
+          "role": "Missile Attack",
+          "role_subtype": "Burst Damage - high single-target output",
+          "formation_position": "Back Row (Position 3-5)",
+          "gear": ["Railgun", "Chip"],
+          "gear_priority": "FIRST - primary DPS for Missile",
+          "exclusive_weapon": "Not listed",
+          "synergy_with": ["McGregor", "Swift", "Fiona"],
+          "synergy_notes": "Best damage output in Missile lineup. Gear Tesla first before Swift."
+        },
+        "Swift": {
+          "rarity": "UR",
+          "role": "Missile Attack",
+          "role_subtype": "Sustained Damage - burn DoT",
+          "formation_position": "Back Row (Position 3-5)",
+          "gear": ["Railgun", "Chip"],
+          "exclusive_weapon": "Winning Pursuit - triggers extra attacks on most-burned enemy",
+          "synergy_with": ["Tesla", "McGregor"],
+          "synergy_notes": "Burn DoT scales with Missile count. Weapon prioritize after Tesla (Winning Pursuit at lv30 is powerful)."
+        },
+        "Fiona": {
+          "rarity": "UR",
+          "role": "Missile Attack",
+          "role_subtype": "AoE Damage - crowd control",
+          "formation_position": "Back Row (Position 3-5)",
+          "gear": ["Railgun", "Chip"],
+          "synergy_with": ["Tesla", "Swift"],
+          "synergy_notes": "Third DPS option. Lower priority than Tesla/Swift for early investment."
+        }
+      }
     }
   },
   "lineup_rule": "Always match heroes to your primary troop type. Using off-type heroes reduces lineup effectiveness. Never recommend a Tank hero for an Aircraft or Missile player.",
