@@ -1,36 +1,70 @@
 {
-  "wanted_monsters": {
-    "description": "Each Wanted Monster grants +50% damage to the matching troop type on its scheduled days. Always prioritise attacking on your bonus days.",
-    "attacks_per_day": "Max 5 solo attacks per day. IMPORTANT: This limit is ONLY for Wanted Monsters. Code Boss has a separate limit of 3 attacks per day — see code_boss.json.",
-    "schedule": {
-      "Frenzied Butcher": {
+  "bosses": {
+    "source": "https://www.lastwartutorial.com/wanted-monsters/",
+    "note": "Each boss has a troop type that deals 50% more damage. ALWAYS match your troop type to the boss schedule for maximum damage and ranking rewards.",
+    "wanted_monsters": {
+      "Frenzied_Butcher": {
         "days": ["Monday", "Thursday"],
-        "troop_bonus": "Tank",
-        "bonus": "+50% damage for Tank troops"
+        "best_troop_type": "Tank",
+        "damage_bonus": "+50% damage for Tank heroes",
+        "best_heroes": ["Murphy", "Kimberly", "Williams", "Marshall", "Stetmann"],
+        "tip": "Tank players have a natural advantage on Mon/Thu. Always attack Butcher on these days."
       },
       "Frankenstein": {
         "days": ["Tuesday", "Friday"],
-        "troop_bonus": "Missile",
-        "bonus": "+50% damage for Missile troops"
+        "best_troop_type": "Missile",
+        "damage_bonus": "+50% damage for Missile heroes",
+        "best_heroes": ["Tesla", "Swift", "McGregor", "Fiona", "Adam"],
+        "tip": "Missile squad excels here. If you're a Tank player, you still get rewards but deal less damage."
       },
-      "Mutant Bulldog": {
+      "Mutant_Bulldog": {
         "days": ["Wednesday", "Saturday"],
-        "troop_bonus": "Aircraft",
-        "bonus": "+50% damage for Aircraft troops"
+        "best_troop_type": "Aircraft",
+        "damage_bonus": "+50% damage for Aircraft heroes",
+        "best_heroes": ["DVA", "Carlie", "Schuyler", "Lucius", "Morrison"],
+        "tip": "Aircraft squad dominates Wed/Sat. Tank players should still attack for participation rewards."
       }
     },
-    "sunday": "No Wanted Monster active on Sunday"
-  },
-  "doom_walker": {
-    "season_2_reward": "First kill each day grants a coal bonus - always kill the highest-level Doom Walker reachable",
-    "tip": "Kill on Day 1 of the season for maximum early coal",
-    "respawn": "Doom Walkers respawn daily - consistent kills accelerate season progress"
-  },
-  "polar_beasts": {
-    "description": "Season 2 Polar Storm dig site bosses - each beast is weak to one troop type",
-    "Bear":    { "weakness": "Tank",     "location": "Dig Sites" },
-    "Gorilla": { "weakness": "Missile",  "location": "Dig Sites" },
-    "Mammoth": { "weakness": "Aircraft", "location": "Dig Sites" }
-  },
-  "code_boss_reminder": "Code Boss (Code 87 / Code 39 / Code 64) has a DIFFERENT attack limit: max 3 attacks per day, NOT 5. Full Code Boss details are in code_boss.json."
-}
+    "general_rules": [
+      "Spawns at server time 0:00, 6:00, 12:00, 18:00 - active for 3 hours each spawn",
+      "Max 5 solo attacks per day",
+      "Rankings based on highest single-attack damage per day",
+      "Always attack AFTER Hero Advancement phase of Arms Race for maximum power",
+      "Use War Fever before attacking for +1% power boost",
+      "Rally with alliance members for higher damage",
+      "Goals rewards are one-time only and based on highest single-hit damage"
+    ],
+    "weekly_calendar": {
+      "source": "KB - bosses.json confirmed with lastwartutorial.com",
+      "Sunday": {
+        "day_number": 0,
+        "wanted_monsters": "NONE",
+        "note": "No Wanted Monster active on Sunday. Use for preparation and resource gathering."
+      },
+      "Monday": {
+        "day_number": 1,
+        "wanted_monster": "Frenzied Butcher",
+        "bonus_troop_type": "Tank",
+        "damage_bonus": "+50%",
+        "best_heroes": ["Murphy", "Kimberly", "Williams", "Marshall", "Stetmann"],
+        "strategy": "Primary damage day for Tank players. Max all 5 attacks."
+      },
+      "Tuesday": {
+        "day_number": 2,
+        "wanted_monster": "Frankenstein",
+        "bonus_troop_type": "Missile",
+        "damage_bonus": "+50%",
+        "best_heroes": ["Tesla", "Swift", "McGregor", "Fiona", "Adam"],
+        "strategy": "Primary damage day for Missile players. Tank players get base rewards only."
+      },
+      "Wednesday": {
+        "day_number": 3,
+        "wanted_monster": "Mutant Bulldog",
+        "bonus_troop_type": "Aircraft",
+        "damage_bonus": "+50%",
+        "best_heroes": ["DVA", "Carlie", "Schuyler", "Lucius", "Morrison"],
+        "strategy": "Primary damage day for Aircraft players. Tank players get base rewards only."
+      },
+      "Thursday": {
+        "day_number": 4,
+        "wanted_monster": "Frenzied Butcher",
