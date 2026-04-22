@@ -97,6 +97,96 @@
       "Mythic Blueprints are rare — required only for 4-star to 5-star upgrade",
       "Concentrate gear upgrades on main squad heroes first, never spread across benched heroes",
       "Attack heroes should have gun and chip prioritised; Defense heroes should have radar and armor prioritised"
-    ]
+    ],
+    "roi_analysis": {
+      "source": "Calculated from upgrade_costs table - gold/ore efficiency per 10 levels",
+      "note": "ROI = stat gain per resource spent. Lower gold cost per level = better early ROI. Higher costs at star levels require planning.",
+      "level_0_to_40": {
+        "total_gold": "29.1M",
+        "total_ore": "194.8k",
+        "cost_per_level": {
+          "gold": "727.5k per level",
+          "ore": "4.87k per level"
+        },
+        "breakpoints": ["Level 10: safe threshold for all gear", "Level 20: defense hero standpoint", "Level 40: before star investment"],
+        "recommendation": "Get ALL gear to level 40 before pushing stars. Cheapest phase of upgrades."
+      },
+      "level_40_to_1star": {
+        "total_gold": "93.6M",
+        "total_ore": "62.5k",
+        "cost_per_level": "Gold spike! 93.6M for 1 star level",
+        "breakpoints": ["Star threshold - gold intensive", "Ore is cheap at this phase"],
+        "recommendation": "SAVE 93.6M gold before attempting. Only push main DPS hero first."
+      },
+      "1star_to_4star": {
+        "total_gold": "451.2M",
+        "total_ore": "318.0k",
+        "cost_breakdown": [
+          "1-2 star: 121.6M gold (expensive)",
+          "2-3 star: 150M gold (most expensive)",
+          "3-4 star: 178M gold (plateau)"
+        ],
+        "breakpoints": ["2-3 star is the peak cost", "After 4-star, consider stopping for most heroes"],
+        "recommendation": "Phase this over weeks. 2-3 star is breakpoint where many players stop."
+      },
+      "4star_to_5star": {
+        "total_gold": "206M",
+        "total_ore": "138k",
+        "special_requirement": "10 Mythic Blueprints (rarest resource)",
+        "recommendation": "ONLY for top DPS heroes (Kimberly, DVA, Tesla). Wait until mythic blueprints accumulated."
+      }
+    },
+    "upgrade_priority_by_phase": {
+      "source": "SHADOWSTRIKE1 strategy + KB consolidation",
+      "phase_1_level_0_to_40": {
+        "duration": "Early-mid game (weeks 1-4)",
+        "gold_available": "3-10M weekly from events",
+        "action": "Get ALL gear to level 10 first (safest investment). Then prioritize attack hero weapons (Kimberly gun, DVA gun, Tesla gun)",
+        "heroes_to_focus": ["Kimberly", "DVA OR Tesla depending on squad type"],
+        "gear_order": ["All heroes level 10", "Main DPS gun to 40", "Main DPS chip to 40", "Defense radar to 40", "Support gun to 20"]
+      },
+      "phase_2_level_40_to_2star": {
+        "duration": "Mid game (weeks 5-10)",
+        "gold_available": "20-30M weekly from building sales + events",
+        "action": "SAVE minimum 200M gold before starting stars. Push main DPS to 1-2 star.",
+        "heroes_to_focus": ["Kimberly gun/chip ONLY", "Then consider defensive radar for tank heroes"],
+        "stopping_point": "Many players stop at 1-star and skip 2-star (too expensive)."
+      },
+      "phase_3_level_2star_to_4star": {
+        "duration": "Late game (weeks 11+)",
+        "gold_available": "30-50M weekly from resource buildings",
+        "action": "Push main DPS to 4-star. This is the hard stop for casual players.",
+        "breakpoint_warning": "2-star to 3-star jump (+150M gold) - prepare large reserves",
+        "heroes_to_focus": ["Kimberly to 4-star", "Secondary DPS (Stetmann/DVA) to 1-star only"]
+      },
+      "phase_4_level_4star_to_5star": {
+        "duration": "Endgame (week 20+)",
+        "gold_available": "50M+ weekly if optimized",
+        "resource_gate": "Mythic Blueprints - accumulate 10 before attempting",
+        "heroes_to_focus": ["Only absolute top DPS (Kimberly first)", "Rest of squad stays at 4-star"]
+      }
+    },
+    "upgrade_sequence_tank_squad_detailed": {
+      "source": "SHADOWSTRIKE1 (Reddit) + KB consolidation",
+      "full_sequence": [
+        {"step": 1, "target": "All heroes - level 10", "cost": "Combined 18M gold + 115k ore", "rationale": "Baseline investment, required for all heroes"},
+        {"step": 2, "target": "Kimberly gun - level 40", "cost": "49.9M gold + 194.8k ore", "rationale": "Main DPS - highest priority for attack hero"},
+        {"step": 3, "target": "Williams/Murphy radar - level 40", "cost": "49.9M gold + 194.8k ore", "rationale": "Defense priority - protect main DPS"},
+        {"step": 4, "target": "Kimberly data chip - level 40", "cost": "49.9M gold + 194.8k ore", "rationale": "Attack hero secondary - completes main DPS gear"},
+        {"step": 5, "target": "Williams/Murphy armor - level 20", "cost": "8.8M gold + 58.8k ore", "rationale": "Minimum armor investment - defense fallback"},
+        {"step": 6, "target": "Kimberly gun - 1-star", "cost": "93.6M gold + 62.5k ore + 750 ceramic + 5 blueprints", "rationale": "Star threshold - main DPS power spike"},
+        {"step": 7, "target": "Marshall gun - level 20", "cost": "5.9M gold + 38.8k ore", "rationale": "Support hero utility - buffs all squad"},
+        {"step": 8, "target": "Kimberly data chip - 1-star", "cost": "121.6M gold + 81k ore + 975 ceramic + 10 blueprints", "rationale": "Complete main DPS star push"},
+        {"step": 9, "target": "Stetmann gun/chip - level 40", "cost": "99.8M gold + 389.6k ore", "rationale": "Secondary DPS setup"},
+        {"step": 10, "target": "Williams/Murphy armor - level 40", "cost": "49.9M gold + 194.8k ore", "rationale": "Complete defense gear"},
+        {"step": 11, "target": "Kimberly gun - 4-star", "cost": "328.8M gold + 318k ore + 2625 ceramic + 45 blueprints", "rationale": "Main DPS to 4-star - major power spike, stop here for many"},
+        {"step": 12, "target": "All gear - 1-star", "cost": "600-800M gold total (entire squad)", "rationale": "Only if you have massive gold reserves"}
+      ],
+      "major_cost_gates": [
+        {"gate": "Star threshold (step 6)", "cost": "93.6M gold", "advice": "SAVE before attempting"},
+        {"gate": "2-star to 3-star (implied in sequence)", "cost": "150M gold peak", "advice": "This is where many quit"},
+        {"gate": "4-star (step 11)", "cost": "328.8M gold cumulative", "advice": "Stop here unless committed to 5-star"}
+      ]
+    }
   }
 }
