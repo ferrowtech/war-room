@@ -237,7 +237,11 @@ function buildSystemPrompt({ server, squad_types = [], troop_type, furnace_level
   const beastTarget    = POLAR_BEAST[troop_type]    || "Bear";
   const wantedMonster  = WANTED_MONSTER[troop_type] || { name: "Unknown", days: "check schedule" };
 
-  const today = new Date().toLocaleDateString("en-US", { weekday: "long" });
+  const nowST         = new Date(Date.now() - 2 * 3600000); // UTC-2 server time
+  const serverHour    = nowST.getUTCHours();
+  const serverMinute  = nowST.getUTCMinutes();
+  const serverTimeStr = `${String(serverHour).padStart(2, "0")}:${String(serverMinute).padStart(2, "0")} ST`;
+  const today         = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"][nowST.getUTCDay()];
   const activeBossToday = WANTED_MONSTER_BY_DAY[today] ?? null;
   const bossStatusToday = activeBossToday
     ? activeBossToday === wantedMonster.name
@@ -261,6 +265,7 @@ Drone Level: ${drone_level != null ? drone_level : "not set"}
 HQ Level: ${hq_level != null ? hq_level : "not set"}
 Virus Resistance: ${virus_resistance != null ? virus_resistance : "not set"}
 Today: ${today}
+Server Time: ${serverTimeStr}
 ${weekLine}
 Note: player may intentionally use 1 off-type hero in a squad (4+1 meta). The declared squad type is always correct. Do not suggest this is an error.
 
@@ -316,6 +321,22 @@ KEY GEAR RULES:
 - Gold costs spike heavily at star upgrades - prepare reserves before pushing to 1-star+
 - Mythic Blueprints required only for 4-star to 5-star upgrade
 When player asks about gear, always reference their Squad 1 type (${troop_type}) to name the correct DPS hero for gear priority.
+
+PROACTIVE REMINDER RULE:
+Current server time: ${serverTimeStr} on ${today}.
+Based on the server day and time above, always append a proactive reminder block at the END of any briefing response.
+Apply ALL rules that match the current day and time (multiple can apply):
+
+- SUNDAY after 20:00 ST: ⚠️ HIGH PRIORITY - "Collect all resources NOW - tomorrow Monday is Alliance Duel gathering bonus day (Gold/Iron/Food + Drone Parts). Send all gatherers out tonight."
+- WEDNESDAY any time: ⚠️ HIGH PRIORITY - "VALOR BADGE day - claim it from Alliance Duel. Never skip this - it is critical for the VS research tree."
+- THURSDAY any time: 📌 REMINDER - "HERO DAY - best day to spend Skill Medals and Hero Shards for Alliance Duel points."
+- FRIDAY any time: 📌 REMINDER - "BIGGEST reward day - maximise Building, Research and Training today. All three active simultaneously."
+- FRIDAY after 20:00 ST: ⚠️ HIGH PRIORITY - "Set your SHIELD before going offline - tomorrow Saturday is Unit Killed day, PvP activity will be high."
+- SATURDAY any time: ⚠️ HIGH PRIORITY - "HIGH PvP day - either set a shield or be ready to fight. Do not leave base exposed and unattended."
+
+Format as a separate block with header "PROACTIVE REMINDER" or "TODAY'S ALERT".
+Use ⚠️ for HIGH PRIORITY reminders and 📌 for medium priority.
+If no rule matches the current day and time, omit the reminder block entirely.
 
 DRONE RULE:
 ${drone_level != null
