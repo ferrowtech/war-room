@@ -11,6 +11,42 @@ const SERVER_WEEK_URL = "/.netlify/functions/server-week";
 const HISTORY_KEY     = "warroom_history";
 const LANG_KEY        = "warroom_lang";
 const MAX_HISTORY     = 20;
+const USER_ID_KEY     = "war_room_user_id";
+const QUERY_LOG_KEY   = "war_room_query_log";
+const TIER_KEY        = "war_room_tier";
+const FREE_LIMIT      = 10;
+
+const getUserId = () => {
+  let id = localStorage.getItem(USER_ID_KEY);
+  if (!id) {
+    id = typeof crypto !== "undefined" && crypto.randomUUID
+      ? crypto.randomUUID()
+      : "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
+          const r = (Math.random() * 16) | 0;
+          return (c === "x" ? r : (r & 0x3) | 0x8).toString(16);
+        });
+    localStorage.setItem(USER_ID_KEY, id);
+  }
+  return id;
+};
+
+const getQueryLog = () => {
+  const today = new Date().toDateString();
+  try {
+    const stored = JSON.parse(localStorage.getItem(QUERY_LOG_KEY) || "{}");
+    if (stored.date === today) return stored;
+  } catch (e) { /* ignore */ }
+  return { date: today, count: 0 };
+};
+
+const incrementQueryCount = () => {
+  const log = getQueryLog();
+  const updated = { ...log, count: log.count + 1 };
+  localStorage.setItem(QUERY_LOG_KEY, JSON.stringify(updated));
+  return updated.count;
+};
+
+const getTier = () => localStorage.getItem(TIER_KEY) || "free";
 
 // ── Hero type map — Squad 1 (indices 0–4) determines the primary troop type ──
 const HERO_TYPES_MAP = {
@@ -559,6 +595,50 @@ const WarCountdownWidget = ({ tr, language }) => {
   );
 };
 
+// ── Feedback Link ─────────────────────────────────────────────────
+const FeedbackLink = () => (
+  <a
+    href="mailto:volddev78@gmail.com?subject=WAR%20ROOM%20Feedback"
+    data-testid="feedback-link"
+    className="font-heading tracking-widest transition-colors"
+    style={{ fontSize: "12px", color: "#666", textDecoration: "none" }}
+    onMouseEnter={(e) => { e.currentTarget.style.color = "#00d9ff"; }}
+    onMouseLeave={(e) => { e.currentTarget.style.color = "#666"; }}
+  >
+    Share Feedback
+  </a>
+);
+
+// ── Paywall Modal ─────────────────────────────────────────────────
+const PaywallModal = ({ onDismiss }) => (
+  <div className="fixed inset-0 z-[100] flex items-center justify-center" data-testid="paywall-modal">
+    <div className="absolute inset-0 bg-black/70" onClick={onDismiss} />
+    <div
+      className="relative z-10 max-w-sm w-full mx-4 p-6 border border-[#4fc3f7]/30"
+      style={{ background: "rgba(8,12,22,0.98)", boxShadow: "0 0 40px rgba(79,195,247,0.15)" }}
+    >
+      <h2 className="font-heading text-sm text-[#4fc3f7] tracking-[0.3em] mb-3">QUERY LIMIT REACHED</h2>
+      <p className="font-heading text-xs text-[#b3e5fc] leading-relaxed mb-5">
+        You've used your 10 free queries today. Upgrade to WAR ROOM PRO for unlimited access.
+      </p>
+      <div className="mb-4 flex justify-center">
+        <stripe-buy-button
+          buy-button-id="buy_btn_1TQ5ECFZY4lFuKwAtGeIGUB7"
+          publishable-key="pk_live_m3qScVCEEgOP4UiAki5bTOPW"
+        />
+      </div>
+      <button
+        data-testid="paywall-dismiss-btn"
+        onClick={onDismiss}
+        className="w-full py-2 font-heading text-xs text-[#37474f] tracking-[0.25em] border border-[#37474f]/30 hover:text-[#4fc3f7] hover:border-[#4fc3f7]/30 transition-colors"
+        style={{ background: "rgba(10,14,26,0.3)" }}
+      >
+        DISMISS
+      </button>
+    </div>
+  </div>
+);
+
 // ── Top Bar ───────────────────────────────────────────────────────
 const TopBar = ({ profile, onEditProfile, onTogglePanel, tr }) => (
   <div
@@ -702,6 +782,11 @@ const ProfilePanelContent = ({
 
       {/* Pinned: War Countdown */}
       <WarCountdownWidget tr={tr} language={language} />
+
+      {/* Feedback */}
+      <div className="px-4 py-2 border-t border-[#37474f]/20 flex justify-center">
+        <FeedbackLink />
+      </div>
     </div>
   );
 };
@@ -748,6 +833,8 @@ const WarRoom = ({ profile, onEditProfile }) => {
   const [history,       setHistory]       = useState(loadHistory);
   const [showHistory,   setShowHistory]   = useState(false);
   const [detectingWeek, setDetectingWeek] = useState(false);
+  const [showPaywall,   setShowPaywall]   = useState(false);
+  const [queryCount,    setQueryCount]    = useState(() => getQueryLog().count);
   const reportRef          = useRef(null);
   const fileInputRef       = useRef(null);
   const isMounted          = useRef(true);
@@ -797,10 +884,15 @@ const WarRoom = ({ profile, onEditProfile }) => {
   const handleSubmit = async (overrideQ) => {
     const q = typeof overrideQ === "string" ? overrideQ.trim() : question.trim();
     if (!q || isLoading) return;
+    if (getTier() === "free") {
+      const log = getQueryLog();
+      if (log.count >= FREE_LIMIT) { setShowPaywall(true); return; }
+    }
     if (isMounted.current) { setError(""); setIsLoading(true); }
     let rawResponse = null;
     try {
       const effectiveWeek = localProfile.seasonWeek || getSeasonWeekFromDate(localProfile?.seasonStartDate);
+      const currentLog = getQueryLog();
       const payload = {
         question: q,
         server: String(localProfile.server),
@@ -814,6 +906,8 @@ const WarRoom = ({ profile, onEditProfile }) => {
         squad_powers: localProfile.squadPowers || [],
         season_week: effectiveWeek,
         language,
+        user_id: getUserId(),
+        query_count: currentLog.count,
         ...(uploadedImage ? { image_base64: uploadedImage } : {}),
       };
       const res = await axios.post(BRIEF_URL, payload);
@@ -822,6 +916,8 @@ const WarRoom = ({ profile, onEditProfile }) => {
       if (isDev) console.log("[WAR ROOM] Response text length:", rawResponse.length, "chars");
       if (isDev && !rawResponse) console.warn("[WAR ROOM] Response is empty - res.data:", res.data);
       if (isMounted.current) {
+        const newCount = incrementQueryCount();
+        setQueryCount(newCount);
         const newHistory = saveToHistory(q, rawResponse);
         setHistory(newHistory);
         setQuestion("");
@@ -848,6 +944,7 @@ const WarRoom = ({ profile, onEditProfile }) => {
 
   return (
     <div className="war-noise min-h-screen bg-[#0a0e1a] flex flex-col relative overflow-hidden" data-testid="warroom-screen">
+      {showPaywall && <PaywallModal onDismiss={() => setShowPaywall(false)} />}
       <div className="absolute inset-0 pointer-events-none" style={{ backgroundImage: "linear-gradient(rgba(79,195,247,0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(79,195,247,0.025) 1px, transparent 1px)", backgroundSize: "60px 60px" }} />
 
       <TopBar profile={localProfile} onEditProfile={onEditProfile} onTogglePanel={() => setPanelOpen((v) => !v)} tr={tr} />
@@ -940,6 +1037,13 @@ const WarRoom = ({ profile, onEditProfile }) => {
                 )}
               </button>
             </div>
+            {getTier() === "free" && (
+              <div className="mt-1.5 flex justify-end">
+                <span data-testid="queries-indicator" className="font-heading text-[10px] text-[#37474f] tracking-widest">
+                  Queries: {queryCount}/{FREE_LIMIT}
+                </span>
+              </div>
+            )}
           </div>
 
           {response && <div ref={reportRef}><IntelligenceReport text={response} isLatest tr={tr} /></div>}
