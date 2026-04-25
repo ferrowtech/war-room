@@ -466,7 +466,7 @@ function detectQueryCategory(question) {
 }
 
 // ── Notion logging (awaited with 2s timeout) ──────────────────────────────────
-async function logToNotion({ question, answer, server, season_week, furnace_level, drone_level, heroes, image_base64, language }) {
+async function logToNotion({ question, answer, server, season_week, furnace_level, drone_level, heroes, image_base64, language, userId }) {
   const token = process.env.NOTION_TOKEN;
   const dbId  = process.env.NOTION_DATABASE_ID || "c5d645e5984147c0b257b13d651c6400";
 
@@ -497,6 +497,7 @@ async function logToNotion({ question, answer, server, season_week, furnace_leve
       Timestamp:       { date:      { start: new Date().toISOString() } },
       Language:        { select:    { name: langName } },
       "Query Category":{ select:    { name: category } },
+      "User ID":        { rich_text: [{ text: { content: String(userId || "") } }] },
       Tester:          { checkbox:  false },
     },
   };
@@ -567,6 +568,8 @@ exports.handler = async (event) => {
   const t0 = Date.now();
 
   const { question, server, furnace_level, heroes, season_week, image_base64, language = "EN" } = body;
+  const userId       = body.user_id      || null;
+  const query_count  = Number(body.query_count) || 0;
   const drone_level      = body.drone_level      || null;
   const hq_level         = body.hq_level         || null;
   const virus_resistance = body.virus_resistance != null ? Number(body.virus_resistance) : null;
@@ -633,11 +636,11 @@ exports.handler = async (event) => {
     // The timeout resolves (not rejects) so a slow/failed Notion call never blocks the response.
     const notionTimeout = new Promise((resolve) => setTimeout(resolve, 2000));
     await Promise.race([
-      logToNotion({ question, answer: response, server, season_week, furnace_level, drone_level, heroes, image_base64, language }),
+      logToNotion({ question, answer: response, server, season_week, furnace_level, drone_level, heroes, image_base64, language, userId }),
       notionTimeout,
     ]).catch((err) => console.error(`[NOTION] Unexpected error: ${err.message}`));
 
-    return { statusCode: 200, headers: CORS, body: JSON.stringify({ response }) };
+    return { statusCode: 200, headers: CORS, body: JSON.stringify({ response, queriesRemaining: Math.max(0, 10 - (query_count + 1)) }) };
   } catch (err) {
     console.error("[WAR ROOM] Fetch error:", err);
     return {
