@@ -702,7 +702,7 @@ const ProfilePanelContent = ({
       </div>
 
       {/* Scrollable section */}
-      <div className="p-4 space-y-4 overflow-y-auto flex-1">
+      <div className="p-4 space-y-4 overflow-y-auto flex-1 min-h-0">
         {/* Server */}
         <div>
           <p className="font-heading text-[9px] text-[#37474f] tracking-[0.3em] mb-1">{tr.server}</p>
@@ -714,8 +714,8 @@ const ProfilePanelContent = ({
         <div>
           <p className="font-heading text-[9px] text-[#37474f] tracking-[0.3em] mb-1">{tr.furnaceLevel}</p>
           <div className="flex items-center gap-2">
-            <div className="flex-1 h-1.5 bg-[#37474f]/40">
-              <div className="h-full bg-[#4fc3f7]" style={{ width: `${(profile.furnaceLevel / 20) * 100}%` }} />
+            <div className="flex-1 h-1.5 bg-[#37474f]/40 overflow-hidden">
+              <div className="h-full bg-[#4fc3f7]" style={{ width: `${Math.min((profile.furnaceLevel / 30) * 100, 100)}%` }} />
             </div>
             <span className="font-heading text-sm text-white w-5 text-right">{profile.furnaceLevel}</span>
           </div>
